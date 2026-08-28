@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 18: Advanced Memory Master</title>
+    <meta name="description" content="Level 18 – Multi-Layer Relationship Memory (4 Rounds) & Memory Transformation Challenge (4 Rounds)." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        /* ══════════════════════════════════════════
+           RESET & DESIGN TOKENS (Level 1/2 Standard)
+        ══════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep:     #050814;
+            --bg-mid:      #0b0f24;
+            --bg-card:     rgba(255,255,255,0.04);
+            --bg-card-h:   rgba(255,255,255,0.07);
+            --border:      rgba(255,255,255,0.09);
+            --border-h:    rgba(139,92,246,0.5);
+            --accent-1:    #8b5cf6;
+            --accent-2:    #06b6d4;
+            --accent-3:    #f59e0b;
+            --glow:        rgba(139,92,246,0.35);
+            --text-pri:    #f0f4ff;
+            --text-sec:    rgba(240,244,255,0.55);
+            --text-muted:  rgba(240,244,255,0.28);
+            --success:     #34d399;
+            --warning:     #fbbf24;
+            --error:       #f87171;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-pri);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ══════════════════════════════════════════
+           BACKGROUND
+        ══════════════════════════════════════════ */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            background: var(--bg-deep); overflow: hidden; pointer-events: none;
+        }
+        .bg-scene::before {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 750px; height: 750px;
+            background: radial-gradient(circle, rgba(139,92,246,0.16), transparent 70%);
+            top: -200px; left: -200px;
+            animation: orb 16s ease-in-out infinite alternate;
+        }
+        .bg-scene::after {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 650px; height: 650px;
+            background: radial-gradient(circle, rgba(6,182,212,0.13), transparent 70%);
+            bottom: -150px; right: -150px;
+            animation: orb 20s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes orb {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(60px,80px) scale(1.15); }
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ══════════════════════════════════════════
+           PAGE LAYOUT & TOPBAR
+        ══════════════════════════════════════════ */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; padding: 32px 20px;
+        }
+
+        .level-topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(5,8,20,0.85);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 10px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.2s ease;
+        }
+        .btn-back:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+        .btn-back svg { width: 16px; height: 16px; }
+        .topbar-level-info h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+        .topbar-level-info span { font-size: 11px; color: var(--text-muted); }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+        .part-indicator {
+            display: flex; align-items: center; gap: 7px;
+            padding: 6px 14px; border-radius: 100px;
+            background: rgba(139,92,246,0.12);
+            border: 1px solid rgba(139,92,246,0.3);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+        .part-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); transition: background 0.3s ease;
+        }
+        .part-dot.active { background: var(--accent-1); box-shadow: 0 0 8px var(--glow); }
+        .part-dot.done   { background: var(--success); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+
+        /* ══════════════════════════════════════════
+           GAME CARD
+        ══════════════════════════════════════════ */
+        .game-card {
+            width: 100%; max-width: 680px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 28px; padding: 32px 28px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 24px 64px rgba(0,0,0,0.55),
+                0 0 80px rgba(139,92,246,0.08);
+            text-align: center;
+            margin-top: 68px;
+        }
+
+        .game-state { display: none; animation: fade-up 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display: block; }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Typography & Badges ── */
+        .intro-emoji { font-size: 56px; margin-bottom: 16px; animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(139,92,246,0.4)); }
+        }
+        .intro-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .intro-subtitle { font-size: 14px; color: var(--text-sec); margin-bottom: 8px; }
+        .intro-desc {
+            font-size: 13px; color: var(--text-muted); margin-bottom: 28px;
+            line-height: 1.7; max-width: 520px; margin-left: auto; margin-right: auto;
+        }
+        .game-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 100px; margin-bottom: 16px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(6,182,212,0.10));
+            border: 1px solid rgba(139,92,246,0.35);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 36px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 24px rgba(139,92,246,0.45);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            min-width: 180px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 36px rgba(139,92,246,0.55);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; border-radius: 12px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: var(--bg-card-h); color: var(--text-pri);
+            border-color: var(--border-h);
+        }
+        .btn-row { display: flex; justify-content: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+        /* ── HUD & Progress ── */
+        .stage-hud {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; padding: 0 4px;
+        }
+        .hud-title { font-size: 13.5px; font-weight: 700; color: var(--accent-2); }
+        .hud-timer {
+            font-size: 14px; font-weight: 800; color: #fbbf24;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .progress-bar-wrap {
+            width: 100%; height: 6px; background: rgba(255,255,255,0.06);
+            border-radius: 10px; overflow: hidden; margin-bottom: 16px;
+        }
+        .progress-bar-fill {
+            height: 100%; width: 25%; background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+            transition: width 0.3s ease;
+        }
+        .prompt-instruction {
+            font-size: 14px; color: var(--text-sec); margin-bottom: 14px; line-height: 1.5;
+        }
+
+        /* ══════════════════════════════════════════
+           PART 1: MEMORIZATION GRID (Compact & Centered)
+        ══════════════════════════════════════════ */
+        .grid-memo {
+            display: grid; gap: 4px; max-width: 320px; width: 100%; margin: 12px auto 16px;
+            padding: 8px; background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+            border-radius: 16px; box-shadow: inset 0 0 16px rgba(0,0,0,0.3);
+        }
+        .grid-5x5 { grid-template-columns: repeat(5, 1fr); max-width: 280px; }
+        .grid-6x6 { grid-template-columns: repeat(6, 1fr); max-width: 320px; }
+        .grid-7x7 { grid-template-columns: repeat(7, 1fr); max-width: 360px; }
+
+        .grid-cell {
+            aspect-ratio: 1; background: rgba(255,255,255,0.025);
+            border: 1px solid var(--border); border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 800; position: relative; user-select: none;
+            padding: 2px; line-height: 1; transition: all 0.2s ease;
+        }
+        .grid-cell.occupied {
+            background: rgba(139,92,246,0.14); border-color: rgba(139,92,246,0.45);
+            box-shadow: inset 0 0 10px rgba(139,92,246,0.18);
+        }
+        .cell-sub-num {
+            font-size: 10px; font-weight: 900; color: var(--accent-3);
+            margin-top: 2px; line-height: 1;
+        }
+        .grid-7x7 .grid-cell {
+            font-size: 14px; border-radius: 6px;
+        }
+        .grid-7x7 .cell-sub-num {
+            font-size: 9px;
+        }
+
+        /* ── Odd-Shape Interference Task ── */
+        .distraction-card {
+            background: rgba(236,72,153,0.06); border: 2px dashed rgba(236,72,153,0.35);
+            border-radius: 20px; padding: 22px 18px; margin: 16px auto; max-width: 560px;
+        }
+        .distraction-grid {
+            display: flex; justify-content: center; gap: 10px;
+            margin: 16px auto 0; flex-wrap: wrap; max-width: 520px;
+        }
+        .distraction-btn {
+            background: var(--bg-card); border: 2px solid var(--border);
+            border-radius: 12px; width: 50px; height: 50px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; user-select: none;
+        }
+        .distraction-btn:hover {
+            border-color: #ec4899; background: rgba(236,72,153,0.18);
+            transform: scale(1.08);
+        }
+
+        /* ── Part 1 Question Card ── */
+        .question-card {
+            background: rgba(255,255,255,0.03); border: 1.5px solid rgba(139,92,246,0.3);
+            border-radius: 22px; padding: 24px 20px; margin: 16px auto; max-width: 540px;
+        }
+        .question-prompt {
+            font-size: 18px; font-weight: 800; margin: 12px 0 20px;
+            color: var(--text-pri); line-height: 1.4;
+        }
+        .options-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            max-width: 440px; margin: 0 auto;
+        }
+        .opt-btn {
+            background: var(--bg-card); border: 1.5px solid var(--border);
+            border-radius: 12px; padding: 12px 10px; font-size: 15px; font-weight: 700;
+            color: var(--text-pri); cursor: pointer; transition: all 0.2s;
+        }
+        .opt-btn:hover {
+            border-color: var(--accent-1); background: rgba(139,92,246,0.15);
+            transform: scale(1.03);
+        }
+        .opt-btn.correct {
+            border-color: var(--success) !important; background: rgba(52,211,153,0.2) !important;
+            color: var(--success); box-shadow: 0 0 14px rgba(52,211,153,0.4);
+        }
+        .opt-btn.wrong {
+            border-color: var(--error) !important; background: rgba(248,113,113,0.2) !important;
+            color: var(--error); box-shadow: 0 0 14px rgba(248,113,113,0.4);
+            animation: shake-el 0.3s ease;
+        }
+
+        /* ══════════════════════════════════════════
+           PART 2: TRANSFORMATION CHALLENGE
+        ══════════════════════════════════════════ */
+        .seq-display-box {
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; margin: 16px auto; padding: 14px 16px;
+            background: rgba(255,255,255,0.03); border: 1.5px solid var(--border);
+            border-radius: 16px; max-width: 620px; flex-wrap: wrap;
+        }
+        .seq-chip {
+            padding: 8px 14px; border-radius: 10px;
+            background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.35);
+            font-size: 20px; font-weight: 800; color: var(--text-pri);
+        }
+        .rules-list-box {
+            display: flex; flex-direction: column; gap: 8px;
+            margin: 16px auto; max-width: 580px; text-align: left;
+        }
+        .rule-step-item {
+            background: rgba(255,255,255,0.03); border-left: 3px solid var(--accent-3);
+            border-radius: 8px; padding: 10px 14px; font-size: 13.5px;
+            font-weight: 600; color: var(--text-sec);
+        }
+
+        .user-seq-container {
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; min-height: 56px; margin: 14px auto; padding: 10px 14px;
+            background: rgba(0,0,0,0.3); border: 2px dashed rgba(139,92,246,0.4);
+            border-radius: 14px; max-width: 620px; flex-wrap: wrap;
+        }
+        .user-token-chip {
+            padding: 6px 12px; border-radius: 8px;
+            background: rgba(6,182,212,0.18); border: 1px solid rgba(6,182,212,0.4);
+            font-size: 18px; font-weight: 800; color: #38bdf8; cursor: pointer;
+            transition: all 0.18s;
+        }
+        .user-token-chip:hover {
+            border-color: var(--error); background: rgba(248,113,113,0.2);
+            transform: scale(0.95);
+        }
+
+        .palette-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+            max-width: 540px; margin: 14px auto;
+        }
+        .token-btn {
+            background: var(--bg-card); border: 1.5px solid var(--border);
+            border-radius: 10px; padding: 8px; font-size: 17px; font-weight: 800;
+            color: var(--text-pri); cursor: pointer; transition: all 0.18s;
+        }
+        .token-btn:hover {
+            border-color: var(--accent-1); background: rgba(139,92,246,0.2);
+            transform: scale(1.08);
+        }
+
+        /* ── Feedback Notification ── */
+        .toast-msg {
+            display: none; padding: 12px 24px; border-radius: 14px;
+            font-size: 14px; font-weight: 800; margin-bottom: 14px;
+            animation: fade-up 0.25s ease;
+        }
+        .toast-msg.success { display: inline-block; background: rgba(52,211,153,0.15); border: 1px solid var(--success); color: var(--success); }
+        .toast-msg.error   { display: inline-block; background: rgba(248,113,113,0.15); border: 1px solid var(--error); color: var(--error); }
+
+        @keyframes shake-el {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        canvas#confetti-canvas { position: fixed; inset: 0; z-index: 250; pointer-events: none; }
+
+        @media (max-width: 580px) {
+            .game-card { padding: 24px 14px; margin-top: 60px; }
+            .grid-memo { gap: 3px; padding: 6px; }
+            .grid-5x5 { max-width: 250px; }
+            .grid-6x6 { max-width: 280px; }
+            .grid-7x7 { max-width: 310px; }
+            .grid-cell { font-size: 13px; border-radius: 6px; }
+            .cell-sub-num { font-size: 8.5px; }
+            .distraction-grid { gap: 6px; }
+            .distraction-btn { width: 42px; height: 42px; }
+            .palette-grid { grid-template-columns: repeat(4, 1fr); }
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-scene"></div>
+<div class="bg-grid"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- Top Bar (Exact Level 1 / Level 2 Style) -->
+<header class="level-topbar">
+    <div class="topbar-left">
+        <a href="dashboard.html" class="btn-back" id="btn-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Dashboard
+        </a>
+        <div class="topbar-level-info">
+            <h1>Level 18 – Advanced Memory Master</h1>
+            <span id="topbar-part-label">Part 1: Multi-Layer Relationship Memory</span>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <!-- Single Theme Toggle & Part Indicator with Dots -->
+        <button class="theme-toggle-btn" id="theme-header-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+        <div class="part-indicator">
+            <span>Parts</span>
+            <div class="part-dot active" id="dot-1"></div>
+            <div class="part-dot" id="dot-2"></div>
+        </div>
+    </div>
+</header>
+
+<main class="page-wrapper">
+    <div class="game-card">
+
+        <!-- ═══════ STATE 1: INTRO ═══════ -->
+        <div class="game-state active" id="state-intro">
+            <div class="game-badge" id="intro-badge">🧠 Level 18 • Part 1</div>
+            <div class="intro-emoji" id="intro-emoji">🧬</div>
+            <div class="intro-title" id="intro-title">Multi-Layer Relationship Memory</div>
+            <div class="intro-subtitle" id="intro-subtitle">Remember symbols, positions, and numbers</div>
+            <div class="intro-desc" id="intro-desc">
+                Engage elite cognitive memory: Master multi-layer spatial & associative recall across 4 progressive grids despite focus interference tasks.
+            </div>
+            <button class="btn-primary" id="btn-start">
+                ▶ Start Game
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 2: PART 1 – MEMORIZATION GRID ═══════ -->
+        <div class="game-state" id="state-p1-memo">
+            <div class="game-badge">🧠 Part 1 • Multi-Layer Memory</div>
+            <div class="stage-hud">
+                <span class="hud-title" id="p1-round-title">Round 1 / 4</span>
+                <span class="hud-timer">⏱ <span id="p1-memo-timer-val">15</span>s</span>
+            </div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="p1-progress-bar" style="width: 25%;"></div>
+            </div>
+
+            <p class="prompt-instruction">Memorize every symbol, number, position, and spatial relationship!</p>
+
+            <div class="grid-memo" id="p1-memo-grid">
+                <!-- Grid Cells generated dynamically -->
+            </div>
+        </div>
+
+        <!-- ═══════ STATE 3: PART 1 – INTERFERENCE TASK ═══════ -->
+        <div class="game-state" id="state-p1-distract">
+            <div class="game-badge">⚡ Focus Interference Task</div>
+            <div class="stage-hud">
+                <span class="hud-title">INTERFERENCE RESISTANCE</span>
+                <span class="hud-timer">🔍 SPOT THE ODD SHAPE</span>
+            </div>
+
+            <div class="distraction-card">
+                <p class="prompt-instruction" style="color:#f472b6;">Identify the one shape that is slightly different from the others:</p>
+                <div class="distraction-grid" id="p1-distract-choices">
+                    <!-- Distraction shapes -->
+                </div>
+            </div>
+            <div id="p1-distract-toast" class="toast-msg"></div>
+        </div>
+
+        <!-- ═══════ STATE 4: PART 1 – MULTI-LAYER QUESTIONS ═══════ -->
+        <div class="game-state" id="state-p1-quest">
+            <div class="game-badge">🧠 Multi-Layer Recall</div>
+            <div class="stage-hud">
+                <span class="hud-title" id="p1-q-round-label">Round 1 / 4</span>
+                <span class="hud-timer" id="p1-q-counter-label">Question 1 / 4</span>
+            </div>
+
+            <div id="p1-quest-toast" class="toast-msg"></div>
+
+            <div class="question-card">
+                <div class="question-prompt" id="p1-quest-prompt">What number was associated with ⭐?</div>
+                <div class="options-grid" id="p1-quest-options">
+                    <!-- 4 options -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ STATE 5: PART 1 COMPLETE ═══════ -->
+        <div class="game-state" id="state-part1-complete">
+            <div class="intro-emoji">🎉</div>
+            <div class="intro-title" style="color: #34d399;">PART 1 COMPLETE!</div>
+            <div class="intro-subtitle">Multi-Layer Relations Mastered</div>
+            <div class="intro-desc">
+                Outstanding memory capacity! You solved all 4 multi-layer relation rounds despite subtle distraction tasks.
+            </div>
+            <button class="btn-primary" id="btn-goto-part2">
+                Continue to Part 2: Memory Transformation ▶
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 6: PART 2 INTRO PAGE ═══════ -->
+        <div class="game-state" id="state-intro-p2">
+            <div class="game-badge">🔄 Level 18 • Part 2</div>
+            <div class="intro-emoji">🔮</div>
+            <div class="intro-title">Memory Transformation</div>
+            <div class="intro-subtitle">Observe. Transform. Reconstruct.</div>
+            <div class="intro-desc">
+                Engage sequential working memory execution: Memorize initial token sequences and sequential transformation rules, then reconstruct the final transformed sequence across 4 progressive rounds.
+            </div>
+            <button class="btn-primary" id="btn-start-p2">
+                ▶ Start Game
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 7: PART 2 – MEMORIZATION (Sequence + Rules) ═══════ -->
+        <div class="game-state" id="state-p2-memo">
+            <div class="game-badge">🔄 Part 2 • Transformation Challenge</div>
+            <div class="stage-hud">
+                <span class="hud-title" id="p2-round-title">Round 1 / 4</span>
+                <span class="hud-timer">⏱ <span id="p2-memo-timer-val">15</span>s</span>
+            </div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="p2-progress-bar" style="width: 25%;"></div>
+            </div>
+
+            <p class="prompt-instruction">Memorize the original sequence and all transformation rules in exact order!</p>
+
+            <div class="intro-subtitle" style="text-align:left; max-width:620px; margin:0 auto 4px;">Original Sequence:</div>
+            <div class="seq-display-box" id="p2-orig-seq-display"></div>
+
+            <div class="intro-subtitle" style="text-align:left; max-width:580px; margin:16px auto 4px;">Sequential Rules:</div>
+            <div class="rules-list-box" id="p2-rules-list-display"></div>
+        </div>
+
+        <!-- ═══════ STATE 7: PART 2 – TRANSFORMATION INPUT ═══════ -->
+        <div class="game-state" id="state-p2-input">
+            <div class="game-badge">⚡ Mental Execution</div>
+            <div class="stage-hud">
+                <span class="hud-title" id="p2-input-round-title">Round 1 / 4</span>
+                <span class="hud-timer">🔮 RECONSTRUCT RESULT</span>
+            </div>
+
+            <div id="p2-input-toast" class="toast-msg"></div>
+
+            <div class="question-card" style="max-width:660px;">
+                <p class="prompt-instruction">Tap tokens to construct the final transformed sequence:</p>
+                <div class="user-seq-container" id="p2-user-seq-tokens">
+                    <span style="color:var(--text-muted); font-size:13px;">(Tap tokens below to build your sequence)</span>
+                </div>
+
+                <div class="palette-grid" id="p2-palette-grid"></div>
+
+                <div class="btn-row">
+                    <button class="btn-secondary" onclick="clearUserSeq()">Clear</button>
+                    <button class="btn-secondary" onclick="backUserSeq()">⌫ Backspace</button>
+                    <button class="btn-primary" id="btn-submit-seq">Submit Transformed Sequence</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════ STATE 8: LEVEL COMPLETE ═══════ -->
+        <div class="game-state" id="state-complete">
+            <div class="intro-emoji">👑</div>
+            <div class="intro-title" style="color: #34d399;">LEVEL 18 COMPLETED!</div>
+            <div class="intro-subtitle">Grandmaster Memory Certified</div>
+            <div class="intro-desc">
+                Incredible mastery! You completed all 8 rounds across Multi-Layer Relationship Memory and Sequential Memory Transformation!
+            </div>
+            <div class="btn-row">
+                <button class="btn-primary" onclick="window.location.href='dashboard.html'">Return to Dashboard</button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   LEVEL 18: ADVANCED MEMORY MASTER (8 ROUNDS)
+   Part 1: Multi-Layer Relationship Memory (4 Rounds)
+   Part 2: Memory Transformation Challenge (4 Rounds)
+   ═══════════════════════════════════════════════════════════════ */
+
+const SYMBOLS_POOL = ["🔴", "⭐", "🔵", "🟢", "🟡", "◆", "❤️", "🔶", "🟣", "🔺", "💎", "⚡", "🌙", "☀️"];
+
+let currentPart = 1; // 1 or 2
+let p1Round = 1;     // 1, 2, 3, 4
+let p2Round = 1;     // 1, 2, 3, 4
+let activeTimer = null;
+let isLocked = false;
+let startTimeStamp = Date.now();
+
+// ── Part 1 Runtime State ──
+let p1GridSize = 5;
+let p1PlacedItems = [];
+let p1DistractTask = null;
+let p1Questions = [];
+let p1CurrentQuestionIdx = 0;
+
+// ── Part 2 Runtime State ──
+let p2OriginalSeq = [];
+let p2Rules = [];
+let p2ExpectedSeq = [];
+let p2UserSeq = [];
+let p2Palette = [];
+
+function gid(id) { return document.getElementById(id); }
+
+function showState(id) {
+    document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+    const el = gid(id);
+    if (el) {
+        requestAnimationFrame(() => {
+            el.classList.add('active');
+        });
+    }
+}
+
+function updatePartIndicator(partNum) {
+    currentPart = partNum;
+    if (partNum === 1) {
+        gid('dot-1').className = 'part-dot active';
+        gid('dot-2').className = 'part-dot';
+        gid('topbar-part-label').textContent = 'Part 1: Multi-Layer Relationship Memory';
+    } else {
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        gid('topbar-part-label').textContent = 'Part 2: Memory Transformation Challenge';
+    }
+}
+
+function showPart2IntroPage() {
+    currentPart = 2;
+    p2Round = 1;
+    updatePartIndicator(2);
+    showState('state-intro-p2');
+}
+
+// ── INITIALIZATION ──
+document.addEventListener('DOMContentLoaded', () => {
+    gid('btn-start').onclick = () => {
+        currentPart = 1;
+        p1Round = 1;
+        startPart1();
+    };
+
+    gid('btn-start-p2').onclick = () => {
+        currentPart = 2;
+        p2Round = 1;
+        startPart2();
+    };
+
+    gid('btn-goto-part2').onclick = () => {
+        showPart2IntroPage();
+    };
+
+    gid('btn-submit-seq').onclick = submitPart2Seq;
+
+    if (sessionStorage.getItem('mm_lvl18_part1_done') === 'true') {
+        showPart2IntroPage();
+    }
+
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            () => !isLocked && (currentPart === 1 || currentPart === 2),
+            () => executeGlobalHint()
+        );
+    }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   PART 1 – MULTI-LAYER RELATIONSHIP MEMORY (4 ROUNDS)
+   Round 1: 5x5 Grid, 8 Items, 15s
+   Round 2: 6x6 Grid, 10 Items, 15s
+   Round 3: 6x6 Grid, 12 Items, 15s
+   Round 4: 7x7 Grid, 14 Items, 15s
+   ═══════════════════════════════════════════════════════════════ */
+function startPart1() {
+    updatePartIndicator(1);
+    loadPart1Round(p1Round);
+}
+
+function loadPart1Round(roundNum) {
+    if (activeTimer) clearInterval(activeTimer);
+    isLocked = false;
+    p1Round = roundNum;
+    p1CurrentQuestionIdx = 0;
+
+    gid('p1-round-title').textContent = `Round ${roundNum} / 4`;
+    gid('p1-progress-bar').style.width = `${Math.round((roundNum / 4) * 100)}%`;
+    hideToast('p1-distract-toast');
+    hideToast('p1-quest-toast');
+
+    // 1. Configure Grid Specs
+    let itemCount = 8;
+    if (roundNum === 1) { p1GridSize = 5; itemCount = 8; }
+    else if (roundNum === 2) { p1GridSize = 6; itemCount = 10; }
+    else if (roundNum === 3) { p1GridSize = 6; itemCount = 12; }
+    else { p1GridSize = 7; itemCount = 14; }
+
+    // 2. Generate Random Item Placements
+    generatePart1Grid(p1GridSize, itemCount, roundNum);
+
+    // 3. Render Memorization Grid
+    const gridEl = gid('p1-memo-grid');
+    gridEl.className = `grid-memo grid-${p1GridSize}x${p1GridSize}`;
+    gridEl.innerHTML = '';
+
+    for (let r = 0; r < p1GridSize; r++) {
+        for (let c = 0; c < p1GridSize; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            const it = p1PlacedItems.find(i => i.r === r && i.c === c);
+            if (it) {
+                cell.classList.add('occupied');
+                cell.innerHTML = `<span>${it.symbol}</span><span class="cell-sub-num">${it.num}</span>`;
+            }
+            gridEl.appendChild(cell);
+        }
+    }
+
+    showState('state-p1-memo');
+
+    // 4. Start 15s Countdown
+    let timeLeft = 15;
+    gid('p1-memo-timer-val').textContent = timeLeft;
+
+    activeTimer = setInterval(() => {
+        timeLeft -= 1;
+        gid('p1-memo-timer-val').textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(activeTimer);
+            showPart1InterferenceTask();
+        }
+    }, 1000);
+}
+
+function generatePart1Grid(gridSize, itemCount, roundNum) {
+    const symbols = [...SYMBOLS_POOL].sort(() => Math.random() - 0.5);
+    const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].sort(() => Math.random() - 0.5);
+
+    const allPositions = [];
+    for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+            allPositions.push({ r, c });
+        }
+    }
+    allPositions.sort(() => Math.random() - 0.5);
+
+    p1PlacedItems = [];
+    for (let i = 0; i < itemCount; i++) {
+        p1PlacedItems.push({
+            symbol: symbols[i % symbols.length],
+            num: nums[i % nums.length],
+            r: allPositions[i].r,
+            c: allPositions[i].c
+        });
+    }
+
+    // Generate Multi-Layer Questions
+    generatePart1Questions(roundNum);
+}
+
+function generatePart1Questions(roundNum) {
+    p1Questions = [];
+
+    // Q1: Direct association (Symbol -> Number)
+    const it1 = p1PlacedItems[0];
+    p1Questions.push({
+        prompt: `What number belonged to ${it1.symbol}?`,
+        answer: String(it1.num),
+        options: generateNumOptions(it1.num)
+    });
+
+    // Q2: Spatial position recall (Position -> Number)
+    const it2 = p1PlacedItems[1];
+    p1Questions.push({
+        prompt: `What number was at Row ${it2.r + 1}, Column ${it2.c + 1}?`,
+        answer: String(it2.num),
+        options: generateNumOptions(it2.num)
+    });
+
+    // Q3: Reverse recall (Symbol -> Number)
+    const it3 = p1PlacedItems[2];
+    p1Questions.push({
+        prompt: `What number belonged to ${it3.symbol}?`,
+        answer: String(it3.num),
+        options: generateNumOptions(it3.num)
+    });
+
+    // Q4: Multi-Step Spatial Relationship Question (Relative Item -> Number)
+    const it4 = p1PlacedItems[3];
+    let relItem = p1PlacedItems.find(i => i.r === it4.r + 1 && i.c === it4.c);
+    let relPrompt = "";
+    if (relItem) {
+        relPrompt = `What number was directly below ${it4.symbol}?`;
+    } else {
+        relItem = p1PlacedItems.find(i => i.r === it4.r && i.c === it4.c + 1);
+        if (relItem) {
+            relPrompt = `What number was directly to the right of ${it4.symbol}?`;
+        } else {
+            relItem = p1PlacedItems[4] || p1PlacedItems[0];
+            relPrompt = `What number belonged to ${relItem.symbol}?`;
+        }
+    }
+
+    p1Questions.push({
+        prompt: relPrompt,
+        answer: String(relItem.num),
+        options: generateNumOptions(relItem.num)
+    });
+}
+
+function generateNumOptions(correctNum) {
+    const opts = new Set([String(correctNum)]);
+    
+    // Fill distractors from numbers placed on the grid
+    if (typeof p1PlacedItems !== 'undefined' && p1PlacedItems.length > 0) {
+        const pool = p1PlacedItems.map(i => String(i.num)).sort(() => Math.random() - 0.5);
+        for (let n of pool) {
+            opts.add(n);
+            if (opts.size === 4) break;
+        }
+    }
+
+    // Fallback if needed
+    while (opts.size < 4) {
+        const randNum = String(Math.floor(Math.random() * 25) + 1);
+        opts.add(randNum);
+    }
+
+    return Array.from(opts).sort(() => Math.random() - 0.5);
+}
+
+function generatePosOptions(correctR, correctC, gridSize) {
+    const opts = new Set([`Row ${correctR}, Col ${correctC}`]);
+    while (opts.size < 4) {
+        const r = Math.floor(Math.random() * gridSize) + 1;
+        const c = Math.floor(Math.random() * gridSize) + 1;
+        opts.add(`Row ${r}, Col ${c}`);
+    }
+    return Array.from(opts).sort(() => Math.random() - 0.5);
+}
+
+function generateSymOptions(correctSym) {
+    const opts = new Set([correctSym]);
+    const pool = [...SYMBOLS_POOL].sort(() => Math.random() - 0.5);
+    for (let s of pool) {
+        opts.add(s);
+        if (opts.size === 4) break;
+    }
+    return Array.from(opts).sort(() => Math.random() - 0.5);
+}
+
+/* ── Odd-Shape Interference Task ── */
+function showPart1InterferenceTask() {
+    showState('state-p1-distract');
+
+    // Generate precision SVG shapes with subtle differences
+    const count = (p1Round === 1) ? 6 : (p1Round === 2) ? 8 : (p1Round === 3) ? 10 : 12;
+    const correctOddIdx = Math.floor(Math.random() * count);
+
+    p1DistractTask = { correctIdx: correctOddIdx };
+
+    const container = gid('p1-distract-choices');
+    container.innerHTML = '';
+
+    for (let i = 0; i < count; i++) {
+        const btn = document.createElement('div');
+        btn.className = 'distraction-btn';
+        btn.innerHTML = generateInterferenceShapeSVG(p1Round, i === correctOddIdx);
+        btn.onclick = () => onDistractShapeSelected(i, btn);
+        container.appendChild(btn);
+    }
+}
+
+function generateInterferenceShapeSVG(round, isOdd) {
+    // Generate clean geometric SVGs with subtle orientation/notch differences
+    if (round === 1) {
+        // Hexagon with small inner notch (Odd one has notch at 90deg instead of 0deg)
+        const rot = isOdd ? 90 : 0;
+        return `<svg width="28" height="28" viewBox="0 0 40 40">
+            <polygon points="20,4 36,13 36,31 20,40 4,31 4,13" fill="none" stroke="#a78bfa" stroke-width="3"/>
+            <circle cx="${20 + Math.cos(rot * Math.PI / 180) * 8}" cy="${22 + Math.sin(rot * Math.PI / 180) * 8}" r="3" fill="#f59e0b"/>
+        </svg>`;
+    } else if (round === 2) {
+        // Diamond with inner line orientation
+        const angle = isOdd ? 45 : 0;
+        return `<svg width="28" height="28" viewBox="0 0 40 40">
+            <polygon points="20,4 36,20 20,36 4,20" fill="none" stroke="#38bdf8" stroke-width="3"/>
+            <line x1="20" y1="12" x2="20" y2="28" stroke="#fbbf24" stroke-width="2.5" transform="rotate(${angle} 20 20)"/>
+        </svg>`;
+    } else if (round === 3) {
+        // Octagon with subtle corner notch
+        const rot = isOdd ? 180 : 0;
+        return `<svg width="28" height="28" viewBox="0 0 40 40">
+            <polygon points="12,4 28,4 36,12 36,28 28,36 12,36 4,28 4,12" fill="none" stroke="#34d399" stroke-width="3"/>
+            <circle cx="20" cy="${isOdd ? 10 : 30}" r="3" fill="#ec4899"/>
+        </svg>`;
+    } else {
+        // Star with subtle inner orientation dot
+        const rot = isOdd ? 72 : 0;
+        return `<svg width="28" height="28" viewBox="0 0 40 40">
+            <polygon points="20,2 25,14 38,14 27,23 31,36 20,28 9,36 13,23 2,14 15,14" fill="none" stroke="#fbbf24" stroke-width="2"/>
+            <circle cx="${20 + (isOdd ? 4 : -4)}" cy="20" r="2.5" fill="#a78bfa"/>
+        </svg>`;
+    }
+}
+
+function onDistractShapeSelected(idx, btnEl) {
+    if (isLocked) return;
+    isLocked = true;
+
+    if (idx === p1DistractTask.correctIdx) {
+        btnEl.style.borderColor = 'var(--success)';
+        showToast('p1-distract-toast', '✓ ODD SHAPE IDENTIFIED!', true);
+        setTimeout(() => {
+            isLocked = false;
+            showPart1Questions();
+        }, 700);
+    } else {
+        btnEl.style.borderColor = 'var(--error)';
+        showToast('p1-distract-toast', '❌ Distraction Task Missed! Stay Focused!', false);
+        setTimeout(() => {
+            isLocked = false;
+            showPart1Questions(); // Proceed to memory test
+        }, 900);
+    }
+}
+
+/* ── Part 1 Questions Execution ── */
+function showPart1Questions() {
+    showState('state-p1-quest');
+    loadPart1Question(p1CurrentQuestionIdx);
+}
+
+function loadPart1Question(qIdx) {
+    p1CurrentQuestionIdx = qIdx;
+    const q = p1Questions[qIdx];
+
+    gid('p1-q-round-label').textContent = `Round ${p1Round} / 4`;
+    gid('p1-q-counter-label').textContent = `Question ${qIdx + 1} / ${p1Questions.length}`;
+    gid('p1-quest-prompt').textContent = q.prompt;
+    hideToast('p1-quest-toast');
+
+    const optsContainer = gid('p1-quest-options');
+    optsContainer.innerHTML = '';
+
+    q.options.forEach(optText => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.textContent = optText;
+        btn.onclick = () => onPart1AnswerSubmitted(optText, q.answer, btn);
+        optsContainer.appendChild(btn);
+    });
+}
+
+function onPart1AnswerSubmitted(selected, correct, btnEl) {
+    if (isLocked) return;
+    isLocked = true;
+
+    if (selected === correct) {
+        btnEl.classList.add('correct');
+        showToast('p1-quest-toast', '✓ CORRECT!', true);
+
+        setTimeout(() => {
+            isLocked = false;
+            if (p1CurrentQuestionIdx + 1 < p1Questions.length) {
+                loadPart1Question(p1CurrentQuestionIdx + 1);
+            } else {
+                // Round Complete
+                if (p1Round < 4) {
+                    loadPart1Round(p1Round + 1);
+                } else {
+                    sessionStorage.setItem('mm_lvl18_part1_done', 'true');
+                    showPartCompletion({
+                        part: 1,
+                        totalParts: 2,
+                        score: 50,
+                        title: 'Correct!',
+                        message: 'Flawless recall! You mastered the multi-layer spatial grid & interference task.',
+                        buttonText: 'Continue to Part 2 ▶',
+                        onContinue: () => {
+                            showPart2IntroPage();
+                        }
+                    });
+                }
+            }
+        }, 800);
+    } else {
+        btnEl.classList.add('wrong');
+        showToast('p1-quest-toast', '❌ Incorrect! Restarting Part 1 with a new challenge…', false);
+
+        document.querySelectorAll('#p1-quest-options .opt-btn').forEach(b => {
+            if (b.textContent === correct) b.classList.add('correct');
+        });
+
+        setTimeout(() => {
+            loadPart1Round(1); // Restart ONLY Part 1 from Round 1
+        }, 1600);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PART 2 – MEMORY TRANSFORMATION CHALLENGE (4 ROUNDS)
+   Round 1: 8-10 Items, 2 Rules, 15s
+   Round 2: 10-12 Items, 3 Rules, 15s
+   Round 3: 12-14 Items, 4 Rules, 15s
+   Round 4: 14-16 Items, 5 Rules, 15s
+   ═══════════════════════════════════════════════════════════════ */
+function startPart2() {
+    updatePartIndicator(2);
+    loadPart2Round(p2Round);
+}
+
+function loadPart2Round(roundNum) {
+    if (activeTimer) clearInterval(activeTimer);
+    isLocked = false;
+    p2Round = roundNum;
+    p2UserSeq = [];
+
+    gid('p2-round-title').textContent = `Round ${roundNum} / 4`;
+    gid('p2-progress-bar').style.width = `${Math.round((roundNum / 4) * 100)}%`;
+    hideToast('p2-input-toast');
+
+    // 1. Generate Sequence and Rules
+    setupPart2Challenge(roundNum);
+
+    // 2. Render Memorization Display
+    const seqDisplay = gid('p2-orig-seq-display');
+    seqDisplay.innerHTML = '';
+    p2OriginalSeq.forEach(tok => {
+        const chip = document.createElement('div');
+        chip.className = 'seq-chip';
+        chip.textContent = tok;
+        seqDisplay.appendChild(chip);
+    });
+
+    const rulesDisplay = gid('p2-rules-list-display');
+    rulesDisplay.innerHTML = '';
+    p2Rules.forEach((rule, idx) => {
+        const rItem = document.createElement('div');
+        rItem.className = 'rule-step-item';
+        rItem.textContent = `RULE ${idx + 1}: ${rule.text}`;
+        rulesDisplay.appendChild(rItem);
+    });
+
+    showState('state-p2-memo');
+
+    // 3. Start 15s Countdown
+    let timeLeft = 15;
+    gid('p2-memo-timer-val').textContent = timeLeft;
+
+    activeTimer = setInterval(() => {
+        timeLeft -= 1;
+        gid('p2-memo-timer-val').textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(activeTimer);
+            showPart2InputState();
+        }
+    }, 1000);
+}
+
+function setupPart2Challenge(roundNum) {
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'K', 'M', 'P', 'R', 'T', 'X'];
+    const numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const symbols = ['⭐', '🔺', '◆', '🔵', '🟡', '🟢', '🔶', '🟣', '💎', '⚡'];
+
+    let seqLen = 8;
+    let ruleCount = 2;
+
+    if (roundNum === 1) { seqLen = 8; ruleCount = 2; }
+    else if (roundNum === 2) { seqLen = 10; ruleCount = 3; }
+    else if (roundNum === 3) { seqLen = 12; ruleCount = 4; }
+    else { seqLen = 14; ruleCount = 5; }
+
+    // Assemble mixed sequence
+    const mixedPool = [...letters.sort(() => Math.random() - 0.5).slice(0, 6),
+                       ...numbers.sort(() => Math.random() - 0.5).slice(0, 5),
+                       ...symbols.sort(() => Math.random() - 0.5).slice(0, 5)].sort(() => Math.random() - 0.5);
+
+    p2OriginalSeq = mixedPool.slice(0, seqLen);
+
+    // Build transformation steps and precalculate expected output
+    p2Rules = [];
+    let currentSeq = [...p2OriginalSeq];
+
+    // Rule 1: Divide into pairs
+    p2Rules.push({ id: 'pairs', text: 'Divide the sequence into pairs.' });
+
+    // Rule 2: Reverse each pair
+    p2Rules.push({ id: 'rev_pairs', text: 'Reverse each pair.' });
+    for (let i = 0; i < currentSeq.length; i += 2) {
+        if (i + 1 < currentSeq.length) {
+            const temp = currentSeq[i];
+            currentSeq[i] = currentSeq[i + 1];
+            currentSeq[i + 1] = temp;
+        }
+    }
+
+    if (ruleCount >= 3) {
+        // Rule 3: Move last pair to beginning
+        p2Rules.push({ id: 'last_to_front', text: 'Move the last pair to the beginning.' });
+        const lastPair = currentSeq.splice(currentSeq.length - 2, 2);
+        currentSeq.unshift(...lastPair);
+    }
+
+    if (ruleCount >= 4) {
+        // Rule 4: Reverse the entire resulting sequence
+        p2Rules.push({ id: 'rev_all', text: 'Reverse the entire resulting sequence.' });
+        currentSeq.reverse();
+    }
+
+    if (ruleCount >= 5) {
+        // Rule 5: Swap positions 3 and 8 (1-indexed)
+        p2Rules.push({ id: 'swap_3_8', text: 'Swap elements at Position 3 and Position 8.' });
+        const temp = currentSeq[2];
+        currentSeq[2] = currentSeq[7];
+        currentSeq[7] = temp;
+    }
+
+    p2ExpectedSeq = currentSeq;
+
+    // Palette with sequence tokens + distractors
+    const paletteSet = new Set([...p2OriginalSeq]);
+    for (let s of mixedPool) {
+        paletteSet.add(s);
+        if (paletteSet.size >= 14) break;
+    }
+    p2Palette = Array.from(paletteSet).sort(() => Math.random() - 0.5);
+}
+
+function showPart2InputState() {
+    showState('state-p2-input');
+    gid('p2-input-round-title').textContent = `Round ${p2Round} / 4`;
+    renderUserSeq();
+    renderPalette();
+}
+
+function renderUserSeq() {
+    const container = gid('p2-user-seq-tokens');
+    container.innerHTML = '';
+    if (p2UserSeq.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-muted); font-size:13px;">(Tap tokens below to build your sequence)</span>';
+        return;
+    }
+
+    p2UserSeq.forEach((tok, idx) => {
+        const chip = document.createElement('div');
+        chip.className = 'user-token-chip';
+        chip.textContent = tok;
+        chip.title = 'Click to remove';
+        chip.onclick = () => {
+            p2UserSeq.splice(idx, 1);
+            renderUserSeq();
+        };
+        container.appendChild(chip);
+    });
+}
+
+function renderPalette() {
+    const grid = gid('p2-palette-grid');
+    grid.innerHTML = '';
+    p2Palette.forEach(tok => {
+        const btn = document.createElement('button');
+        btn.className = 'token-btn';
+        btn.textContent = tok;
+        btn.onclick = () => {
+            if (p2UserSeq.length < p2ExpectedSeq.length) {
+                p2UserSeq.push(tok);
+                renderUserSeq();
+            }
+        };
+        grid.appendChild(btn);
+    });
+}
+
+function clearUserSeq() {
+    p2UserSeq = [];
+    renderUserSeq();
+}
+
+function backUserSeq() {
+    if (p2UserSeq.length > 0) {
+        p2UserSeq.pop();
+        renderUserSeq();
+    }
+}
+
+function submitPart2Seq() {
+    if (isLocked) return;
+    isLocked = true;
+
+    const isMatch = p2UserSeq.length === p2ExpectedSeq.length &&
+                    p2UserSeq.every((val, idx) => val === p2ExpectedSeq[idx]);
+
+    if (isMatch) {
+        showToast('p2-input-toast', '✓ TRANSFORMATION PERFECT!', true);
+
+        setTimeout(() => {
+            isLocked = false;
+            if (p2Round < 4) {
+                loadPart2Round(p2Round + 1);
+            } else {
+                showLevel18Completion();
+            }
+        }, 900);
+    } else {
+        showToast('p2-input-toast', '❌ Incorrect Transformation! Restarting Part 2…', false);
+
+        setTimeout(() => {
+            loadPart2Round(1); // Restart ONLY Part 2 from Round 1
+        }, 1600);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL HINT SYSTEM
+   ═══════════════════════════════════════════════════════════════ */
+function executeGlobalHint() {
+    if (isLocked) return false;
+
+    if (currentPart === 1) {
+        // Part 1 Hint: provides a spatial or item anchor clue
+        if (p1PlacedItems.length > 0) {
+            const anchor = p1PlacedItems[0];
+            showToast('p1-quest-toast', `💡 Clue: Pay attention to ${anchor.symbol} at Row ${anchor.r + 1}, Col ${anchor.c + 1}.`, true);
+            return true;
+        }
+    } else if (currentPart === 2) {
+        // Part 2 Hint: reveals first rule instruction
+        if (p2Rules.length > 0) {
+            showToast('p2-input-toast', `💡 Clue: Step 1: ${p2Rules[0].text}`, true);
+            return true;
+        }
+    }
+    return false;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LEVEL COMPLETION & PROGRESS SYNC
+   ═══════════════════════════════════════════════════════════════ */
+function showLevel18Completion() {
+    gid('dot-2').className = 'part-dot done';
+    sessionStorage.removeItem('mm_lvl18_part1_done');
+    saveProgress();
+    showPartCompletion({
+        part: 2,
+        totalParts: 2,
+        score: 50,
+        title: 'Correct!',
+        message: 'Amazing! You mastered advanced memory and mental transformation. Level 18 complete!',
+        buttonText: '🏆 Level Complete – Continue',
+        isFinal: true,
+        onContinue: () => {
+            window.location.href = 'dashboard.html';
+        }
+    });
+}
+
+function saveProgress() {
+    const defaultScores = Array(20).fill(0);
+    const defaultTimes = Array(20).fill("-");
+    const defaultStars = Array(20).fill("0");
+
+    let prevScore = parseInt(localStorage.getItem('mm_score'), 10) || 0;
+    let score = prevScore + 100;
+    let lastPlayedDateStr = localStorage.getItem('mm_last_played_date') || "";
+    let currentStreak = parseInt(localStorage.getItem('mm_streak'), 10) || 0;
+    let streakRes = (window.calculateNewStreak ? window.calculateNewStreak(currentStreak, lastPlayedDateStr, true) : { streak: (currentStreak || 1), dateStr: (window.getLocalDateString ? window.getLocalDateString() : new Date().toISOString().split('T')[0]) });
+    let streak = streakRes.streak;
+    let lastPlayedDate = streakRes.dateStr;
+    let unlockedLevel = Math.max(19, parseInt(localStorage.getItem('mm_unlocked_level'), 10) || 1);
+    let gamesPlayed = (parseInt(localStorage.getItem('mm_games_played'), 10) || 0) + 1;
+    let bestStreak = Math.max(streak, parseInt(localStorage.getItem('mm_best_streak'), 10) || streak);
+
+    let bestScores = safeParseArray(localStorage.getItem('mm_best_scores'), defaultScores);
+    let bestTimes = safeParseArray(localStorage.getItem('mm_best_times'), defaultTimes);
+    let stars = safeParseArray(localStorage.getItem('mm_stars'), defaultStars);
+
+    const elapsedSeconds = Math.round((Date.now() - startTimeStamp) / 1000);
+    const mins = Math.floor(elapsedSeconds / 60);
+    const secs = elapsedSeconds % 60;
+    const timeStr = `${mins}m ${secs}s`;
+
+    bestScores[17] = 100;
+    bestTimes[17] = timeStr;
+    stars[17] = '3';
+
+    localStorage.setItem('mm_score', score);
+    localStorage.setItem('mm_streak', streak);
+    localStorage.setItem('mm_last_played_date', lastPlayedDate);
+    localStorage.setItem('mm_unlocked_level', unlockedLevel);
+    localStorage.setItem('mm_games_played', gamesPlayed);
+    localStorage.setItem('mm_best_streak', bestStreak);
+    localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+    localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+    localStorage.setItem('mm_stars', JSON.stringify(stars));
+
+    fetch('saveProgress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            score: score,
+            streak: streak,
+            unlockedLevel: unlockedLevel,
+            gamesPlayed: gamesPlayed,
+            bestStreak: bestStreak,
+            bestScores: JSON.stringify(bestScores),
+            bestTimes: JSON.stringify(bestTimes),
+            stars: JSON.stringify(stars),
+            lastPlayedDate: lastPlayedDate,
+            clientDate: lastPlayedDate,
+            hints: localStorage.getItem('mm_hints') || 3
+        })
+    }).catch(() => {});
+}
+
+function safeParseArray(val, def) {
+    if (!val) return def;
+    try {
+        const p = JSON.parse(val);
+        return Array.isArray(p) ? p : def;
+    } catch (e) {
+        return def;
+    }
+}
+
+function showToast(id, msg, isSuccess) {
+    const t = gid(id);
+    if (!t) return;
+    t.textContent = msg;
+    t.className = isSuccess ? 'toast-msg success' : 'toast-msg error';
+}
+
+function hideToast(id) {
+    const t = gid(id);
+    if (t) t.className = 'toast-msg';
+}
+
+/* ── Confetti Animation ── */
+function fireConfetti() {
+    const canvas = gid('confetti-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const colors = ['#8b5cf6', '#06b6d4', '#34d399', '#f59e0b', '#ec4899', '#ffffff'];
+
+    for (let i = 0; i < 100; i++) {
+        particles.push({
+            x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+            y: canvas.height / 2,
+            vx: (Math.random() - 0.5) * 14,
+            vy: Math.random() * -16 - 4,
+            w: Math.random() * 8 + 4,
+            h: Math.random() * 6 + 2,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rot: Math.random() * 360,
+            rotSpeed: (Math.random() - 0.5) * 10,
+            gravity: 0.25,
+            opacity: 1
+        });
+    }
+
+    function anim() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.vy += p.gravity;
+            p.y += p.vy;
+            p.rot += p.rotSpeed;
+            p.opacity -= 0.008;
+            if (p.opacity > 0) {
+                alive = true;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rot * Math.PI) / 180);
+                ctx.globalAlpha = Math.max(0, p.opacity);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                ctx.restore();
+            }
+        });
+        if (alive) requestAnimationFrame(anim);
+    }
+    anim();
+}
+</script>
+</body>
+</html>

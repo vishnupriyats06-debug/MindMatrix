@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 4: Position Memory Matrix</title>
+    <meta name="description" content="Level 4 – Test your memory by recalling numbers and alphanumeric positions in a matrix." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        /* ══════════════════════════════════════════
+           RESET & TOKENS
+        ══════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep:     #050814;
+            --bg-mid:      #0b0f24;
+            --bg-card:     rgba(255,255,255,0.04);
+            --bg-card-h:   rgba(255,255,255,0.07);
+            --border:      rgba(255,255,255,0.09);
+            --border-h:    rgba(139,92,246,0.45);
+            --accent-1:    #8b5cf6;
+            --accent-2:    #06b6d4;
+            --accent-3:    #f59e0b;
+            --glow:        rgba(139,92,246,0.35);
+            --text-pri:    #f0f4ff;
+            --text-sec:    rgba(240,244,255,0.55);
+            --text-muted:  rgba(240,244,255,0.28);
+            --success:     #34d399;
+            --warning:     #fbbf24;
+            --error:       #f87171;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-pri);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ══════════════════════════════════════════
+           BACKGROUND
+        ══════════════════════════════════════════ */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            background: var(--bg-deep); overflow: hidden; pointer-events: none;
+        }
+        .bg-scene::before {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(139,92,246,0.18), transparent 70%);
+            top: -200px; left: -200px;
+            animation: orb 16s ease-in-out infinite alternate;
+        }
+        .bg-scene::after {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(6,182,212,0.14), transparent 70%);
+            bottom: -150px; right: -150px;
+            animation: orb 20s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes orb {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(60px,80px) scale(1.15); }
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ══════════════════════════════════════════
+           PAGE LAYOUT
+        ══════════════════════════════════════════ */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; padding: 32px 20px;
+        }
+
+        /* ── Top Bar ── */
+        .level-topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(5,8,20,0.85);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-left {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .btn-back {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 10px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn-back:hover {
+            background: var(--bg-card-h); color: var(--text-pri);
+            border-color: var(--border-h);
+        }
+        .btn-back svg { width: 16px; height: 16px; }
+        .topbar-level-info h1 {
+            font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
+        }
+        .topbar-level-info span {
+            font-size: 11px; color: var(--text-muted);
+        }
+        .topbar-right {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .part-indicator {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 14px; border-radius: 100px;
+            background: rgba(139,92,246,0.12);
+            border: 1px solid rgba(139,92,246,0.25);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+        .part-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            transition: background 0.3s ease;
+        }
+        .part-dot.active { background: var(--accent-1); box-shadow: 0 0 8px var(--glow); }
+        .part-dot.done { background: var(--success); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+
+        /* ══════════════════════════════════════════
+           GAME CARD
+        ══════════════════════════════════════════ */
+        .game-card {
+            width: 100%; max-width: 600px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 28px; padding: 48px 40px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 24px 64px rgba(0,0,0,0.55),
+                0 0 80px rgba(139,92,246,0.07);
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        /* ── Game States ── */
+        .game-state { display: none; animation: fade-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display: block; }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Intro State ── */
+        .intro-emoji { font-size: 56px; margin-bottom: 16px; animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(139,92,246,0.4)); }
+        }
+        .intro-title {
+            font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        .intro-subtitle {
+            font-size: 14px; color: var(--text-sec); margin-bottom: 6px;
+        }
+        .intro-desc {
+            font-size: 13px; color: var(--text-muted); margin-bottom: 32px;
+            line-height: 1.7; max-width: 380px; margin-left: auto; margin-right: auto;
+        }
+        .game-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 100px; margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(6,182,212,0.10));
+            border: 1px solid rgba(139,92,246,0.30);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+
+        /* ── Matrix Tables ── */
+        .matrix-display-area, .matrix-inputs {
+            margin: 24px 0;
+            display: flex; justify-content: center;
+        }
+        .matrix-table, .matrix-input-table {
+            border-collapse: separate;
+            border-spacing: 8px;
+        }
+        .matrix-cell {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(6,182,212,0.08));
+            border: 2px solid rgba(139,92,246,0.35);
+            border-radius: 12px;
+            text-align: center; vertical-align: middle;
+            font-size: 20px; font-weight: 700; color: var(--text-pri);
+            box-shadow: 0 4px 16px rgba(139,92,246,0.15);
+        }
+        .matrix-input {
+            width: 52px; height: 52px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px; font-weight: 700;
+            color: var(--text-pri); text-align: center;
+            outline: none; caret-color: var(--accent-1);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .matrix-input:focus {
+            border-color: var(--accent-1);
+            background: rgba(139,92,246,0.06);
+            box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+        }
+        .static-cell {
+            display: flex; align-items: center; justify-content: center;
+            width: 52px; height: 52px;
+            background: rgba(255,255,255,0.02);
+            border: 2px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            font-size: 20px; font-weight: 700; color: var(--text-sec);
+        }
+
+        /* Timer circle */
+        .timer-circle {
+            width: 60px; height: 60px; margin: 24px auto 0;
+            position: relative;
+        }
+        .timer-circle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .timer-track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 4; }
+        .timer-progress {
+            fill: none; stroke: var(--accent-1); stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 157;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear;
+        }
+        .timer-text {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 700; color: var(--accent-1);
+        }
+
+        /* ── Input State ── */
+        .input-instruction {
+            font-size: 15px; color: var(--text-sec); margin-bottom: 8px;
+        }
+        .input-hint {
+            font-size: 12px; color: var(--text-muted); margin-bottom: 20px;
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 36px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 24px rgba(139,92,246,0.45);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            min-width: 180px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 36px rgba(139,92,246,0.55);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 28px; border-radius: 12px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: var(--bg-card-h); color: var(--text-pri);
+            border-color: var(--border-h);
+        }
+
+        /* ══════════════════════════════════════════
+           RESULT POPUP OVERLAY
+        ══════════════════════════════════════════ */
+        .result-overlay {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.70); backdrop-filter: blur(10px);
+            align-items: center; justify-content: center;
+            animation: fade-in 0.25s ease;
+        }
+        .result-overlay.open { display: flex; }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+        .result-card {
+            background: rgba(11,15,36,0.97); border: 1px solid var(--border);
+            border-radius: 28px; padding: 44px 40px;
+            width: 90%; max-width: 420px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.60);
+            animation: pop-in 0.4s cubic-bezier(0.22,1,0.36,1);
+            text-align: center;
+        }
+        @keyframes pop-in {
+            from { opacity: 0; transform: scale(0.85) translateY(24px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .result-emoji {
+            font-size: 64px; margin-bottom: 16px;
+        }
+        .result-title {
+            font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        .result-desc {
+            font-size: 14px; color: var(--text-sec); line-height: 1.7;
+            margin-bottom: 28px;
+        }
+        .result-stats {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            margin-bottom: 28px;
+        }
+        .result-stat {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px 14px;
+        }
+        .result-stat .rs-val {
+            font-size: 22px; font-weight: 800; color: var(--accent-1);
+        }
+        .result-stat .rs-lbl {
+            font-size: 10px; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .result-buttons {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .result-card.win { border-color: rgba(52,211,153,0.30); }
+        .result-card.win .result-title { color: var(--success); }
+        .result-card.lose { border-color: rgba(248,113,113,0.25); }
+        .result-card.lose .result-title { color: var(--error); }
+
+        @media (max-width: 560px) {
+            .game-card { padding: 36px 20px; border-radius: 20px; margin-top: 72px; }
+            .matrix-cell, .matrix-input, .static-cell { width: 44px; height: 44px; font-size: 16px; }
+            .result-card { padding: 36px 24px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Backgrounds -->
+    <div class="bg-scene"></div>
+    <div class="bg-grid"></div>
+
+    <!-- Result Popup Overlay -->
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card" id="result-card">
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <div class="result-title" id="result-title">Correct!</div>
+            <div class="result-desc" id="result-desc">Great memory! You solved the matrix.</div>
+            <div class="result-stats" id="result-stats">
+                <div class="result-stat"><div class="rs-val" id="result-score">+50</div><div class="rs-lbl">Score Earned</div></div>
+                <div class="result-stat"><div class="rs-val" id="result-part">Part 1/2</div><div class="rs-lbl">Progress</div></div>
+            </div>
+            <div class="result-buttons">
+                <button class="btn-primary" id="result-action-btn">Next Part ▶</button>
+                <button class="btn-secondary" id="result-secondary-btn" style="display:none;">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Bar -->
+    <div class="level-topbar">
+        <div class="topbar-left">
+            <a href="dashboard.html" class="btn-back" id="btn-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                Dashboard
+            </a>
+            <div class="topbar-level-info">
+                <h1>Level 4 – Position Memory Matrix</h1>
+                <span id="topbar-part-label">Part 1: Numeric Matrix</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <!-- Theme Toggle Button -->
+            <button class="theme-toggle-btn" id="theme-header-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <div class="part-indicator">
+                <span>Parts</span>
+                <div class="part-dot active" id="dot-1"></div>
+                <div class="part-dot" id="dot-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Wrapper -->
+    <main class="page-wrapper">
+        <div class="game-card">
+
+            <!-- State: Intro -->
+            <div class="game-state active" id="state-intro">
+                <div class="game-badge" id="intro-badge">⚡ Level 4 • Part 1</div>
+                <div class="intro-emoji" id="intro-emoji">🧩</div>
+                <div class="intro-title" id="intro-title">Position Memory Matrix</div>
+                <div class="intro-subtitle" id="intro-subtitle">Remember numbers in a 4×4 grid</div>
+                <div class="intro-desc" id="intro-desc">
+                    A 4×4 grid filled with numbers (1‑16) will appear for 5 seconds. Memorize the layout, then reproduce it.
+                </div>
+                <button class="btn-primary" id="btn-start">▶ Start Part 1</button>
+            </div>
+
+            <!-- State: Show Matrix (5 sec) -->
+            <div class="game-state" id="state-showing">
+                <div class="game-badge" id="showing-badge">⚡ Memorize!</div>
+                <div class="matrix-display-area" id="matrix-display-area">
+                    <!-- Grid injected by JS -->
+                </div>
+                <div class="timer-circle" id="timer-circle">
+                    <svg viewBox="0 0 54 54"><circle class="timer-track" cx="27" cy="27" r="25"/><circle class="timer-progress" id="timer-progress" cx="27" cy="27" r="25"/></svg>
+                    <div class="timer-text" id="timer-text">5</div>
+                </div>
+            </div>
+
+            <!-- State: Input Matrix -->
+            <div class="game-state" id="state-input">
+                <div class="game-badge" id="input-badge">⚡ Your Turn</div>
+                <div class="input-instruction" id="input-instruction">Fill in the matrix cells.</div>
+                <div class="input-hint" id="input-hint">Enter numbers or letters exactly as shown.</div>
+                <div class="matrix-inputs" id="matrix-inputs">
+                    <!-- Input fields injected by JS -->
+                </div>
+                <button class="btn-primary" id="btn-submit">Submit Answer</button>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+    <script>
+    /* ══════════════════════════════════════════
+       LEVEL 4 – Position Memory Matrix
+       Fully client-side, no backend needed for gameplay.
+       Progress is saved via saveProgress on completion.
+    ══════════════════════════════════════════ */
+
+    var currentPart  = 1;
+    var matrixData   = [];
+    var missingCells = [];
+    var timerInterval;
+
+    function robustFocus(el) {
+        if (!el) return;
+        el.focus();
+        [50, 100, 200, 300, 500].forEach(function(delay) {
+            setTimeout(function() {
+                if (document.activeElement !== el) {
+                    el.focus();
+                }
+            }, delay);
+        });
+    }
+
+    function gid(id) { return document.getElementById(id); }
+
+    function showState(id) {
+        document.querySelectorAll('.game-state').forEach(function(s) {
+            s.classList.remove('active');
+        });
+        var el = gid(id);
+        if (el) el.classList.add('active');
+    }
+
+    function shuffle(arr) {
+        for (var i = arr.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+        }
+        return arr;
+    }
+
+    /* ── Matrix Generators ── */
+    function generateNumericMatrix(size) {
+        var nums = [];
+        for (var i = 1; i <= size * size; i++) nums.push(String(i));
+        shuffle(nums);
+        var m = [];
+        for (var r = 0; r < size; r++) {
+            m.push(nums.slice(r * size, r * size + size));
+        }
+        return m;
+    }
+
+    function generateAlphaNumericMatrix(size) {
+        var total = size * size;
+        var numCount = Math.floor(total / 2);
+        var pool = [];
+        for (var i = 1; i <= numCount; i++) pool.push(String(i));
+        var letter = 65;
+        while (pool.length < total) { pool.push(String.fromCharCode(letter++)); }
+        shuffle(pool);
+        var m = [];
+        for (var r = 0; r < size; r++) {
+            m.push(pool.slice(r * size, r * size + size));
+        }
+        return m;
+    }
+
+    function pickMissingCells(size, count) {
+        var cells = [];
+        while (cells.length < count) {
+            var r = Math.floor(Math.random() * size);
+            var c = Math.floor(Math.random() * size);
+            var dup = false;
+            for (var k = 0; k < cells.length; k++) {
+                if (cells[k][0] === r && cells[k][1] === c) { dup = true; break; }
+            }
+            if (!dup) cells.push([r, c]);
+        }
+        return cells;
+    }
+
+    /* ── Timer ── */
+    function startTimer(seconds, onDone) {
+        var timerText     = gid('timer-text');
+        var timerProgress = gid('timer-progress');
+        var circumference = 2 * Math.PI * 25;
+        var remaining = seconds;
+        timerText.textContent = remaining;
+        timerProgress.style.strokeDashoffset = '0';
+        clearInterval(timerInterval);
+        timerInterval = setInterval(function() {
+            remaining--;
+            timerText.textContent = remaining;
+            var offset = circumference - (remaining / seconds) * circumference;
+            timerProgress.style.strokeDashoffset = offset;
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                onDone();
+            }
+        }, 1000);
+    }
+
+    /* ── Rendering ── */
+    function renderMatrixDisplay() {
+        var container = gid('matrix-display-area');
+        container.innerHTML = '';
+        var table = document.createElement('table');
+        table.className = 'matrix-table';
+        for (var r = 0; r < matrixData.length; r++) {
+            var tr = document.createElement('tr');
+            for (var c = 0; c < matrixData[r].length; c++) {
+                var td = document.createElement('td');
+                td.className = 'matrix-cell';
+                td.textContent = matrixData[r][c];
+                tr.appendChild(td);
+            }
+            table.appendChild(tr);
+        }
+        container.appendChild(table);
+    }
+
+    function renderInputGrid() {
+        var container = gid('matrix-inputs');
+        container.innerHTML = '';
+        var table = document.createElement('table');
+        table.className = 'matrix-input-table';
+        for (var r = 0; r < matrixData.length; r++) {
+            var tr = document.createElement('tr');
+            for (var c = 0; c < matrixData[r].length; c++) {
+                var td = document.createElement('td');
+                var isMissing = (currentPart === 1);
+                if (!isMissing) {
+                    for (var k = 0; k < missingCells.length; k++) {
+                        if (missingCells[k][0] === r && missingCells[k][1] === c) { isMissing = true; break; }
+                    }
+                }
+                if (isMissing) {
+                    var inp = document.createElement('input');
+                    inp.type = 'text';
+                    inp.className = 'matrix-input';
+                    inp.dataset.row = r;
+                    inp.dataset.col = c;
+                    inp.maxLength = 2;
+                    (function(input) {
+                        input.addEventListener('input', function() {
+                            input.value = input.value.toUpperCase();
+                            input.style.borderColor = '';
+                        });
+                        input.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter') submitAnswer();
+                            // Allow Backspace to go to previous input if current is empty
+                            if (e.key === 'Backspace' && !input.value) {
+                                var allInputs = Array.from(document.querySelectorAll('.matrix-input'));
+                                var currentIndex = allInputs.indexOf(input);
+                                if (currentIndex > 0) {
+                                    allInputs[currentIndex - 1].focus();
+                                }
+                            }
+                        });
+                    })(inp);
+                    td.appendChild(inp);
+                } else {
+                    var span = document.createElement('span');
+                    span.className = 'static-cell';
+                    span.textContent = matrixData[r][c];
+                    td.appendChild(span);
+                }
+                tr.appendChild(td);
+            }
+            table.appendChild(tr);
+        }
+        container.appendChild(table);
+    }
+
+    /* ── Game Flow ── */
+    function startPart(part) {
+        missingCells = [];
+        if (part === 1) {
+            matrixData = generateNumericMatrix(4);
+        } else {
+            matrixData = generateAlphaNumericMatrix(5);
+            missingCells = pickMissingCells(5, 3);
+        }
+        renderMatrixDisplay();
+        showState('state-showing');
+        startTimer(5, transitionToInput);
+    }
+
+    function transitionToInput() {
+        renderInputGrid();
+        showState('state-input');
+        // Auto-focus first input with robustFocus helper
+        var first = document.querySelector('.matrix-input');
+        robustFocus(first);
+    }
+
+    function submitAnswer() {
+        var inputs = Array.from(document.querySelectorAll('.matrix-input'));
+        var hasEmpty = false;
+        inputs.forEach(function(inp) {
+            if (!inp.value.trim()) { inp.style.borderColor = 'var(--error)'; hasEmpty = true; }
+        });
+        if (hasEmpty) return;
+
+        var correct = true;
+        inputs.forEach(function(inp) {
+            var r = parseInt(inp.dataset.row);
+            var c = parseInt(inp.dataset.col);
+            if (inp.value.trim().toUpperCase() !== matrixData[r][c].toUpperCase()) correct = false;
+        });
+        showResult(correct);
+    }
+
+    /* ── Streak Helpers ── */
+    function getLocalDateString() {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+    function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
+        if (!isSuccess) return { streak: 0, dateStr: lastPlayedDateStr };
+        var todayStr = getLocalDateString();
+        if (!lastPlayedDateStr) return { streak: 1, dateStr: todayStr };
+        var today = new Date(todayStr + 'T00:00:00');
+        var lastPlayed = new Date(lastPlayedDateStr + 'T00:00:00');
+        var diffDays = Math.round((today - lastPlayed) / (1000 * 60 * 60 * 24));
+        var newStreak = currentStreak;
+        if (diffDays === 0) { if (newStreak === 0) newStreak = 1; }
+        else if (diffDays === 1) { newStreak = currentStreak + 1; }
+        else { newStreak = 1; }
+        return { streak: newStreak, dateStr: todayStr };
+    }
+
+    function safeParseArray(dataVal, defaultArray) {
+        if (Array.isArray(dataVal)) return dataVal;
+        if (typeof dataVal === 'string') {
+            try {
+                var parsed = JSON.parse(dataVal);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {}
+        }
+        return defaultArray.slice();
+    }
+
+    function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
+        try {
+            localStorage.setItem('mm_score', score);
+            localStorage.setItem('mm_streak', streak);
+            localStorage.setItem('mm_unlocked_level', unlockedLevel);
+            localStorage.setItem('mm_games_played', gamesPlayed);
+            localStorage.setItem('mm_best_streak', bestStreak);
+            localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+            localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+            localStorage.setItem('mm_stars', JSON.stringify(stars));
+            if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+        } catch(e) {}
+    }
+
+    /* ── Save Progress ── */
+    var savePromise = null;
+    function saveProgressToServer() {
+        savePromise = fetch('getProgress?t=' + new Date().getTime())
+            .then(function(r) { return r.ok ? r.json() : Promise.reject('Failed to fetch progress'); })
+            .then(function(data) {
+                var score         = (parseInt(data.score, 10) || 0) + 50;
+                var gamesPlayed   = (parseInt(data.gamesPlayed, 10) || 0) + 1;
+                var unlockedLevel = Math.max(parseInt(data.unlockedLevel, 10) || 1, 5);
+                var bestScores    = safeParseArray(data.bestScores, Array(20).fill(0));
+                var bestTimes     = safeParseArray(data.bestTimes, Array(20).fill('-'));
+                var stars         = safeParseArray(data.stars, Array(20).fill('0'));
+
+                var streakResult   = calculateNewStreak(parseInt(data.streak, 10) || 0, data.lastPlayedDate || '', true);
+                var streak         = streakResult.streak;
+                var lastPlayedDate = streakResult.dateStr;
+                var bestStreak     = Math.max(parseInt(data.bestStreak, 10) || 0, streak);
+
+                if (50 > (parseInt(bestScores[3], 10) || 0)) bestScores[3] = 50;
+                stars[3]     = '3';
+                bestTimes[3] = '5s';
+
+                saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate);
+
+                return fetch('saveProgress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        score: score, streak: streak,
+                        unlockedLevel: unlockedLevel,
+                        gamesPlayed: gamesPlayed, bestStreak: bestStreak,
+                        bestScores: JSON.stringify(bestScores),
+                        bestTimes:  JSON.stringify(bestTimes),
+                        stars:      JSON.stringify(stars),
+                        lastPlayedDate: lastPlayedDate
+                    })
+                });
+            })
+            .catch(function(err) { console.error('[Level4] Error saving progress:', err); });
+        return savePromise;
+    }
+
+    /* ── Result Popup ── */
+    function showResult(isCorrect) {
+        var overlay      = gid('result-overlay');
+        var card         = gid('result-card');
+        var emoji        = gid('result-emoji');
+        var title        = gid('result-title');
+        var desc         = gid('result-desc');
+        var scoreEl      = gid('result-score');
+        var partEl       = gid('result-part');
+        var actionBtn    = gid('result-action-btn');
+        var secondaryBtn = gid('result-secondary-btn');
+
+        card.className = 'result-card ' + (isCorrect ? 'win' : 'lose');
+
+        if (isCorrect) {
+            scoreEl.textContent = '+50';
+            emoji.textContent   = '🎉';
+            title.textContent   = 'Congratulations!';
+            secondaryBtn.style.display = 'none';
+            if (currentPart === 1) {
+                desc.textContent      = 'Part 1 complete! Ready for Part 2?';
+                partEl.textContent    = 'Part 1 / 2 ✓';
+                actionBtn.textContent = 'Next Part ▶';
+                actionBtn.onclick = function() { closeResult(); currentPart = 2; setupIntroForPart2(); };
+            } else {
+                desc.textContent      = 'Level 4 Completed! Amazing memory!';
+                partEl.textContent    = 'Part 2 / 2 ✓';
+                actionBtn.textContent = 'Back to Dashboard ▶';
+                var p = saveProgressToServer();
+                actionBtn.onclick = function() {
+                    closeResult();
+                    if (p) { p.finally(function() { window.location.href = 'dashboard.html'; }); }
+                    else { window.location.href = 'dashboard.html'; }
+                };
+            }
+        } else {
+            emoji.textContent   = '❌';
+            title.textContent   = 'Wrong Answer!';
+            desc.textContent    = 'Not quite right — try again!';
+            partEl.textContent  = currentPart === 1 ? 'Part 1 / 2' : 'Part 2 / 2';
+            actionBtn.textContent = 'Try Again';
+            secondaryBtn.style.display = 'none';
+            actionBtn.onclick = function() { closeResult(); startPart(currentPart); };
+        }
+        overlay.classList.add('open');
+    }
+
+    function closeResult() { gid('result-overlay').classList.remove('open'); }
+
+    /* ── Part 2 Intro ── */
+    function setupIntroForPart2() {
+        gid('intro-badge').textContent    = '⚡ Level 4 • Part 2';
+        gid('intro-emoji').textContent    = '🔤';
+        gid('intro-title').textContent    = 'Alphanumeric Matrix';
+        gid('intro-subtitle').textContent = 'Numbers & letters — three cells will be hidden.';
+        gid('intro-desc').textContent     = 'A 5×5 grid with numbers and letters appears for 5 s. Three cells will be blank — fill them in correctly.';
+        gid('topbar-part-label').textContent = 'Part 2: Alphanumeric Matrix';
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        showState('state-intro');
+    }
+
+    /* ── Wire Buttons ── */
+    gid('btn-start').addEventListener('click', function() { startPart(currentPart); });
+    gid('btn-submit').addEventListener('click', submitAnswer);
+
+    /* ── Init ── */
+    gid('intro-badge').textContent    = '⚡ Level 4 • Part 1';
+    gid('intro-emoji').textContent    = '🧩';
+    gid('intro-title').textContent    = 'Position Memory Matrix';
+    gid('intro-subtitle').textContent = 'Remember numbers in a 4×4 grid';
+    gid('intro-desc').textContent     = 'A 4×4 grid filled with numbers (1–16) will appear for 5 seconds. Memorize the layout, then reproduce it.';
+    gid('topbar-part-label').textContent = 'Part 1: Numeric Matrix';
+    gid('dot-1').className = 'part-dot active';
+    gid('dot-2').className = 'part-dot';
+    showState('state-intro');
+
+    /* ── Hint System ── */
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            function() {
+                var s = gid('state-input');
+                return s && s.classList.contains('active');
+            },
+            function() {
+                var inputs = document.querySelectorAll('.matrix-input');
+                for (var i = 0; i < inputs.length; i++) {
+                    if (!inputs[i].value.trim()) {
+                        var r = parseInt(inputs[i].dataset.row);
+                        var c = parseInt(inputs[i].dataset.col);
+                        inputs[i].value = matrixData[r][c];
+                        inputs[i].dispatchEvent(new Event('input'));
+                        return true;
+                    }
+                }
+                return false;
+            }
+        );
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+Data truncation: Incorrect string value: '\xE2\x98\x85\xE2\x98\x85...' for column `mindmatrix`.`user_progress`.`stars` at row 1
+Data truncation: Incorrect string value: '\xE2\x98\x85\xE2\x98\x85...' for column `mindmatrix`.`user_progress`.`stars` at row 1

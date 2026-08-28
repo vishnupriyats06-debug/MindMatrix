@@ -1,0 +1,9 @@
+.git
+cloudflared.exe
+*.bat
+*.sh
+dist/
+war_tmp/
+.settings/
+.project
+.classpath

@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 19: Cognitive Nexus</title>
+    <meta name="description" content="Level 19 of MindMatrix – Cognitive Nexus: Advanced spatial memory, reverse mental manipulation, and multi-dimensional memory reconstruction." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        /* ══════════════════════════════════════════
+           RESET & DESIGN TOKENS
+        ══════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep:     #050814;
+            --bg-mid:      #0b0f24;
+            --bg-card:     rgba(255,255,255,0.04);
+            --bg-card-h:   rgba(255,255,255,0.07);
+            --border:      rgba(255,255,255,0.09);
+            --border-h:    rgba(6,182,212,0.5);
+            --accent-1:    #06b6d4;
+            --accent-2:    #8b5cf6;
+            --accent-3:    #f59e0b;
+            --neon-pink:   #ec4899;
+            --neon-green:  #10b981;
+            --neon-cyan:   #22d3ee;
+            --glow:        rgba(6,182,212,0.35);
+            --text-pri:    #f0f4ff;
+            --text-sec:    rgba(240,244,255,0.60);
+            --text-muted:  rgba(240,244,255,0.32);
+            --success:     #34d399;
+            --warning:     #fbbf24;
+            --error:       #f87171;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-pri);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* ══════════════════════════════════════════
+           BACKGROUND & LIGHTING
+        ══════════════════════════════════════════ */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            background: var(--bg-deep); overflow: hidden; pointer-events: none;
+        }
+        .bg-scene::before {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 750px; height: 750px;
+            background: radial-gradient(circle, rgba(6,182,212,0.16), transparent 70%);
+            top: -200px; left: -200px;
+            animation: orb 16s ease-in-out infinite alternate;
+        }
+        .bg-scene::after {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 650px; height: 650px;
+            background: radial-gradient(circle, rgba(139,92,246,0.14), transparent 70%);
+            bottom: -150px; right: -150px;
+            animation: orb 20s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes orb {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(60px,80px) scale(1.15); }
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ══════════════════════════════════════════
+           TOPBAR
+        ══════════════════════════════════════════ */
+        .level-topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(5,8,20,0.88);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px; height: 62px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 14px; border-radius: 10px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.2s ease;
+        }
+        .btn-back:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+        .btn-back svg { width: 16px; height: 16px; }
+        .topbar-level-info h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+        .topbar-level-info span { font-size: 11px; color: var(--text-muted); }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+        .part-indicator {
+            display: flex; align-items: center; gap: 7px;
+            padding: 5px 12px; border-radius: 100px;
+            background: rgba(6,182,212,0.12);
+            border: 1px solid rgba(6,182,212,0.3);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+        .part-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); transition: background 0.3s ease;
+        }
+        .part-dot.active { background: var(--accent-1); box-shadow: 0 0 8px var(--glow); }
+        .part-dot.done   { background: var(--success); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+
+        /* ══════════════════════════════════════════
+           PAGE WRAPPER & MAIN GAME CARD
+        ══════════════════════════════════════════ */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; padding: 72px 14px 20px;
+        }
+
+        .game-card {
+            width: 100%; max-width: 780px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px; padding: 26px 22px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 24px 64px rgba(0,0,0,0.55),
+                0 0 80px rgba(6,182,212,0.08);
+            text-align: center;
+            position: relative;
+        }
+
+        .game-state { display: none; animation: fade-up 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display: block; }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Intro Elements ── */
+        .intro-emoji { font-size: 54px; margin-bottom: 12px; animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(6,182,212,0.4)); }
+        }
+        .intro-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+        .intro-subtitle { font-size: 15px; color: var(--accent-1); font-weight: 600; margin-bottom: 8px; }
+        .intro-desc {
+            font-size: 13.5px; color: var(--text-sec); margin-bottom: 22px;
+            line-height: 1.6; max-width: 560px; margin-left: auto; margin-right: auto;
+        }
+        .game-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 5px 14px; border-radius: 100px; margin-bottom: 12px;
+            background: linear-gradient(135deg, rgba(6,182,212,0.18), rgba(139,92,246,0.12));
+            border: 1px solid rgba(6,182,212,0.35);
+            font-size: 12px; font-weight: 700; color: var(--accent-1);
+        }
+
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 32px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-1), #0891b2);
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 24px rgba(6,182,212,0.45);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            min-width: 220px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 36px rgba(6,182,212,0.55);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        /* ── Stage HUD ── */
+        .stage-hud {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 8px; padding: 0 4px;
+        }
+        .hud-left { display: flex; align-items: center; gap: 10px; }
+        .hud-stage-pill { font-size: 12px; font-weight: 800; color: var(--accent-1); text-transform: uppercase; }
+        .hud-title { font-size: 14px; font-weight: 800; color: #fff; }
+        .hud-right { display: flex; align-items: center; gap: 14px; }
+        .hud-timer { font-size: 15px; font-weight: 800; color: var(--accent-1); }
+        .hud-score { font-size: 14px; font-weight: 800; color: #fbbf24; }
+
+        .timer-bar-wrap {
+            width: 100%; height: 5px; background: rgba(255,255,255,0.06);
+            border-radius: 10px; overflow: hidden; margin-bottom: 12px;
+        }
+        .timer-bar-fill {
+            height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+            transition: width 0.1s linear;
+        }
+
+        /* ── Concise Directive Banner ── */
+        .directive-banner {
+            background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(30,41,59,0.95));
+            border: 1.5px solid rgba(6,182,212,0.4);
+            border-radius: 14px; padding: 10px 16px; margin-bottom: 14px;
+            box-shadow: 0 0 20px rgba(6,182,212,0.15);
+            text-align: center;
+        }
+        .directive-label {
+            font-size: 10.5px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;
+        }
+        .directive-text {
+            font-size: 14.5px; font-weight: 800; color: #ffffff;
+            letter-spacing: -0.2px; line-height: 1.4;
+        }
+
+        /* ── Feedback Toast ── */
+        .toast-msg {
+            display: none; padding: 6px 14px; border-radius: 8px; margin-bottom: 10px;
+            font-size: 12.5px; font-weight: 700; text-align: center;
+        }
+        .toast-msg.show { display: block; }
+        .toast-msg.success { background: rgba(52,211,153,0.18); border: 1px solid rgba(52,211,153,0.5); color: #34d399; }
+        .toast-msg.error   { background: rgba(248,113,113,0.18); border: 1px solid rgba(248,113,113,0.5); color: #f87171; }
+        .toast-msg.info    { background: rgba(6,182,212,0.18); border: 1px solid rgba(6,182,212,0.5); color: #38bdf8; }
+
+        /* ══════════════════════════════════════════
+           COMPACT TRY AGAIN MODAL (CONSISTENT & CENTERED)
+        ══════════════════════════════════════════ */
+        .try-again-overlay {
+            position: absolute; inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border-radius: 24px;
+            display: none; align-items: center; justify-content: center;
+            z-index: 100; padding: 16px;
+            animation: fade-up 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .try-again-overlay.show { display: flex; }
+
+        .try-again-modal {
+            width: 100%; max-width: 390px; min-height: 250px;
+            background: linear-gradient(145deg, rgba(20, 27, 45, 0.96), rgba(11, 15, 36, 0.98));
+            border: 1.5px solid rgba(248, 113, 113, 0.35);
+            border-radius: 20px; padding: 22px 20px;
+            box-shadow:
+                0 16px 48px rgba(0, 0, 0, 0.7),
+                0 0 35px rgba(248, 113, 113, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center;
+            animation: modal-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes modal-pop {
+            from { opacity: 0; transform: scale(0.92); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .try-again-emoji {
+            font-size: 32px; line-height: 1; margin-bottom: 8px;
+            filter: drop-shadow(0 0 10px rgba(248, 113, 113, 0.4));
+        }
+        .try-again-title {
+            font-size: 20px; font-weight: 800; color: #f87171;
+            margin-bottom: 6px; letter-spacing: -0.3px;
+        }
+        .try-again-desc {
+            font-size: 13.5px; color: var(--text-sec);
+            margin-bottom: 18px; max-width: 320px; line-height: 1.45;
+        }
+
+        .btn-try-again {
+            width: 210px; height: 46px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent-1), #0891b2);
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 14.5px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-try-again:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(6, 182, 212, 0.55);
+        }
+        .btn-try-again:active { transform: translateY(0); }
+
+        /* ══════════════════════════════════════════
+           PART 1: 4x4 SPATIAL RECALL GRID
+        ══════════════════════════════════════════ */
+        .grid-4x4-wrap {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            max-width: 380px; margin: 0 auto 16px; padding: 12px;
+            background: radial-gradient(circle at center, rgba(15,23,42,0.95), rgba(5,8,20,0.98));
+            border: 2px solid rgba(6,182,212,0.35); border-radius: 20px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+        .grid-cell {
+            aspect-ratio: 1; border-radius: 12px;
+            background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 800; cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+        }
+        .grid-cell:hover {
+            border-color: rgba(6,182,212,0.6); background: rgba(255,255,255,0.08);
+            transform: scale(1.04);
+        }
+        .grid-cell:active { transform: scale(0.96); }
+
+        /* Flash Styles for Active Items */
+        .grid-cell.flash-blue   { background: radial-gradient(circle, #60a5fa, #2563eb) !important; border-color: #93c5fd !important; box-shadow: 0 0 20px #3b82f6; }
+        .grid-cell.flash-red    { background: radial-gradient(circle, #f87171, #dc2626) !important; border-color: #fca5a5 !important; box-shadow: 0 0 20px #ef4444; }
+        .grid-cell.flash-green  { background: radial-gradient(circle, #34d399, #059669) !important; border-color: #6ee7b7 !important; box-shadow: 0 0 20px #10b981; }
+        .grid-cell.flash-yellow { background: radial-gradient(circle, #fde047, #d97706) !important; border-color: #fef08a !important; box-shadow: 0 0 20px #f59e0b; }
+        .grid-cell.flash-purple { background: radial-gradient(circle, #c084fc, #7c3aed) !important; border-color: #e9d5ff !important; box-shadow: 0 0 20px #8b5cf6; }
+
+        .grid-cell.recalled {
+            border-color: #10b981 !important; background: rgba(16,185,129,0.25) !important;
+            color: #34d399 !important; box-shadow: 0 0 16px rgba(16,185,129,0.4);
+        }
+        .grid-cell.hint-glow {
+            border-color: #f59e0b !important; background: rgba(245,158,11,0.3) !important;
+            box-shadow: 0 0 22px #f59e0b !important;
+        }
+
+        /* ══════════════════════════════════════════
+           PART 2: MEMORY RECONSTRUCTION STYLES
+        ══════════════════════════════════════════ */
+        .p2-recon-area {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 14px; min-height: 320px; padding: 14px;
+            background: radial-gradient(circle at center, rgba(15,23,42,0.95), rgba(5,8,20,0.98));
+            border: 2px solid rgba(6,182,212,0.35); border-radius: 20px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+            margin-bottom: 12px;
+        }
+
+        /* Observation Scene Stage */
+        .recon-stage-canvas {
+            width: 100%; max-width: 680px; height: 260px;
+            background: rgba(15,23,42,0.9); border: 1.5px solid rgba(255,255,255,0.08);
+            border-radius: 16px; overflow: hidden; display: block;
+        }
+
+        /* ── Round 1: Who Did What Cards ── */
+        .char-recon-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; width: 100%;
+        }
+        .char-card {
+            background: rgba(15,23,42,0.85); border: 1.5px solid rgba(255,255,255,0.1);
+            border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 8px;
+            text-align: left;
+        }
+        .char-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; color: #38bdf8; }
+        .char-slots { display: flex; flex-direction: column; gap: 6px; }
+        .recon-slot {
+            background: rgba(255,255,255,0.04); border: 1px dashed rgba(6,182,212,0.4);
+            border-radius: 8px; padding: 6px 10px; font-size: 12px; font-weight: 700; color: var(--text-sec);
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .recon-slot.filled { border-style: solid; border-color: #10b981; color: #34d399; background: rgba(16,185,129,0.15); }
+
+        .chips-tray {
+            display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; width: 100%;
+        }
+        .recon-chip {
+            padding: 6px 12px; border-radius: 8px; background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 12px; font-weight: 700;
+            cursor: pointer; transition: all 0.15s ease;
+        }
+        .recon-chip:hover { border-color: var(--accent-1); background: rgba(6,182,212,0.2); }
+        .recon-chip.selected { border-color: #f59e0b; box-shadow: 0 0 12px #f59e0b; }
+
+        /* ── Round 2: Objects Changed Grid ── */
+        .obj-change-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 520px;
+        }
+        .obj-tile {
+            aspect-ratio: 1; border-radius: 12px; background: rgba(15,23,42,0.85);
+            border: 1.5px solid rgba(255,255,255,0.1); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 4px; cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .obj-tile:hover { border-color: var(--accent-1); transform: scale(1.05); }
+        .obj-tile.marked-changed {
+            border-color: #f59e0b !important; background: rgba(245,158,11,0.2) !important;
+            box-shadow: 0 0 16px rgba(245,158,11,0.4);
+        }
+
+        /* ── Round 3: Timeline Reordering ── */
+        .timeline-slot-row {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            flex-wrap: wrap; width: 100%;
+        }
+        .tl-slot {
+            width: 78px; height: 64px; border-radius: 10px;
+            background: rgba(255,255,255,0.04); border: 1.5px dashed rgba(6,182,212,0.4);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 800; color: var(--text-muted); cursor: pointer;
+        }
+        .tl-slot.filled {
+            border-style: solid; border-color: #10b981; background: rgba(16,185,129,0.15);
+            color: #fff; font-size: 11px;
+        }
+
+        /* ── Round 4: 5-Dimensional Memory Fusion Table ── */
+        .fusion-table {
+            width: 100%; border-collapse: collapse; margin-bottom: 8px;
+        }
+        .fusion-table th {
+            font-size: 11px; color: #38bdf8; text-transform: uppercase; padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .fusion-table td {
+            padding: 6px; text-align: center;
+        }
+        .fusion-select {
+            width: 100%; background: rgba(15,23,42,0.9); border: 1px solid rgba(255,255,255,0.15);
+            color: #fff; border-radius: 8px; padding: 6px; font-family: 'Outfit', sans-serif;
+            font-size: 11.5px; font-weight: 700; cursor: pointer;
+        }
+        .fusion-select:focus { border-color: var(--accent-1); outline: none; }
+
+        .btn-verify-action {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px 24px; border-radius: 12px; border: none;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 800; cursor: pointer;
+            box-shadow: 0 4px 18px rgba(16,185,129,0.4);
+            transition: transform 0.15s ease;
+        }
+        .btn-verify-action:hover {
+            transform: translateY(-2px); box-shadow: 0 6px 24px rgba(16,185,129,0.55);
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-scene"></div>
+<div class="bg-grid"></div>
+
+<!-- ═══════ TOPBAR ═══════ -->
+<header class="level-topbar">
+    <div class="topbar-left">
+        <a href="dashboard.html" class="btn-back" id="btn-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Dashboard
+        </a>
+        <div class="topbar-level-info">
+            <h1>Level 19 – Cognitive Nexus</h1>
+            <span id="topbar-part-label">Part 1: Dynamic Spatial Sequence</span>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <button class="theme-toggle-btn" id="theme-header-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+        <div class="part-indicator">
+            <span>Parts</span>
+            <div class="part-dot active" id="dot-1"></div>
+            <div class="part-dot" id="dot-2"></div>
+        </div>
+    </div>
+</header>
+
+<main class="page-wrapper">
+    <div class="game-card">
+
+        <!-- ═══════ COMPACT TRY AGAIN MODAL ═══════ -->
+        <div class="try-again-overlay" id="try-again-overlay">
+            <div class="try-again-modal">
+                <div class="try-again-emoji">❌</div>
+                <div class="try-again-title">Not quite!</div>
+                <div class="try-again-desc" id="try-again-message">That was not the correct sequence.<br/>Try again and remember carefully.</div>
+                <button class="btn-try-again" onclick="retryCurrentRound()">
+                    🔄 TRY AGAIN
+                </button>
+            </div>
+        </div>
+
+        <!-- ═══════ STATE 1: INTRO ═══════ -->
+        <div class="game-state active" id="state-intro">
+            <div class="game-badge">🧠 Level 19 • Advanced Cognitive Synthesis</div>
+            <div class="intro-emoji">🔮</div>
+            <div class="intro-title">COGNITIVE NEXUS</div>
+            <div class="intro-subtitle">"Remember. Transform. Think Ahead."</div>
+            <div class="intro-desc">
+                An expert-level working memory and logical transformation laboratory. Master <strong>Dynamic Spatial Sequence</strong> in Part 1 and <strong>Memory Reconstruction</strong> in Part 2.
+            </div>
+            <button class="btn-primary" id="btn-start" onclick="startPart1()">
+                ▶ Initiate Part 1: Spatial Recall
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 1B: PART 2 INTRO PAGE ═══════ -->
+        <div class="game-state" id="state-intro-p2">
+            <div class="game-badge">🌀 Level 19 • Part 2</div>
+            <div class="intro-emoji">🔮</div>
+            <div class="intro-title">Memory Reconstruction</div>
+            <div class="intro-subtitle">Observe. Analyze. Reconstruct.</div>
+            <div class="intro-desc">
+                Engage master-level analytical memory: Memorize complex entity states, event logs, and dynamic environment shifts, then reconstruct precise historical occurrences across 4 advanced challenges.
+            </div>
+            <button class="btn-primary" id="btn-start-p2" onclick="startPart2()">
+                ▶ Start Game
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 2: ACTIVE GAMEPLAY ═══════ -->
+        <div class="game-state" id="state-nexus">
+            <div class="stage-hud">
+                <div class="hud-left">
+                    <span class="hud-stage-pill" id="nexus-stage-badge">Part 1 • Round 1/4</span>
+                    <span class="hud-title" id="nexus-round-title">REVERSE RECALL</span>
+                </div>
+                <div class="hud-right">
+                    <span class="hud-score" id="nexus-score-val">⭐ 0</span>
+                    <span class="hud-timer">⏱ <span id="nexus-timer-val">25</span>s</span>
+                </div>
+            </div>
+
+            <div class="timer-bar-wrap">
+                <div class="timer-bar-fill" id="nexus-timer-bar"></div>
+            </div>
+
+            <!-- Directive Banner -->
+            <div class="directive-banner">
+                <div class="directive-label" id="nexus-directive-label">MEMORY DIRECTIVE</div>
+                <div class="directive-text" id="nexus-directive-text">Memorize the flashing sequence...</div>
+            </div>
+
+            <div id="nexus-toast" class="toast-msg"></div>
+
+            <!-- Part 1: 4x4 Grid Matrix (Preserved Exactly) -->
+            <div class="grid-4x4-wrap" id="nexus-grid-wrap">
+                <!-- 16 Grid Cells (4x4) -->
+            </div>
+
+            <!-- Part 2: Memory Reconstruction Area -->
+            <div class="p2-recon-area" id="nexus-p2-recon" style="display:none;">
+                <!-- Canvas for Observation Phase -->
+                <canvas class="recon-stage-canvas" id="recon-canvas" width="680" height="260"></canvas>
+
+                <!-- Interactive Reconstruction Boards for Part 2 Rounds 1, 2, 3, 4 -->
+                <div id="recon-interactive-container" style="width:100%; display:none;">
+                    <!-- Dynamic reconstruction widgets injected here -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   LEVEL 19 – COGNITIVE NEXUS MASTER ENGINE
+   Part 1: Dynamic Spatial Sequence (4 Rounds: Reverse Recall, Reverse Spatial, Shifted Recall, Nexus Grid)
+   Part 2: Memory Reconstruction (4 Rounds: Who Did What, What Changed, Event Reconstruction, Memory Fusion)
+   ═══════════════════════════════════════════════════════════════ */
+
+let currentPart = 1;
+let p1Round = 1; // 1 to 4
+let p2Round = 1; // 1 to 4
+
+// Strict Round Success Validation Arrays
+let p1Completed = [false, false, false, false];
+let p2Completed = [false, false, false, false];
+
+let p1Score = 0;
+let p2Score = 0;
+let totalScore = 0;
+
+let roundTimer = null;
+let animFrameId = null;
+let startTimeStamp = Date.now();
+
+// Audio Synthesizer
+const audioCtx = (typeof window.AudioContext !== 'undefined' || typeof window.webkitAudioContext !== 'undefined')
+    ? new (window.AudioContext || window.webkitAudioContext)() : null;
+
+function playTone(freq, type = 'sine', duration = 0.15) {
+    if (!audioCtx) return;
+    try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    } catch(e) {}
+}
+
+function gid(id) { return document.getElementById(id); }
+
+function showState(id) {
+    document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+    const el = gid(id);
+    if (el) el.classList.add('active');
+}
+
+function updatePartIndicator(partNum) {
+    currentPart = partNum;
+    if (partNum === 1) {
+        gid('dot-1').className = 'part-dot active';
+        gid('dot-2').className = 'part-dot';
+        gid('topbar-part-label').textContent = 'Part 1: Dynamic Spatial Sequence';
+    } else {
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        gid('topbar-part-label').textContent = 'Part 2: Memory Reconstruction';
+    }
+}
+
+function showPart2IntroPage() {
+    currentPart = 2;
+    updatePartIndicator(2);
+    showState('state-intro-p2');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnStartP2 = gid('btn-start-p2');
+    if (btnStartP2) {
+        btnStartP2.onclick = () => {
+            currentPart = 2;
+            startPart2();
+        };
+    }
+
+    if (sessionStorage.getItem('mm_lvl19_part1_done') === 'true') {
+        showPart2IntroPage();
+    }
+});
+
+function showToast(id, msg, type) {
+    const t = gid(id);
+    if (!t) return;
+    t.textContent = msg;
+    t.className = `toast-msg show ${type}`;
+}
+
+function hideToast(id) {
+    const t = gid(id);
+    if (t) t.className = 'toast-msg';
+}
+
+/* ── Try Again Modal Overlay Control ── */
+function showTryAgain(message) {
+    if (roundTimer) clearInterval(roundTimer);
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    playTone(180, 'sawtooth', 0.25);
+
+    const overlay = gid('try-again-overlay');
+    const msgEl = gid('try-again-message');
+    if (msgEl) msgEl.textContent = message || 'Try again and remember carefully.';
+    if (overlay) overlay.classList.add('show');
+}
+
+function hideTryAgain() {
+    const overlay = gid('try-again-overlay');
+    if (overlay) overlay.classList.remove('show');
+}
+
+function retryCurrentRound() {
+    hideTryAgain();
+    if (currentPart === 1) {
+        startPart1Round(p1Round);
+    } else {
+        startPart2Round(p2Round);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PART 1: DYNAMIC SPATIAL SEQUENCE
+   ═══════════════════════════════════════════════════════════════ */
+const COLOR_POOL = ['blue', 'red', 'green', 'yellow', 'purple'];
+const COLOR_EMOJIS = { blue: '🔵', red: '🔴', green: '🟢', yellow: '🟡', purple: '🟣' };
+
+let p1Sequence = [];           // Array of { row, col, color }
+let p1TargetExpected = [];      // Transformed target cells array
+let p1UserProgress = 0;         // Current index in target sequence
+let isMemorizing = true;
+
+function startPart1() {
+    updatePartIndicator(1);
+    p1Score = 0;
+    p1Round = 1;
+    p1Completed = [false, false, false, false];
+    startPart1Round(1);
+}
+
+function startPart1Round(roundNum) {
+    p1Round = roundNum;
+    isMemorizing = true;
+    p1UserProgress = 0;
+    hideToast('nexus-toast');
+    hideTryAgain();
+    showState('state-nexus');
+
+    gid('nexus-grid-wrap').style.display = 'grid';
+    gid('nexus-p2-recon').style.display = 'none';
+
+    if (roundTimer) clearInterval(roundTimer);
+
+    const roundTitles = {
+        1: 'REVERSE RECALL (MEDIUM)',
+        2: 'REVERSE SPATIAL RECALL (HARD)',
+        3: 'SHIFTED RECALL (VERY HARD)',
+        4: 'NEXUS GRID (EXTREME)'
+    };
+    const roundDurations = { 1: 25, 2: 30, 3: 35, 4: 40 };
+    const duration = roundDurations[roundNum] || 25;
+
+    gid('nexus-stage-badge').textContent = `Part 1 • Round ${roundNum}/4`;
+    gid('nexus-round-title').textContent = roundTitles[roundNum] || 'SPATIAL SEQUENCE';
+    gid('nexus-timer-val').textContent = duration;
+    gid('nexus-score-val').textContent = `⭐ ${p1Score}`;
+
+    // Generate 4x4 Grid DOM
+    createGrid4x4();
+
+    // Generate & Play Memory Flash Sequence
+    generateP1Sequence(roundNum, duration);
+}
+
+function createGrid4x4() {
+    const gridWrap = gid('nexus-grid-wrap');
+    gridWrap.innerHTML = '';
+    for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.setAttribute('data-r', r);
+            cell.setAttribute('data-c', c);
+            cell.addEventListener('click', () => handleGridCellClick(r, c));
+            gridWrap.appendChild(cell);
+        }
+    }
+}
+
+function generateP1Sequence(roundNum, roundDuration) {
+    const count = roundNum === 1 ? 4 : roundNum === 2 ? 5 : roundNum === 3 ? 5 : 7;
+    p1Sequence = [];
+    p1TargetExpected = [];
+
+    // Ensure valid coordinates inside 4x4 for shift transformations
+    const shiftRight = (roundNum === 3);
+    const shiftLeft = (roundNum === 4);
+
+    for (let i = 0; i < count; i++) {
+        let r = Math.floor(Math.random() * 4);
+        let c = Math.floor(Math.random() * 4);
+
+        if (shiftRight) c = Math.min(2, c); // Bound so (c + 1) <= 3
+        if (shiftLeft)  c = Math.max(1, c); // Bound so (c - 1) >= 0
+
+        const color = COLOR_POOL[Math.floor(Math.random() * (roundNum >= 2 ? 5 : 4))];
+        p1Sequence.push({ r, c, color });
+    }
+
+    // Build target transformed expected sequence
+    if (roundNum === 1 || roundNum === 2) {
+        // Reverse order
+        for (let i = p1Sequence.length - 1; i >= 0; i--) {
+            p1TargetExpected.push({ r: p1Sequence[i].r, c: p1Sequence[i].c, color: p1Sequence[i].color });
+        }
+    } else if (roundNum === 3) {
+        // Shift 1 cell RIGHT
+        for (let i = 0; i < p1Sequence.length; i++) {
+            p1TargetExpected.push({ r: p1Sequence[i].r, c: p1Sequence[i].c + 1, color: p1Sequence[i].color });
+        }
+    } else if (roundNum === 4) {
+        // REVERSE + Shift 1 cell LEFT
+        for (let i = p1Sequence.length - 1; i >= 0; i--) {
+            p1TargetExpected.push({ r: p1Sequence[i].r, c: p1Sequence[i].c - 1, color: p1Sequence[i].color });
+        }
+    }
+
+    // Playback flashing sequence
+    gid('nexus-directive-text').textContent = '👀 MEMORIZE SEQUENCE...';
+    let step = 0;
+    const flashInterval = setInterval(() => {
+        if (step < p1Sequence.length) {
+            flashCell(p1Sequence[step]);
+            step++;
+        } else {
+            clearInterval(flashInterval);
+            setTimeout(() => {
+                isMemorizing = false;
+                if (roundNum === 1 || roundNum === 2) {
+                    gid('nexus-directive-text').textContent = '🔄 RECALL IN REVERSE: Click the grid cells in reverse order!';
+                } else if (roundNum === 3) {
+                    gid('nexus-directive-text').textContent = '➡️ SHIFTED RECALL: Click sequence shifted ONE CELL RIGHT!';
+                } else if (roundNum === 4) {
+                    gid('nexus-directive-text').textContent = '⚡ NEXUS SHIFT: Recall in REVERSE + Shifted ONE CELL LEFT!';
+                }
+                startCountdown(roundDuration, () => {
+                    // Timer Failure: Show Try Again
+                    showTryAgain('⏱️ Time expired! Try again and remember carefully.');
+                });
+            }, 600);
+        }
+    }, 900);
+}
+
+function flashCell(item) {
+    const cell = document.querySelector(`.grid-cell[data-r="${item.r}"][data-c="${item.c}"]`);
+    if (cell) {
+        cell.className = `grid-cell flash-${item.color}`;
+        cell.innerHTML = COLOR_EMOJIS[item.color];
+        playTone(550, 'sine', 0.15);
+        setTimeout(() => {
+            cell.className = 'grid-cell';
+            cell.innerHTML = '';
+        }, 600);
+    }
+}
+
+function handleGridCellClick(r, c) {
+    if (isMemorizing) return;
+
+    const expected = p1TargetExpected[p1UserProgress];
+    const cell = document.querySelector(`.grid-cell[data-r="${r}"][data-c="${c}"]`);
+
+    if (r === expected.r && c === expected.c) {
+        // Correct Click in Sequence
+        p1UserProgress++;
+        cell.className = 'grid-cell recalled';
+        cell.innerHTML = `✓ ${p1UserProgress}`;
+        playTone(650 + p1UserProgress * 60, 'sine', 0.15);
+
+        if (p1UserProgress === p1TargetExpected.length) {
+            // Round Successfully Completed!
+            if (roundTimer) clearInterval(roundTimer);
+            p1Completed[p1Round - 1] = true;
+
+            const pts = p1Round === 1 ? 10 : p1Round === 2 ? 12 : p1Round === 3 ? 15 : 20;
+            p1Score += pts;
+            gid('nexus-score-val').textContent = `⭐ ${p1Score}`;
+            playTone(880, 'sine', 0.25);
+            showToast('nexus-toast', `✓ Complete Spatial Reconstruction! (+${pts} Pts)`, 'success');
+
+            setTimeout(handlePart1RoundSuccess, 1000);
+        }
+    } else {
+        // Incorrect Click -> Show Try Again, restart same round!
+        if (roundTimer) clearInterval(roundTimer);
+        cell.style.borderColor = '#ef4444';
+        showTryAgain('❌ Not quite! That was not the correct cell in the sequence. Try again and remember carefully.');
+    }
+}
+
+function handlePart1RoundSuccess() {
+    if (p1Round < 4) {
+        startPart1Round(p1Round + 1);
+    } else {
+        // Check all 4 rounds are verified complete
+        if (p1Completed[0] && p1Completed[1] && p1Completed[2] && p1Completed[3]) {
+            p1Score = 50;
+            totalScore = p1Score;
+
+            sessionStorage.setItem('mm_lvl19_part1_done', 'true');
+            showPartCompletion({
+                part: 1,
+                totalParts: 2,
+                score: 50,
+                title: 'PART 1 COMPLETE!',
+                message: 'Cognitive Nexus Spatial Reconstruction Mastered! Outstanding working memory, mental inversion, and coordinate transformation.',
+                buttonText: 'Continue to Part 2 ▶',
+                onContinue: () => {
+                    showPart2IntroPage();
+                }
+            });
+        }
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PART 2: MEMORY RECONSTRUCTION
+   ═══════════════════════════════════════════════════════════════ */
+let p2SelectedChip = null;
+let p2RoundData = {};
+
+function startPart2() {
+    updatePartIndicator(2);
+    p2Score = 0;
+    p2Round = 1;
+    p2Completed = [false, false, false, false];
+    startPart2Round(1);
+}
+
+function startPart2Round(roundNum) {
+    p2Round = roundNum;
+    hideToast('nexus-toast');
+    hideTryAgain();
+    showState('state-nexus');
+
+    gid('nexus-grid-wrap').style.display = 'none';
+    gid('nexus-p2-recon').style.display = 'flex';
+
+    const canvas = gid('recon-canvas');
+    const container = gid('recon-interactive-container');
+    canvas.style.display = 'block';
+    container.style.display = 'none';
+
+    if (roundTimer) clearInterval(roundTimer);
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+
+    const roundTitles = {
+        1: 'WHO DID WHAT? (MEDIUM)',
+        2: 'WHAT CHANGED? (HARD)',
+        3: 'EVENT RECONSTRUCTION (VERY HARD)',
+        4: 'MEMORY FUSION (EXTREME)'
+    };
+    const obsDurations = { 1: 15, 2: 15, 3: 20, 4: 20 };
+    const reconDurations = { 1: 30, 2: 35, 3: 45, 4: 60 };
+
+    const obsTime = obsDurations[roundNum] || 15;
+    const reconTime = reconDurations[roundNum] || 30;
+
+    gid('nexus-stage-badge').textContent = `Part 2 • Round ${roundNum}/4`;
+    gid('nexus-round-title').textContent = roundTitles[roundNum] || 'MEMORY RECONSTRUCTION';
+    gid('nexus-timer-val').textContent = obsTime;
+    gid('nexus-score-val').textContent = `⭐ ${p2Score}`;
+
+    // Play Observation Phase
+    playObservationPhase(roundNum, obsTime, () => {
+        // Transition to Interactive Reconstruction Phase
+        canvas.style.display = 'none';
+        container.style.display = 'block';
+        setupReconstructionUI(roundNum);
+
+        startCountdown(reconTime, () => {
+            // Timer Failure: Show Try Again
+            showTryAgain('⏱️ Time expired! Try again and remember carefully.');
+        });
+    });
+}
+
+/* ── Observation Phase Animation Loop ── */
+function playObservationPhase(roundNum, durationSecs, onComplete) {
+    const canvas = gid('recon-canvas');
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+
+    gid('nexus-directive-text').textContent = '👀 OBSERVATION PHASE: Observe and memorize the events...';
+    startCountdown(durationSecs, onComplete);
+
+    let startTime = performance.now();
+    function animateObs() {
+        const elapsed = (performance.now() - startTime) / 1000;
+        ctx.clearRect(0, 0, w, h);
+        drawObservationRoom(ctx, w, h);
+
+        if (roundNum === 1) renderObsRound1(ctx, w, h, elapsed);
+        else if (roundNum === 2) renderObsRound2(ctx, w, h, elapsed);
+        else if (roundNum === 3) renderObsRound3(ctx, w, h, elapsed);
+        else if (roundNum === 4) renderObsRound4(ctx, w, h, elapsed);
+
+        if (canvas.style.display !== 'none') {
+            animFrameId = requestAnimationFrame(animateObs);
+        }
+    }
+    animateObs();
+}
+
+function drawObservationRoom(ctx, w, h) {
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = 0; y < h; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+    // Central Table
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.4)';
+    ctx.fillRect(w / 2 - 120, h / 2 - 30, 240, 60);
+    ctx.strokeRect(w / 2 - 120, h / 2 - 30, 240, 60);
+}
+
+/* ── Observation Scene 1: Who Did What (3 Agents) ── */
+function renderObsRound1(ctx, w, h, t) {
+    drawAgent(ctx, 120, 80, '🧑‍💼 Alex', t < 5 ? '📖 Pick Up Book' : 'Idle');
+    drawAgent(ctx, 340, 80, '👩‍🔬 Maya', (t >= 5 && t < 10) ? '☕ Move Cup' : 'Idle');
+    drawAgent(ctx, 560, 80, '👨‍🎨 Sam', t >= 10 ? '🗄️ Open Drawer' : 'Idle');
+
+    // Objects on Table
+    ctx.font = '24px Outfit';
+    ctx.fillText('📘', w / 2 - 80, h / 2 + 10);
+    ctx.fillText('☕', w / 2, h / 2 + 10);
+    ctx.fillText('🗄️', w / 2 + 80, h / 2 + 10);
+}
+
+/* ── Observation Scene 2: What Changed (Initial State) ── */
+function renderObsRound2(ctx, w, h, t) {
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 12px Outfit';
+    ctx.fillText('INITIAL ARRANGEMENT (Memorize Positions & States)', w / 2 - 140, 30);
+
+    const items = [
+        { icon: '📘', label: 'Book (Blue)', x: 140, y: 120 },
+        { icon: '☕', label: 'Mug (Upright)', x: 260, y: 120 },
+        { icon: '🔑', label: 'Key (Gold)', x: 380, y: 120 },
+        { icon: '📱', label: 'Pad (Center)', x: 500, y: 120 },
+        { icon: '🖊️', label: 'Pen (Left)', x: 200, y: 190 },
+        { icon: '🧪', label: 'Flask (Emerald)', x: 320, y: 190 },
+        { icon: '⏱️', label: 'Watch (Right)', x: 440, y: 190 }
+    ];
+
+    items.forEach(it => {
+        ctx.font = '28px Outfit';
+        ctx.fillText(it.icon, it.x, it.y);
+        ctx.font = '10px Outfit';
+        ctx.fillText(it.label, it.x - 16, it.y + 20);
+    });
+}
+
+/* ── Observation Scene 3: Event Sequence ── */
+function renderObsRound3(ctx, w, h, t) {
+    const step = Math.min(7, Math.floor((t / 20) * 8));
+    const events = [
+        '1. 🚪 Facility Door Opens',
+        '2. 🚶 Agent Enters Chamber',
+        '3. 🎒 Picks up Briefcase',
+        '4. 📚 Places Document on Table',
+        '5. 💡 Ambient Light Dims',
+        '6. 🪑 Sits at Terminal Chair',
+        '7. 🚶 Stands & Exits Chamber',
+        '8. 🔒 Security Door Locks'
+    ];
+
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 16px Outfit';
+    ctx.textAlign = 'center';
+    ctx.fillText(`ACTIVE EVENT #${step + 1}`, w / 2, 60);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 22px Outfit';
+    ctx.fillText(events[step], w / 2, h / 2 + 10);
+}
+
+/* ── Observation Scene 4: Memory Fusion (4 Agents) ── */
+function renderObsRound4(ctx, w, h, t) {
+    const step = Math.min(3, Math.floor((t / 20) * 4));
+    const fusionEvents = [
+        { who: '🧑‍💼 Alex', act: 'Moves 💎 Prism', loc: '📍 Left Desk' },
+        { who: '👩‍🔬 Maya', act: 'Opens 🗄️ Vault', loc: '📍 Right Cabinet' },
+        { who: '👨‍🎨 Sam', act: 'Takes 🔑 Key', loc: '📍 Center Table' },
+        { who: '👨‍🚀 Leo', act: 'Activates 💻 Terminal', loc: '📍 Top Exit' }
+    ];
+
+    const cur = fusionEvents[step];
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 15px Outfit';
+    ctx.textAlign = 'center';
+    ctx.fillText(`MULTI-DIMENSIONAL EVENT #${step + 1} OF 4`, w / 2, 50);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 20px Outfit';
+    ctx.fillText(`${cur.who} → ${cur.act} at ${cur.loc}`, w / 2, h / 2 + 10);
+}
+
+function drawAgent(ctx, x, y, name, action) {
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 14px Outfit';
+    ctx.fillText(name, x - 25, y);
+
+    ctx.fillStyle = '#fff';
+    ctx.font = '11px Outfit';
+    ctx.fillText(action, x - 30, y + 20);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RECONSTRUCTION PHASE INTERACTIVE UI
+   ═══════════════════════════════════════════════════════════════ */
+function setupReconstructionUI(roundNum) {
+    const container = gid('recon-interactive-container');
+    p2RoundData = {};
+
+    if (roundNum === 1) {
+        gid('nexus-directive-text').textContent = 'WHO DID WHAT: Reconstruct Character → Action → Object relationships!';
+        p2RoundData = {
+            alex: { act: null, obj: null },
+            maya: { act: null, obj: null },
+            sam:  { act: null, obj: null }
+        };
+
+        container.innerHTML = `
+            <div class="char-recon-grid">
+                <div class="char-card">
+                    <div class="char-header">🧑‍💼 Alex</div>
+                    <div class="char-slots">
+                        <div class="recon-slot" id="slot-alex-act" onclick="assignSlot('alex', 'act')">Action: [Select Below]</div>
+                        <div class="recon-slot" id="slot-alex-obj" onclick="assignSlot('alex', 'obj')">Object: [Select Below]</div>
+                    </div>
+                </div>
+                <div class="char-card">
+                    <div class="char-header">👩‍🔬 Maya</div>
+                    <div class="char-slots">
+                        <div class="recon-slot" id="slot-maya-act" onclick="assignSlot('maya', 'act')">Action: [Select Below]</div>
+                        <div class="recon-slot" id="slot-maya-obj" onclick="assignSlot('maya', 'obj')">Object: [Select Below]</div>
+                    </div>
+                </div>
+                <div class="char-card">
+                    <div class="char-header">👨‍🎨 Sam</div>
+                    <div class="char-slots">
+                        <div class="recon-slot" id="slot-sam-act" onclick="assignSlot('sam', 'act')">Action: [Select Below]</div>
+                        <div class="recon-slot" id="slot-sam-obj" onclick="assignSlot('sam', 'obj')">Object: [Select Below]</div>
+                    </div>
+                </div>
+            </div>
+            <div class="chips-tray" style="margin-top:12px;">
+                <div class="recon-chip" onclick="selectChip('Pick Up')">📖 Pick Up</div>
+                <div class="recon-chip" onclick="selectChip('Move')">☕ Move</div>
+                <div class="recon-chip" onclick="selectChip('Open')">🗄️ Open</div>
+                <div class="recon-chip" onclick="selectChip('Book')">📘 Book</div>
+                <div class="recon-chip" onclick="selectChip('Cup')">☕ Cup</div>
+                <div class="recon-chip" onclick="selectChip('Drawer')">🗄️ Drawer</div>
+            </div>
+            <div style="margin-top:14px;">
+                <button class="btn-verify-action" onclick="verifyRound1()">⚡ Verify Reconstruction</button>
+            </div>
+        `;
+    } else if (roundNum === 2) {
+        gid('nexus-directive-text').textContent = 'WHAT CHANGED: Click on the 3 objects that were altered from the original scene!';
+        p2RoundData = {
+            selected: [],
+            correct: [1, 2, 5] // Mug rotated, Key moved, Flask changed
+        };
+
+        const changedItems = [
+            { id: 0, icon: '📘', label: 'Book' },
+            { id: 1, icon: '☕', label: 'Mug (Rotated 90°)' },
+            { id: 2, icon: '🔑', label: 'Key (Shifted Pos)' },
+            { id: 3, icon: '📱', label: 'Pad' },
+            { id: 4, icon: '🖊️', label: 'Pen' },
+            { id: 5, icon: '🧪', label: 'Flask (Color Shift)' },
+            { id: 6, icon: '⏱️', label: 'Watch' }
+        ];
+
+        let html = '<div class="obj-change-grid" style="margin:0 auto 12px;">';
+        changedItems.forEach(it => {
+            html += `
+                <div class="obj-tile" id="obj-tile-${it.id}" onclick="toggleMarkObject(${it.id})">
+                    <span style="font-size:26px;">${it.icon}</span>
+                    <span style="font-size:10px; font-weight:700;">${it.label}</span>
+                </div>
+            `;
+        });
+        html += '</div><div><button class="btn-verify-action" onclick="verifyRound2()">⚡ Verify Detected Changes</button></div>';
+        container.innerHTML = html;
+    } else if (roundNum === 3) {
+        gid('nexus-directive-text').textContent = 'EVENT RECONSTRUCTION: Reorder the 8 events into the exact chronological timeline!';
+        p2RoundData = {
+            slots: new Array(8).fill(null),
+            events: [
+                { id: 1, label: '1. 🚪 Door Opens' },
+                { id: 2, label: '2. 🚶 Enters' },
+                { id: 3, label: '3. 🎒 Picks Bag' },
+                { id: 4, label: '4. 📚 Places Doc' },
+                { id: 5, label: '5. 💡 Light Dims' },
+                { id: 6, label: '6. 🪑 Sits Chair' },
+                { id: 7, label: '7. 🚶 Exits' },
+                { id: 8, label: '8. 🔒 Door Locks' }
+            ]
+        };
+
+        let html = '<div class="timeline-slot-row" style="margin-bottom:12px;">';
+        for (let i = 0; i < 8; i++) {
+            html += `<div class="tl-slot" id="tl-slot-${i}" onclick="clearTimelineSlot(${i})">Slot #${i + 1}</div>`;
+        }
+        html += '</div><div class="chips-tray" style="margin-bottom:14px;">';
+        // Shuffled Event Cards
+        const shuffled = [...p2RoundData.events].sort(() => Math.random() - 0.5);
+        shuffled.forEach(ev => {
+            html += `<div class="recon-chip" id="chip-ev-${ev.id}" onclick="assignTimelineEvent(${ev.id})">${ev.label}</div>`;
+        });
+        html += '</div><div><button class="btn-verify-action" onclick="verifyRound3()">⚡ Verify Timeline</button></div>';
+        container.innerHTML = html;
+    } else if (roundNum === 4) {
+        gid('nexus-directive-text').textContent = 'MEMORY FUSION: Reconstruct 4 Events across Character, Action, Object, and Location!';
+        container.innerHTML = `
+            <table class="fusion-table">
+                <thead>
+                    <tr><th>Event</th><th>WHO</th><th>ACTION</th><th>OBJECT</th><th>LOCATION</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>#1</strong></td>
+                        <td><select class="fusion-select" id="f-who-1"><option>Select</option><option>Alex</option><option>Maya</option><option>Sam</option><option>Leo</option></select></td>
+                        <td><select class="fusion-select" id="f-act-1"><option>Select</option><option>Moves</option><option>Opens</option><option>Takes</option><option>Activates</option></select></td>
+                        <td><select class="fusion-select" id="f-obj-1"><option>Select</option><option>Prism</option><option>Vault</option><option>Key</option><option>Terminal</option></select></td>
+                        <td><select class="fusion-select" id="f-loc-1"><option>Select</option><option>Left Desk</option><option>Right Cabinet</option><option>Center Table</option><option>Top Exit</option></select></td>
+                    </tr>
+                    <tr>
+                        <td><strong>#2</strong></td>
+                        <td><select class="fusion-select" id="f-who-2"><option>Select</option><option>Alex</option><option>Maya</option><option>Sam</option><option>Leo</option></select></td>
+                        <td><select class="fusion-select" id="f-act-2"><option>Select</option><option>Moves</option><option>Opens</option><option>Takes</option><option>Activates</option></select></td>
+                        <td><select class="fusion-select" id="f-obj-2"><option>Select</option><option>Prism</option><option>Vault</option><option>Key</option><option>Terminal</option></select></td>
+                        <td><select class="fusion-select" id="f-loc-2"><option>Select</option><option>Left Desk</option><option>Right Cabinet</option><option>Center Table</option><option>Top Exit</option></select></td>
+                    </tr>
+                    <tr>
+                        <td><strong>#3</strong></td>
+                        <td><select class="fusion-select" id="f-who-3"><option>Select</option><option>Alex</option><option>Maya</option><option>Sam</option><option>Leo</option></select></td>
+                        <td><select class="fusion-select" id="f-act-3"><option>Select</option><option>Moves</option><option>Opens</option><option>Takes</option><option>Activates</option></select></td>
+                        <td><select class="fusion-select" id="f-obj-3"><option>Select</option><option>Prism</option><option>Vault</option><option>Key</option><option>Terminal</option></select></td>
+                        <td><select class="fusion-select" id="f-loc-3"><option>Select</option><option>Left Desk</option><option>Right Cabinet</option><option>Center Table</option><option>Top Exit</option></select></td>
+                    </tr>
+                    <tr>
+                        <td><strong>#4</strong></td>
+                        <td><select class="fusion-select" id="f-who-4"><option>Select</option><option>Alex</option><option>Maya</option><option>Sam</option><option>Leo</option></select></td>
+                        <td><select class="fusion-select" id="f-act-4"><option>Select</option><option>Moves</option><option>Opens</option><option>Takes</option><option>Activates</option></select></td>
+                        <td><select class="fusion-select" id="f-obj-4"><option>Select</option><option>Prism</option><option>Vault</option><option>Key</option><option>Terminal</option></select></td>
+                        <td><select class="fusion-select" id="f-loc-4"><option>Select</option><option>Left Desk</option><option>Right Cabinet</option><option>Center Table</option><option>Top Exit</option></select></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div><button class="btn-verify-action" onclick="verifyRound4()">⚡ Finalize Memory Fusion</button></div>
+        `;
+    }
+}
+
+/* ── Interactive Handlers ── */
+function selectChip(val) {
+    p2SelectedChip = val;
+    document.querySelectorAll('.recon-chip').forEach(c => c.classList.remove('selected'));
+    event.target.classList.add('selected');
+    playTone(520, 'sine', 0.08);
+}
+
+function assignSlot(charKey, type) {
+    if (!p2SelectedChip) {
+        showToast('nexus-toast', 'Select a chip from below first!', 'info');
+        return;
+    }
+    p2RoundData[charKey][type] = p2SelectedChip;
+    const slotEl = gid(`slot-${charKey}-${type}`);
+    if (slotEl) {
+        slotEl.textContent = `${type.toUpperCase()}: ${p2SelectedChip}`;
+        slotEl.classList.add('filled');
+    }
+    playTone(680, 'sine', 0.1);
+}
+
+function verifyRound1() {
+    const d = p2RoundData;
+    const correctAlex = (d.alex.act === 'Pick Up' && d.alex.obj === 'Book');
+    const correctMaya = (d.maya.act === 'Move' && d.maya.obj === 'Cup');
+    const correctSam  = (d.sam.act === 'Open' && d.sam.obj === 'Drawer');
+
+    if (correctAlex && correctMaya && correctSam) {
+        if (roundTimer) clearInterval(roundTimer);
+        p2Completed[0] = true;
+        p2Score += 15;
+        gid('nexus-score-val').textContent = `⭐ ${p2Score}`;
+        playTone(900, 'sine', 0.25);
+        showToast('nexus-toast', '✓ Flawless Relational Reconstruction! (+15 Pts)', 'success');
+        setTimeout(handlePart2RoundSuccess, 1000);
+    } else {
+        showTryAgain('❌ Not quite! The connections did not match the observation scene. Try again and remember carefully.');
+    }
+}
+
+function toggleMarkObject(id) {
+    const tile = gid(`obj-tile-${id}`);
+    const sel = p2RoundData.selected;
+    const idx = sel.indexOf(id);
+
+    if (idx !== -1) {
+        sel.splice(idx, 1);
+        tile.classList.remove('marked-changed');
+    } else {
+        sel.push(id);
+        tile.classList.add('marked-changed');
+    }
+    playTone(600, 'sine', 0.08);
+}
+
+function verifyRound2() {
+    const sel = p2RoundData.selected;
+    const cor = p2RoundData.correct;
+    const matched = cor.every(id => sel.includes(id)) && sel.length === 3;
+
+    if (matched) {
+        if (roundTimer) clearInterval(roundTimer);
+        p2Completed[1] = true;
+        p2Score += 20;
+        gid('nexus-score-val').textContent = `⭐ ${p2Score}`;
+        playTone(900, 'sine', 0.25);
+        showToast('nexus-toast', '✓ All 3 Subtle Alterations Detected! (+20 Pts)', 'success');
+        setTimeout(handlePart2RoundSuccess, 1000);
+    } else {
+        showTryAgain('❌ Not quite! You did not identify all 3 altered objects. Try again and observe carefully.');
+    }
+}
+
+function assignTimelineEvent(evId) {
+    const firstEmpty = p2RoundData.slots.indexOf(null);
+    if (firstEmpty === -1) {
+        showToast('nexus-toast', 'All 8 slots full! Click a slot to remove.', 'info');
+        return;
+    }
+    p2RoundData.slots[firstEmpty] = evId;
+    const slotEl = gid(`tl-slot-${firstEmpty}`);
+    const ev = p2RoundData.events.find(e => e.id === evId);
+    if (slotEl && ev) {
+        slotEl.textContent = ev.label;
+        slotEl.classList.add('filled');
+    }
+    gid(`chip-ev-${evId}`).style.display = 'none';
+    playTone(640, 'sine', 0.1);
+}
+
+function clearTimelineSlot(slotIdx) {
+    const evId = p2RoundData.slots[slotIdx];
+    if (!evId) return;
+    p2RoundData.slots[slotIdx] = null;
+    const slotEl = gid(`tl-slot-${slotIdx}`);
+    if (slotEl) {
+        slotEl.textContent = `Slot #${slotIdx + 1}`;
+        slotEl.classList.remove('filled');
+    }
+    const chip = gid(`chip-ev-${evId}`);
+    if (chip) chip.style.display = 'block';
+    playTone(400, 'sine', 0.08);
+}
+
+function verifyRound3() {
+    const slots = p2RoundData.slots;
+    const isCorrect = slots.every((id, idx) => id === idx + 1);
+
+    if (isCorrect) {
+        if (roundTimer) clearInterval(roundTimer);
+        p2Completed[2] = true;
+        p2Score += 25;
+        gid('nexus-score-val').textContent = `⭐ ${p2Score}`;
+        playTone(920, 'sine', 0.25);
+        showToast('nexus-toast', '✓ Chronological Event Sequence Solved! (+25 Pts)', 'success');
+        setTimeout(handlePart2RoundSuccess, 1000);
+    } else {
+        showTryAgain('❌ Not quite! The event order in the timeline is incorrect. Try again and observe the flow.');
+    }
+}
+
+function verifyRound4() {
+    const r1 = (gid('f-who-1').value === 'Alex' && gid('f-act-1').value === 'Moves' && gid('f-obj-1').value === 'Prism' && gid('f-loc-1').value === 'Left Desk');
+    const r2 = (gid('f-who-2').value === 'Maya' && gid('f-act-2').value === 'Opens' && gid('f-obj-2').value === 'Vault' && gid('f-loc-2').value === 'Right Cabinet');
+    const r3 = (gid('f-who-3').value === 'Sam' && gid('f-act-3').value === 'Takes' && gid('f-obj-3').value === 'Key' && gid('f-loc-3').value === 'Center Table');
+    const r4 = (gid('f-who-4').value === 'Leo' && gid('f-act-4').value === 'Activates' && gid('f-obj-4').value === 'Terminal' && gid('f-loc-4').value === 'Top Exit');
+
+    if (r1 && r2 && r3 && r4) {
+        if (roundTimer) clearInterval(roundTimer);
+        p2Completed[3] = true;
+        p2Score += 30;
+        gid('nexus-score-val').textContent = `⭐ ${p2Score}`;
+        playTone(950, 'sine', 0.3);
+        showToast('nexus-toast', '🎉 MEMORY FUSION MASTERED! (+30 Pts)', 'success');
+        setTimeout(handlePart2RoundSuccess, 1000);
+    } else {
+        showTryAgain('❌ Not quite! One or more relationships in the 5D Fusion Matrix are mismatched. Try again.');
+    }
+}
+
+function handlePart2RoundSuccess() {
+    if (p2Round < 4) {
+        startPart2Round(p2Round + 1);
+    } else {
+        // Only trigger completion if all 4 Part 2 rounds are verified complete!
+        if (p2Completed[0] && p2Completed[1] && p2Completed[2] && p2Completed[3]) {
+            p2Score = 50;
+            totalScore = 100;
+            saveProgress(totalScore);
+
+            showPartCompletion({
+                part: 2,
+                totalParts: 2,
+                score: 50,
+                title: 'LEVEL 19 MASTERED!',
+                message: '🎉 COGNITIVE NEXUS COMPLETED! Elite spatial reconstruction, working memory, and multi-dimensional memory fusion. Final Level 20 unlocked!',
+                buttonText: '🏆 Continue to Dashboard',
+                isFinal: true,
+                onContinue: () => {
+                    window.location.href = 'dashboard.html';
+                }
+            });
+        }
+    }
+}
+
+/* ── Standard Countdown Timer ── */
+function startCountdown(durationSecs, onTimeout) {
+    let timeLeft = durationSecs;
+    gid('nexus-timer-val').textContent = timeLeft;
+    gid('nexus-timer-bar').style.width = '100%';
+
+    roundTimer = setInterval(() => {
+        timeLeft -= 1;
+        const pct = (timeLeft / durationSecs) * 100;
+        gid('nexus-timer-bar').style.width = `${Math.max(0, pct)}%`;
+        gid('nexus-timer-val').textContent = Math.max(0, timeLeft);
+
+        if (timeLeft <= 0) {
+            clearInterval(roundTimer);
+            if (typeof onTimeout === 'function') onTimeout();
+        }
+    }, 1000);
+}
+
+/* ── Save Progress to Database & LocalStorage ── */
+function saveProgress(finalScore) {
+    const currentUser = localStorage.getItem('mm_current_user') || 'User';
+    const userPrefix = 'mm_' + currentUser + '_';
+
+    const defaultScores = Array(20).fill(0);
+    const defaultTimes = Array(20).fill("-");
+    const defaultStars = Array(20).fill("0");
+
+    let prevScore = parseInt(localStorage.getItem('mm_score'), 10) || parseInt(localStorage.getItem(userPrefix + 'score'), 10) || 0;
+    let score = prevScore + finalScore;
+    let lastPlayedDateStr = localStorage.getItem('mm_last_played_date') || localStorage.getItem(userPrefix + 'last_played_date') || "";
+    let currentStreak = parseInt(localStorage.getItem('mm_streak'), 10) || parseInt(localStorage.getItem(userPrefix + 'streak'), 10) || 0;
+    let streakRes = (window.calculateNewStreak ? window.calculateNewStreak(currentStreak, lastPlayedDateStr, true) : { streak: (currentStreak || 1), dateStr: (window.getLocalDateString ? window.getLocalDateString() : new Date().toISOString().split('T')[0]) });
+    let streak = streakRes.streak;
+    let lastPlayedDate = streakRes.dateStr;
+    let unlockedLevel = Math.max(20, parseInt(localStorage.getItem('mm_unlocked_level'), 10) || parseInt(localStorage.getItem(userPrefix + 'unlocked_level'), 10) || 1);
+    let gamesPlayed = (parseInt(localStorage.getItem('mm_games_played'), 10) || parseInt(localStorage.getItem(userPrefix + 'games_played'), 10) || 0) + 1;
+    let bestStreak = Math.max(streak, parseInt(localStorage.getItem('mm_best_streak'), 10) || parseInt(localStorage.getItem(userPrefix + 'best_streak'), 10) || streak);
+
+    let bestScores = safeParseArray(localStorage.getItem('mm_best_scores') || localStorage.getItem(userPrefix + 'best_scores'), defaultScores);
+    let bestTimes = safeParseArray(localStorage.getItem('mm_best_times') || localStorage.getItem(userPrefix + 'best_times'), defaultTimes);
+    let stars = safeParseArray(localStorage.getItem('mm_stars') || localStorage.getItem(userPrefix + 'stars'), defaultStars);
+
+    const elapsedSeconds = Math.round((Date.now() - startTimeStamp) / 1000);
+    const mins = Math.floor(elapsedSeconds / 60);
+    const secs = elapsedSeconds % 60;
+    const timeStr = `${mins}m ${secs}s`;
+
+    bestScores[18] = Math.max(finalScore, parseInt(bestScores[18], 10) || 0);
+    bestTimes[18] = timeStr;
+    stars[18] = '3';
+
+    localStorage.setItem('mm_score', score);
+    localStorage.setItem('mm_streak', streak);
+    localStorage.setItem('mm_last_played_date', lastPlayedDate);
+    localStorage.setItem('mm_unlocked_level', unlockedLevel);
+    localStorage.setItem('mm_games_played', gamesPlayed);
+    localStorage.setItem('mm_best_streak', bestStreak);
+    localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+    localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+    localStorage.setItem('mm_stars', JSON.stringify(stars));
+
+    localStorage.setItem(userPrefix + 'score', score);
+    localStorage.setItem(userPrefix + 'streak', streak);
+    localStorage.setItem(userPrefix + 'last_played_date', lastPlayedDate);
+    localStorage.setItem(userPrefix + 'unlocked_level', unlockedLevel);
+    localStorage.setItem(userPrefix + 'games_played', gamesPlayed);
+    localStorage.setItem(userPrefix + 'best_streak', bestStreak);
+    localStorage.setItem(userPrefix + 'best_scores', JSON.stringify(bestScores));
+    localStorage.setItem(userPrefix + 'best_times', JSON.stringify(bestTimes));
+    localStorage.setItem(userPrefix + 'stars', JSON.stringify(stars));
+
+    return fetch('saveProgress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            score: score,
+            streak: streak,
+            unlockedLevel: unlockedLevel,
+            gamesPlayed: gamesPlayed,
+            bestStreak: bestStreak,
+            bestScores: JSON.stringify(bestScores),
+            bestTimes: JSON.stringify(bestTimes),
+            stars: JSON.stringify(stars),
+            lastPlayedDate: lastPlayedDate,
+            clientDate: lastPlayedDate,
+            hints: localStorage.getItem('mm_hints') || 3
+        })
+    }).catch(() => {});
+}
+
+function safeParseArray(val, def) {
+    if (!val) return def;
+    try {
+        const p = JSON.parse(val);
+        return Array.isArray(p) ? p : def;
+    } catch (e) {
+        return def;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HINT SYSTEM INTEGRATION
+   ═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof window.initHintSystem === 'function') {
+        window.initHintSystem(
+            // checkCanReveal callback
+            () => {
+                return (currentPart === 1 || currentPart === 2);
+            },
+            // onReveal callback
+            () => {
+                if (currentPart === 1) {
+                    if (p1TargetExpected[p1UserProgress]) {
+                        const target = p1TargetExpected[p1UserProgress];
+                        const cell = document.querySelector(`.grid-cell[data-r="${target.r}"][data-c="${target.c}"]`);
+                        if (cell) {
+                            cell.classList.add('hint-glow');
+                            setTimeout(() => cell.classList.remove('hint-glow'), 1200);
+                        }
+                        showToast('nexus-toast', `💡 Hint: Next cell is at Row ${target.r + 1}, Col ${target.c + 1}!`, 'info');
+                    }
+                } else if (currentPart === 2) {
+                    if (p2Round === 1) showToast('nexus-toast', '💡 Hint: Alex picked up the Book', 'info');
+                    else if (p2Round === 2) showToast('nexus-toast', '💡 Hint: The Energy Mug was rotated', 'info');
+                    else if (p2Round === 3) showToast('nexus-toast', '💡 Hint: Slot #1 is Door Opens, Slot #8 is Door Locks', 'info');
+                    else if (p2Round === 4) showToast('nexus-toast', '💡 Hint: Event 1 = Alex Moves Prism at Left Desk', 'info');
+                }
+            }
+        );
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 5: Color Detection & Sequence Memory</title>
+    <meta name="description" content="Level 5 – Spot the odd-colored box and memorize color sequences." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        /* ══════════════════════════════════════════
+           RESET & TOKENS
+        ══════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep:    #050814;
+            --bg-mid:     #0b0f24;
+            --bg-card:    rgba(255,255,255,0.04);
+            --bg-card-h:  rgba(255,255,255,0.07);
+            --border:     rgba(255,255,255,0.09);
+            --border-h:   rgba(139,92,246,0.45);
+            --accent-1:   #8b5cf6;
+            --accent-2:   #06b6d4;
+            --accent-3:   #f59e0b;
+            --glow:       rgba(139,92,246,0.35);
+            --text-pri:   #f0f4ff;
+            --text-sec:   rgba(240,244,255,0.55);
+            --text-muted: rgba(240,244,255,0.28);
+            --success:    #34d399;
+            --warning:    #fbbf24;
+            --error:      #f87171;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-pri);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ── Backgrounds ── */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            background: var(--bg-deep); overflow: hidden; pointer-events: none;
+        }
+        .bg-scene::before {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(139,92,246,0.18), transparent 70%);
+            top: -200px; left: -200px;
+            animation: orb 16s ease-in-out infinite alternate;
+        }
+        .bg-scene::after {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(6,182,212,0.14), transparent 70%);
+            bottom: -150px; right: -150px;
+            animation: orb 20s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes orb {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(60px,80px) scale(1.15); }
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ── Layout ── */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; padding: 32px 20px;
+        }
+
+        /* ── Top Bar ── */
+        .level-topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(5,8,20,0.85);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 10px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.2s ease;
+        }
+        .btn-back:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+        .btn-back svg { width: 16px; height: 16px; }
+        .topbar-level-info h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+        .topbar-level-info span { font-size: 11px; color: var(--text-muted); }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+        .part-indicator {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 14px; border-radius: 100px;
+            background: rgba(139,92,246,0.12);
+            border: 1px solid rgba(139,92,246,0.25);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+        .part-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            transition: background 0.3s ease;
+        }
+        .part-dot.active { background: var(--accent-1); box-shadow: 0 0 8px var(--glow); }
+        .part-dot.done   { background: var(--success); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+
+        /* ── Game Card ── */
+        .game-card {
+            width: 100%; max-width: 640px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 28px; padding: 40px 36px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 24px 64px rgba(0,0,0,0.55),
+                0 0 80px rgba(139,92,246,0.07);
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        /* ── Game States ── */
+        .game-state { display: none; animation: fade-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display: block; }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Intro ── */
+        .intro-emoji { font-size: 56px; margin-bottom: 16px; animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+            50%       { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(139,92,246,0.4)); }
+        }
+        .intro-title    { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .intro-subtitle { font-size: 14px; color: var(--text-sec); margin-bottom: 6px; }
+        .intro-desc     {
+            font-size: 13px; color: var(--text-muted); margin-bottom: 32px;
+            line-height: 1.7; max-width: 400px; margin-left: auto; margin-right: auto;
+        }
+        .game-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 100px; margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(6,182,212,0.10));
+            border: 1px solid rgba(139,92,246,0.30);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+
+        /* ══════════════════════════════════════════
+           PART 1 – ODD COLOR DETECTION
+        ══════════════════════════════════════════ */
+        .p1-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .p1-round-info {
+            font-size: 13px; font-weight: 600; color: var(--text-sec);
+        }
+        .p1-round-info span { color: var(--accent-1); font-size: 16px; }
+        .difficulty-bar {
+            display: flex; gap: 5px;
+        }
+        .diff-pip {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            transition: background 0.3s ease;
+        }
+        .diff-pip.active { background: var(--accent-3); box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+
+        .p1-instruction {
+            font-size: 15px; color: var(--text-sec); margin-bottom: 6px;
+        }
+        .p1-sub-instruction {
+            font-size: 12px; color: var(--text-muted); margin-bottom: 24px;
+        }
+
+        /* 5x5 color grid */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 0 auto 24px;
+            max-width: 400px;
+        }
+        .color-cell {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .color-cell::after {
+            content: '';
+            position: absolute; inset: 0;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .color-cell:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        .color-cell:active { transform: scale(0.95); }
+        .color-cell.hint-highlight {
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 0 3px rgba(245,158,11,0.5), 0 0 20px rgba(245,158,11,0.4) !important;
+            animation: hint-pulse 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes hint-pulse {
+            from { box-shadow: 0 0 0 3px rgba(245,158,11,0.4), 0 0 16px rgba(245,158,11,0.3); }
+            to   { box-shadow: 0 0 0 5px rgba(245,158,11,0.7), 0 0 28px rgba(245,158,11,0.6); }
+        }
+        .color-cell.correct-cell {
+            border-color: var(--success) !important;
+            box-shadow: 0 0 0 3px rgba(52,211,153,0.5), 0 0 20px rgba(52,211,153,0.4) !important;
+            animation: none;
+        }
+        .color-cell.wrong-cell {
+            border-color: var(--error) !important;
+            box-shadow: 0 0 0 3px rgba(248,113,113,0.5), 0 0 20px rgba(248,113,113,0.4) !important;
+            animation: none;
+        }
+
+        /* Timer */
+        .p1-round-label {
+            font-size: 12px; color: var(--text-muted); margin-bottom: 8px;
+            letter-spacing: 0.5px; text-transform: uppercase;
+        }
+
+        /* ══════════════════════════════════════════
+           PART 2 – COLOR SEQUENCE MEMORY
+        ══════════════════════════════════════════ */
+
+        /* Sequence display block */
+        .seq-display-wrap {
+            margin: 20px auto;
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+        }
+        .seq-block {
+            width: 160px; height: 160px;
+            border-radius: 24px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.9);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            border: 3px solid rgba(255,255,255,0.15);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            letter-spacing: 0.5px;
+        }
+        .seq-block.flash {
+            transform: scale(1.06);
+            box-shadow: 0 0 60px currentColor, 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .seq-block.idle {
+            background: rgba(255,255,255,0.04) !important;
+            border-color: rgba(255,255,255,0.08) !important;
+            box-shadow: none;
+        }
+        .seq-status {
+            font-size: 13px; color: var(--text-muted); font-weight: 500;
+        }
+        .seq-progress-dots {
+            display: flex; gap: 6px; margin-top: 4px; justify-content: center;
+        }
+        .seq-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+        .seq-dot.active {
+            background: var(--accent-1);
+            transform: scale(1.4);
+            box-shadow: 0 0 8px var(--glow);
+        }
+        .seq-dot.done { background: var(--success); }
+
+        /* 6 color buttons */
+        .color-btns-wrap {
+            margin: 20px 0;
+        }
+        .color-btns-label {
+            font-size: 12px; color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.8px; margin-bottom: 14px;
+        }
+        .color-btns-grid {
+            display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+        }
+        .color-btn {
+            width: 90px; height: 90px; border-radius: 18px;
+            cursor: pointer; border: 3px solid rgba(255,255,255,0.15);
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.9);
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 4px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+            position: relative; text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .color-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            border-color: rgba(255,255,255,0.35);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .color-btn:active { transform: scale(0.94); }
+        .color-btn.pressed {
+            border-color: rgba(255,255,255,0.6);
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255,255,255,0.25);
+        }
+        .color-btn-num {
+            position: absolute; top: 6px; right: 8px;
+            font-size: 10px; opacity: 0.7;
+        }
+
+        /* User sequence track */
+        .user-seq-wrap {
+            margin: 18px 0;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+        .user-seq-label {
+            font-size: 11px; color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.8px; margin-bottom: 10px;
+        }
+        .user-seq-dots {
+            display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
+            min-height: 28px;
+        }
+        .user-seq-item {
+            width: 28px; height: 28px; border-radius: 6px;
+            border: 1.5px solid rgba(255,255,255,0.15);
+            font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.85);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* Action buttons row */
+        .action-row {
+            display: flex; gap: 12px; justify-content: center; margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 36px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 24px rgba(139,92,246,0.45);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            min-width: 160px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 36px rgba(139,92,246,0.55);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; border-radius: 12px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: var(--bg-card-h); color: var(--text-pri);
+            border-color: var(--border-h);
+        }
+
+        /* ══════════════════════════════════════════
+           RESULT POPUP OVERLAY
+        ══════════════════════════════════════════ */
+        .result-overlay {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.72); backdrop-filter: blur(12px);
+            align-items: center; justify-content: center;
+        }
+        .result-overlay.open { display: flex; }
+
+        .result-card {
+            background: rgba(11,15,36,0.97); border: 1px solid var(--border);
+            border-radius: 28px; padding: 44px 40px;
+            width: 90%; max-width: 420px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.60);
+            animation: pop-in 0.4s cubic-bezier(0.22,1,0.36,1);
+            text-align: center;
+        }
+        @keyframes pop-in {
+            from { opacity: 0; transform: scale(0.85) translateY(24px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .result-emoji { font-size: 64px; margin-bottom: 16px; }
+        .result-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .result-desc  { font-size: 14px; color: var(--text-sec); line-height: 1.7; margin-bottom: 28px; }
+        .result-stats {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px;
+        }
+        .result-stat {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px 14px;
+        }
+        .result-stat .rs-val { font-size: 22px; font-weight: 800; color: var(--accent-1); }
+        .result-stat .rs-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .result-buttons { display: flex; flex-direction: column; gap: 10px; }
+
+        .result-card.win  { border-color: rgba(52,211,153,0.30); }
+        .result-card.win  .result-title { color: var(--success); }
+        .result-card.lose { border-color: rgba(248,113,113,0.25); }
+        .result-card.lose .result-title { color: var(--error); }
+
+        /* Confetti */
+        #confetti-canvas { position: fixed; inset: 0; z-index: 250; pointer-events: none; }
+
+        /* Responsive */
+        @media (max-width: 520px) {
+            .game-card    { padding: 32px 18px; border-radius: 20px; margin-top: 72px; }
+            .color-grid   { gap: 8px; }
+            .color-cell   { border-radius: 10px; }
+            .color-btn    { width: 72px; height: 72px; font-size: 11px; }
+            .seq-block    { width: 130px; height: 130px; }
+            .result-card  { padding: 36px 22px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Backgrounds -->
+    <div class="bg-scene"></div>
+    <div class="bg-grid"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Result Popup Overlay -->
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card" id="result-card">
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <div class="result-title" id="result-title">Congratulations!</div>
+            <div class="result-desc"  id="result-desc">Great job!</div>
+            <div class="result-stats">
+                <div class="result-stat">
+                    <div class="rs-val" id="result-score">+50</div>
+                    <div class="rs-lbl">Score Earned</div>
+                </div>
+                <div class="result-stat">
+                    <div class="rs-val" id="result-part">Part 1/2</div>
+                    <div class="rs-lbl">Progress</div>
+                </div>
+            </div>
+            <div class="result-buttons">
+                <button class="btn-primary"   id="result-action-btn">Continue</button>
+                <button class="btn-secondary" id="result-secondary-btn" style="display:none;">Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Bar -->
+    <div class="level-topbar">
+        <div class="topbar-left">
+            <a href="dashboard.html" class="btn-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                Dashboard
+            </a>
+            <div class="topbar-level-info">
+                <h1>Level 5 – Color Challenge</h1>
+                <span id="topbar-part-label">Part 1: Odd Color Detection</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <!-- Theme Toggle Button -->
+            <button class="theme-toggle-btn" id="theme-header-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <div class="part-indicator">
+                <span>Parts</span>
+                <div class="part-dot active" id="dot-1"></div>
+                <div class="part-dot"        id="dot-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page -->
+    <main class="page-wrapper">
+        <div class="game-card">
+
+            <!-- ══ Intro State ══ -->
+            <div class="game-state active" id="state-intro">
+                <div class="game-badge" id="intro-badge">🎨 Level 5 • Part 1</div>
+                <div class="intro-emoji" id="intro-emoji">🎨</div>
+                <div class="intro-title"    id="intro-title">Odd Color Detection</div>
+                <div class="intro-subtitle" id="intro-subtitle">Find the box that doesn't belong</div>
+                <div class="intro-desc"     id="intro-desc">
+                    25 color boxes are shown. One box has a slightly different shade.
+                    Find and click it! 5 rounds – it gets harder each time.
+                </div>
+                <button class="btn-primary" id="btn-start">▶ Start Part 1</button>
+            </div>
+
+            <!-- ══ Part 1 – Playing ══ -->
+            <div class="game-state" id="state-p1">
+                <div class="game-badge">🎨 Odd Color Detection</div>
+
+                <div class="p1-header">
+                    <div class="p1-round-info">
+                        Round <span id="p1-round-num">1</span> / 5
+                    </div>
+                    <div class="difficulty-bar" id="difficulty-bar">
+                        <div class="diff-pip active" id="pip-1"></div>
+                        <div class="diff-pip"        id="pip-2"></div>
+                        <div class="diff-pip"        id="pip-3"></div>
+                        <div class="diff-pip"        id="pip-4"></div>
+                        <div class="diff-pip"        id="pip-5"></div>
+                    </div>
+                </div>
+
+                <div class="p1-instruction">Which box has a different shade?</div>
+                <div class="p1-sub-instruction" id="p1-sub">Click the odd-colored box to continue.</div>
+
+                <div class="color-grid" id="p1-color-grid"></div>
+            </div>
+
+            <!-- ══ Part 2 – Showing Sequence ══ -->
+            <div class="game-state" id="state-p2-show">
+                <div class="game-badge">🔮 Memorize the Sequence</div>
+                <div class="intro-subtitle" style="margin-bottom:0;">Watch the colors carefully.</div>
+
+                <div class="seq-display-wrap">
+                    <div class="seq-block idle" id="seq-block">?</div>
+                    <div class="seq-status" id="seq-status">Get ready…</div>
+                    <div class="seq-progress-dots" id="seq-dots"></div>
+                </div>
+            </div>
+
+            <!-- ══ Part 2 – Input Sequence ══ -->
+            <div class="game-state" id="state-p2-input">
+                <div class="game-badge">🧠 Your Turn – Reproduce the Sequence</div>
+
+                <div class="color-btns-wrap">
+                    <div class="color-btns-label">Click the colors in the correct order</div>
+                    <div class="color-btns-grid" id="p2-color-btns"></div>
+                </div>
+
+                <div class="user-seq-wrap">
+                    <div class="user-seq-label">Your sequence (0 / 10)</div>
+                    <div class="user-seq-dots" id="user-seq-dots"></div>
+                </div>
+
+                <div class="action-row">
+                    <button class="btn-secondary" id="btn-p2-clear">Clear Choices</button>
+                    <button class="btn-secondary" id="btn-p2-restart">↺ Replay Sequence</button>
+                    <button class="btn-primary"   id="btn-p2-submit">Submit ▶</button>
+                </div>
+            </div>
+
+        </div><!-- /.game-card -->
+    </main>
+
+    <script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+    <script>
+    /* ══════════════════════════════════════════════════════════
+       LEVEL 5 – Color Detection & Sequence Memory
+       All game logic is client-side; the backend servlet is used
+       to generate server-side verified data and save progress.
+    ══════════════════════════════════════════════════════════ */
+
+    // ── Color definitions for Part 2 ──────────────────────────
+    const COLORS = [
+        { name: 'Red',    bg: 'linear-gradient(135deg,#ef4444,#b91c1c)', hex: '#ef4444', shadow: '#ef4444' },
+        { name: 'Blue',   bg: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', hex: '#3b82f6', shadow: '#3b82f6' },
+        { name: 'Green',  bg: 'linear-gradient(135deg,#22c55e,#15803d)', hex: '#22c55e', shadow: '#22c55e' },
+        { name: 'Yellow', bg: 'linear-gradient(135deg,#eab308,#a16207)', hex: '#eab308', shadow: '#eab308' },
+        { name: 'Purple', bg: 'linear-gradient(135deg,#8b5cf6,#6d28d9)', hex: '#8b5cf6', shadow: '#8b5cf6' },
+        { name: 'Orange', bg: 'linear-gradient(135deg,#f97316,#c2410c)', hex: '#f97316', shadow: '#f97316' },
+    ];
+
+    // ── State ─────────────────────────────────────────────────
+    let currentPart = 1;
+
+    // Part 1
+    let p1Rounds     = [];   // array of {hue, sat, lit, odd, delta}
+    let p1RoundIdx   = 0;    // 0-based current round
+    let p1OddIdx     = -1;   // correct cell index in current round
+    let p1Locked     = false;
+
+    // Part 2
+    let p2Sequence     = [];  // server-given sequence of color indices
+    let p2UserSequence = [];  // user's sequence of color indices
+
+    // ── Helpers ───────────────────────────────────────────────
+    function gid(id)       { return document.getElementById(id); }
+    function showState(id) {
+        document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+        const el = gid(id);
+        if (el) el.classList.add('active');
+    }
+
+    // ── Fetch from Backend ────────────────────────────────────
+    function fetchPart1Data() {
+        return fetch('level5?part=1&t=' + Date.now())
+            .then(r => r.ok ? r.json() : Promise.reject('Server error'))
+            .then(data => { p1Rounds = data.rounds; });
+    }
+
+    function fetchPart2Data() {
+        return fetch('level5?part=2&t=' + Date.now())
+            .then(r => r.ok ? r.json() : Promise.reject('Server error'))
+            .then(data => { p2Sequence = data.sequence; });
+    }
+
+    // ── Post Validation ───────────────────────────────────────
+    function validateP1Round(round, answer) {
+        return fetch('level5', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ part: 1, round, answer })
+        }).then(r => r.ok ? r.json() : Promise.reject());
+    }
+
+    function validateP2Sequence(seq) {
+        return fetch('level5', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ part: 2, sequence: seq })
+        }).then(r => r.ok ? r.json() : Promise.reject());
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PART 1 – ODD COLOR DETECTION
+    ══════════════════════════════════════════════════════════ */
+    function startPart1() {
+        p1RoundIdx = 0;
+        fetchPart1Data()
+            .then(() => loadP1Round())
+            .catch(() => {
+                // Offline fallback: generate locally
+                p1Rounds = generateLocalP1Rounds();
+                loadP1Round();
+            });
+    }
+
+    function generateLocalP1Rounds() {
+        const deltas = [15, 12, 9, 6, 4];
+        return deltas.map(delta => ({
+            hue:   Math.floor(Math.random() * 360),
+            sat:   60 + Math.floor(Math.random() * 31),
+            lit:   40 + Math.floor(Math.random() * 16),
+            odd:   Math.floor(Math.random() * 25),
+            delta: delta
+        }));
+    }
+
+    function loadP1Round() {
+        if (p1RoundIdx >= 5) {
+            // All 5 rounds passed → Part 1 complete
+            showResult(true, 1);
+            return;
+        }
+
+        const round = p1Rounds[p1RoundIdx];
+        p1OddIdx = round.odd;
+        p1Locked = false;
+
+        // Update round UI
+        gid('p1-round-num').textContent = p1RoundIdx + 1;
+        updateDifficultyPips(p1RoundIdx);
+        updateP1SubLabel(p1RoundIdx);
+
+        showState('state-p1');
+        buildColorGrid(round);
+    }
+
+    function updateDifficultyPips(idx) {
+        for (let i = 1; i <= 5; i++) {
+            const pip = gid('pip-' + i);
+            if (!pip) continue;
+            pip.classList.toggle('active', i <= idx + 1);
+        }
+    }
+
+    function updateP1SubLabel(idx) {
+        const hints = ['Looks very obvious!', 'Getting trickier…', 'Concentrate carefully.', 'Very subtle difference!', 'Almost identical – focus!'];
+        gid('p1-sub').textContent = hints[idx] || 'Click the odd-colored box.';
+    }
+
+    function buildColorGrid(round) {
+        const grid = gid('p1-color-grid');
+        grid.innerHTML = '';
+
+        const h = round.hue, s = round.sat, l = round.lit, delta = round.delta;
+
+        for (let i = 0; i < 25; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'color-cell';
+            cell.dataset.index = i;
+
+            const lightness = (i === p1OddIdx) ? l + delta : l;
+            cell.style.background = `hsl(${h}, ${s}%, ${lightness}%)`;
+            cell.style.boxShadow  = `0 3px 10px hsla(${h}, ${s}%, ${lightness}%, 0.4)`;
+
+            cell.addEventListener('click', () => handleP1Click(i, cell));
+            grid.appendChild(cell);
+        }
+    }
+
+    function handleP1Click(idx, cell) {
+        if (p1Locked) return;
+        p1Locked = true;
+
+        const cells = gid('p1-color-grid').querySelectorAll('.color-cell');
+
+        if (idx === p1OddIdx) {
+            cell.classList.add('correct-cell');
+            cells[p1OddIdx].classList.add('correct-cell');
+            setTimeout(() => {
+                p1RoundIdx++;
+                loadP1Round();
+            }, 600);
+        } else {
+            cell.classList.add('wrong-cell');
+            cells[p1OddIdx].classList.add('correct-cell'); // reveal correct
+            setTimeout(() => {
+                showResult(false, 1);
+            }, 800);
+        }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PART 2 – COLOR SEQUENCE MEMORY
+    ══════════════════════════════════════════════════════════ */
+    let p2TimerIds = [];
+    function clearP2Timers() {
+        p2TimerIds.forEach(id => clearTimeout(id));
+        p2TimerIds = [];
+    }
+
+    function startPart2() {
+        clearP2Timers();
+        showState('state-p2-show');
+        p2UserSequence = [];
+
+        // Prepare sequence progress dots
+        const dotsEl = gid('seq-dots');
+        if (dotsEl) {
+            dotsEl.innerHTML = '';
+            for (let i = 0; i < 10; i++) {
+                const d = document.createElement('div');
+                d.className = 'seq-dot';
+                d.id = 'sdot-' + i;
+                dotsEl.appendChild(d);
+            }
+        }
+
+        const block = gid('seq-block');
+        if (block) {
+            block.className = 'seq-block idle';
+            block.textContent = '?';
+            block.style.background = '';
+            block.style.borderColor = '';
+        }
+        const status = gid('seq-status');
+        if (status) status.textContent = 'Get ready…';
+
+        fetchPart2Data()
+            .then(() => flashSequence())
+            .catch(() => {
+                // Offline fallback
+                p2Sequence = Array.from({length: 10}, () => Math.floor(Math.random() * 6));
+                flashSequence();
+            });
+    }
+
+    function flashSequence() {
+        clearP2Timers();
+        const block  = gid('seq-block');
+        const status = gid('seq-status');
+        let idx = 0;
+
+        function showNext() {
+            if (idx >= p2Sequence.length) {
+                // Done – switch to input
+                if (block) {
+                    block.className = 'seq-block idle';
+                    block.textContent = '?';
+                    block.style.background = '';
+                    block.style.borderColor = '';
+                }
+                if (status) status.textContent = 'Sequence complete! Now reproduce it.';
+                p2TimerIds.push(setTimeout(() => buildP2Input(), 600));
+                return;
+            }
+            // Mark previous dot done
+            if (idx > 0) {
+                const prevDot = gid('sdot-' + (idx - 1));
+                if (prevDot) prevDot.className = 'seq-dot done';
+            }
+
+            const colorIdx = p2Sequence[idx];
+            const color    = COLORS[colorIdx];
+
+            // Activate current dot
+            const dot = gid('sdot-' + idx);
+            if (dot) dot.className = 'seq-dot active';
+
+            if (block && color) {
+                block.className     = 'seq-block flash';
+                block.style.background  = color.bg;
+                block.style.borderColor = color.hex + '88';
+                block.textContent       = color.name;
+            }
+            if (status) status.textContent = `Color ${idx + 1} of 10`;
+
+            idx++;
+            p2TimerIds.push(setTimeout(() => {
+                // Brief dim between colors
+                if (block) block.classList.remove('flash');
+                p2TimerIds.push(setTimeout(showNext, 250));
+            }, 1000));
+        }
+
+        p2TimerIds.push(setTimeout(showNext, 600));
+    }
+
+    function buildP2Input() {
+        p2UserSequence = [];
+        showState('state-p2-input');
+        renderUserSeq();
+
+        const grid = gid('p2-color-btns');
+        if (grid) {
+            grid.innerHTML = '';
+            COLORS.forEach((c, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'color-btn';
+                btn.id = 'cbtn-' + idx;
+                btn.dataset.idx = idx;
+                btn.style.background  = c.bg;
+                btn.style.borderColor = c.hex + '55';
+                btn.innerHTML = `<span>${c.name}</span><span class="color-btn-num">[${idx+1}]</span>`;
+                btn.addEventListener('click', () => handleP2BtnClick(idx, btn));
+                grid.appendChild(btn);
+            });
+        }
+    }
+
+    function handleP2BtnClick(colorIdx, btn) {
+        if (p2UserSequence.length >= 10) return;
+        p2UserSequence.push(colorIdx);
+        renderUserSeq();
+
+        // Flash button press
+        btn.classList.add('pressed');
+        setTimeout(() => btn.classList.remove('pressed'), 200);
+    }
+
+    function renderUserSeq() {
+        const wrap  = gid('user-seq-dots');
+        if (!wrap) return;
+        const label = wrap.closest('.user-seq-wrap')?.querySelector('.user-seq-label');
+        wrap.innerHTML = '';
+        if (label) label.textContent = `Your sequence (${p2UserSequence.length} / 10)`;
+
+        p2UserSequence.forEach((ci) => {
+            const item = document.createElement('div');
+            item.className = 'user-seq-item';
+            item.style.background  = COLORS[ci].bg;
+            item.style.borderColor = COLORS[ci].hex + '80';
+            item.title = COLORS[ci].name;
+            wrap.appendChild(item);
+        });
+
+        // Empty slots
+        for (let i = p2UserSequence.length; i < 10; i++) {
+            const item = document.createElement('div');
+            item.className = 'user-seq-item';
+            item.style.background = 'rgba(255,255,255,0.04)';
+            wrap.appendChild(item);
+        }
+    }
+
+    // Clear Choices button
+    gid('btn-p2-clear')?.addEventListener('click', () => {
+        p2UserSequence = [];
+        renderUserSeq();
+    });
+
+    // Replay / Restart Sequence button
+    gid('btn-p2-restart')?.addEventListener('click', () => {
+        startPart2();
+    });
+
+    // Submit sequence
+    gid('btn-p2-submit').addEventListener('click', () => {
+        if (p2UserSequence.length < 10) {
+            showToast('Please select all 10 colors before submitting!');
+            return;
+        }
+
+        // Validate locally first, then confirm with server
+        let localCorrect = true;
+        for (let i = 0; i < 10; i++) {
+            if (p2UserSequence[i] !== p2Sequence[i]) { localCorrect = false; break; }
+        }
+
+        validateP2Sequence(p2UserSequence)
+            .then(data => {
+                const isCorrect = data.correct;
+                if (isCorrect) {
+                    fireConfetti();
+                    saveProgressToServer(); // belt-and-suspenders client-side fallback
+                }
+                showResult(isCorrect, 2);
+            })
+            .catch(() => {
+                // Server unavailable — use local result
+                if (localCorrect) {
+                    fireConfetti();
+                    saveProgressToServer();
+                }
+                showResult(localCorrect, 2);
+            });
+    });
+
+    // ── Keyboard shortcuts for Part 2 (1-6 to click color buttons)
+    document.addEventListener('keydown', e => {
+        const p2Active = gid('state-p2-input')?.classList.contains('active');
+        if (!p2Active) return;
+        const key = parseInt(e.key);
+        if (key >= 1 && key <= 6) {
+            const btn = gid('cbtn-' + (key - 1));
+            if (btn) btn.click();
+        }
+    });
+
+    /* ══════════════════════════════════════════════════════════
+       STREAK HELPERS
+    ══════════════════════════════════════════════════════════ */
+    function getLocalDateString() {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+    function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
+        if (!isSuccess) return { streak: 0, dateStr: lastPlayedDateStr };
+        var todayStr = getLocalDateString();
+        if (!lastPlayedDateStr) return { streak: 1, dateStr: todayStr };
+        var today = new Date(todayStr + 'T00:00:00');
+        var lastPlayed = new Date(lastPlayedDateStr + 'T00:00:00');
+        var diffDays = Math.round((today - lastPlayed) / (1000 * 60 * 60 * 24));
+        var newStreak = currentStreak;
+        if (diffDays === 0) { if (newStreak === 0) newStreak = 1; }
+        else if (diffDays === 1) { newStreak = currentStreak + 1; }
+        else { newStreak = 1; }
+        return { streak: newStreak, dateStr: todayStr };
+    }
+
+    function safeParseArray(dataVal, defaultArray) {
+        if (Array.isArray(dataVal)) return dataVal;
+        if (typeof dataVal === 'string') {
+            try {
+                var parsed = JSON.parse(dataVal);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {}
+        }
+        return defaultArray.slice();
+    }
+
+    function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
+        try {
+            localStorage.setItem('mm_score', score);
+            localStorage.setItem('mm_streak', streak);
+            localStorage.setItem('mm_unlocked_level', unlockedLevel);
+            localStorage.setItem('mm_games_played', gamesPlayed);
+            localStorage.setItem('mm_best_streak', bestStreak);
+            localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+            localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+            localStorage.setItem('mm_stars', JSON.stringify(stars));
+            if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+        } catch(e) {}
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       SAVE PROGRESS
+    ══════════════════════════════════════════════════════════ */
+    let savePromise = null;
+    function saveProgressToServer() {
+        savePromise = fetch('getProgress?t=' + Date.now())
+            .then(r => r.ok ? r.json() : Promise.reject('Failed to fetch progress'))
+            .then(data => {
+                const score         = (parseInt(data.score, 10) || 0) + 50;
+                const gamesPlayed   = (parseInt(data.gamesPlayed, 10) || 0) + 1;
+                const unlockedLevel = Math.max(parseInt(data.unlockedLevel, 10) || 1, 6);
+                const bestScores    = safeParseArray(data.bestScores, Array(20).fill(0));
+                const bestTimes     = safeParseArray(data.bestTimes, Array(20).fill('-'));
+                const stars         = safeParseArray(data.stars, Array(20).fill('0'));
+
+                const streakResult   = calculateNewStreak(parseInt(data.streak, 10) || 0, data.lastPlayedDate || '', true);
+                const streak         = streakResult.streak;
+                const lastPlayedDate = streakResult.dateStr;
+                const bestStreak     = Math.max(parseInt(data.bestStreak, 10) || 0, streak);
+
+                if (50 > (parseInt(bestScores[4], 10) || 0)) bestScores[4] = 50;
+                stars[4]     = '3';
+                bestTimes[4] = '60s';
+
+                saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate);
+
+                return fetch('saveProgress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        score, streak, unlockedLevel, gamesPlayed, bestStreak,
+                        bestScores:    JSON.stringify(bestScores),
+                        bestTimes:     JSON.stringify(bestTimes),
+                        stars:         JSON.stringify(stars),
+                        lastPlayedDate
+                    })
+                });
+            })
+            .catch(err => { console.error('[Level5] Error saving progress:', err); });
+        return savePromise;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       RESULT POPUP
+    ══════════════════════════════════════════════════════════ */
+    function showResult(isCorrect, part) {
+        const overlay   = gid('result-overlay');
+        const card      = gid('result-card');
+        const emoji     = gid('result-emoji');
+        const title     = gid('result-title');
+        const desc      = gid('result-desc');
+        const scoreEl   = gid('result-score');
+        const partEl    = gid('result-part');
+        const actionBtn = gid('result-action-btn');
+        const secBtn    = gid('result-secondary-btn');
+
+        card.className = 'result-card ' + (isCorrect ? 'win' : 'lose');
+        secBtn.style.display = 'none';
+
+        if (isCorrect) {
+            emoji.textContent = '🎉';
+            scoreEl.textContent = '+50';
+
+            if (part === 1) {
+                title.textContent = 'Congratulations! Part 1 Completed.';
+                desc.textContent  = 'Excellent eye for color! Get ready for Part 2 – Sequence Memory.';
+                partEl.textContent = 'Part 1 / 2 ✓';
+                actionBtn.textContent = 'Next Part ▶';
+                actionBtn.onclick = () => {
+                    closeResult();
+                    currentPart = 2;
+                    setupP2Intro();
+                };
+            } else {
+                title.textContent = 'Level 5 Completed Successfully.';
+                desc.textContent  = 'Amazing color memory! Level 6 is now unlocked. Keep going!';
+                partEl.textContent = 'Part 2 / 2 ✓';
+                actionBtn.textContent = 'Next Level ▶';
+                const p = saveProgressToServer();
+                actionBtn.onclick = () => {
+                    closeResult();
+                    clearConfetti();
+                    if (p) { p.finally(() => { window.location.href = 'dashboard.html'; }); }
+                    else { window.location.href = 'dashboard.html'; }
+                };
+                secBtn.style.display = 'block';
+                secBtn.textContent = 'Back to Dashboard';
+                secBtn.onclick = () => {
+                    closeResult();
+                    clearConfetti();
+                    if (p) { p.finally(() => { window.location.href = 'dashboard.html'; }); }
+                    else { window.location.href = 'dashboard.html'; }
+                };
+            }
+        } else {
+            emoji.textContent = '❌';
+            scoreEl.textContent = '+0';
+
+            if (part === 1) {
+                title.textContent = 'Incorrect Pattern! Try Again.';
+                desc.textContent  = 'Not the right box. Tip: look at the edges and brightness carefully.';
+                partEl.textContent = 'Part 1 / 2';
+                actionBtn.textContent = 'Try Again ↺';
+                actionBtn.onclick = () => { closeResult(); startPart1(); };
+            } else {
+                title.textContent = 'Incorrect Sequence! Try Again.';
+                desc.textContent  = 'The order didn\'t match. Pay close attention to each color as it flashes.';
+                partEl.textContent = 'Part 2 / 2';
+                actionBtn.textContent = 'Try Again ↺';
+                actionBtn.onclick = () => { closeResult(); startPart2(); };
+            }
+        }
+
+        overlay.classList.add('open');
+    }
+
+    function closeResult() { gid('result-overlay').classList.remove('open'); }
+
+    /* ══════════════════════════════════════════════════════════
+       PART 2 INTRO
+    ══════════════════════════════════════════════════════════ */
+    function setupP2Intro() {
+        gid('intro-badge').textContent    = '🔮 Level 5 • Part 2';
+        gid('intro-emoji').textContent    = '🔮';
+        gid('intro-title').textContent    = 'Color Sequence Memory';
+        gid('intro-subtitle').textContent = 'Remember the order of colors';
+        gid('intro-desc').textContent     =
+            'A sequence of 10 colors will flash one after another (1 second each). ' +
+            'After the sequence ends, reproduce it by clicking the 6 color buttons in the exact same order. ' +
+            'Example: Red → Blue → Green → Yellow…';
+        gid('topbar-part-label').textContent = 'Part 2: Sequence Memory';
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        showState('state-intro');
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       CONFETTI
+    ══════════════════════════════════════════════════════════ */
+    let confettiParticles = [], confettiAnimId = null;
+
+    function fireConfetti() {
+        const canvas = gid('confetti-canvas');
+        const ctx    = canvas.getContext('2d');
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const palette = ['#8b5cf6','#06b6d4','#34d399','#f59e0b','#f87171','#ec4899','#ffffff'];
+
+        confettiParticles = [];
+        for (let i = 0; i < 140; i++) {
+            confettiParticles.push({
+                x: canvas.width / 2 + (Math.random() - 0.5) * 220,
+                y: canvas.height / 2,
+                vx: (Math.random() - 0.5) * 16,
+                vy: Math.random() * -18 - 4,
+                w: Math.random() * 8 + 4, h: Math.random() * 6 + 2,
+                color: palette[Math.floor(Math.random() * palette.length)],
+                rotation: Math.random() * 360,
+                rotSpeed: (Math.random() - 0.5) * 12,
+                gravity: 0.25 + Math.random() * 0.15,
+                opacity: 1,
+            });
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let alive = false;
+            confettiParticles.forEach(p => {
+                p.x += p.vx; p.vy += p.gravity; p.y += p.vy;
+                p.rotation += p.rotSpeed; p.opacity -= 0.006;
+                if (p.opacity <= 0) return;
+                alive = true;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rotation * Math.PI) / 180);
+                ctx.globalAlpha = Math.max(0, p.opacity);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                ctx.restore();
+            });
+            if (alive) confettiAnimId = requestAnimationFrame(animate);
+        }
+        animate();
+    }
+
+    function clearConfetti() {
+        if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+        const canvas = gid('confetti-canvas');
+        if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        confettiParticles = [];
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       TOAST NOTIFICATION
+    ══════════════════════════════════════════════════════════ */
+    function showToast(msg) {
+        let t = document.getElementById('level5-toast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'level5-toast';
+            t.style.cssText = [
+                'position:fixed','bottom:32px','left:50%','transform:translateX(-50%)',
+                'background:rgba(11,15,36,0.95)','border:1px solid rgba(245,158,11,0.4)',
+                'color:#f59e0b','padding:12px 24px','border-radius:12px',
+                'font-family:Outfit,sans-serif','font-size:14px','font-weight:600',
+                'z-index:300','backdrop-filter:blur(12px)','box-shadow:0 8px 32px rgba(0,0,0,0.5)',
+                'transition:opacity 0.3s ease'
+            ].join(';');
+            document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.style.opacity = '1';
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2500);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       HINT SYSTEM
+    ══════════════════════════════════════════════════════════ */
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            () => {
+                const p1Active    = gid('state-p1')?.classList.contains('active');
+                const p2Active    = gid('state-p2-input')?.classList.contains('active');
+                return p1Active || p2Active;
+            },
+            () => {
+                // Part 1 hint: highlight the odd cell
+                if (gid('state-p1')?.classList.contains('active')) {
+                    const cells = gid('p1-color-grid')?.querySelectorAll('.color-cell');
+                    if (cells && p1OddIdx >= 0 && p1OddIdx < cells.length) {
+                        cells[p1OddIdx].classList.add('hint-highlight');
+                        setTimeout(() => cells[p1OddIdx].classList.remove('hint-highlight'), 2500);
+                        return true;
+                    }
+                    return false;
+                }
+
+                // Part 2 hint: auto-click the next correct color
+                if (gid('state-p2-input')?.classList.contains('active')) {
+                    const nextIdx = p2UserSequence.length;
+                    if (nextIdx >= p2Sequence.length) return false;
+                    const nextColor = p2Sequence[nextIdx];
+                    const btn = gid('cbtn-' + nextColor);
+                    if (btn) { btn.click(); return true; }
+                    return false;
+                }
+
+                return false;
+            }
+        );
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       WIRE START BUTTON
+    ══════════════════════════════════════════════════════════ */
+    gid('btn-start').addEventListener('click', () => {
+        if (currentPart === 1) startPart1();
+        else                   startPart2();
+    });
+
+    // ── Init ──
+    showState('state-intro');
+    </script>
+</body>
+</html>

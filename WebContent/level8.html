@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 8: Auditory Memory</title>
+    <meta name="description" content="Level 8 – Listen carefully to instruments and animals. Test your audio recognition and sequence recall." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-deep:    #050814;
+            --bg-mid:     #0b0f24;
+            --bg-card:    rgba(255,255,255,0.04);
+            --bg-card-h:  rgba(255,255,255,0.07);
+            --border:     rgba(255,255,255,0.09);
+            --border-h:   rgba(139,92,246,0.45);
+            --accent-1:   #8b5cf6;
+            --accent-2:   #06b6d4;
+            --accent-3:   #f59e0b;
+            --glow:       rgba(139,92,246,0.35);
+            --text-pri:   #f0f4ff;
+            --text-sec:   rgba(240,244,255,0.55);
+            --text-muted: rgba(240,244,255,0.28);
+            --success:    #34d399;
+            --warning:    #fbbf24;
+            --error:      #f87171;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-pri);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            background: var(--bg-deep); overflow: hidden; pointer-events: none;
+        }
+        .bg-scene::before {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(139,92,246,0.18), transparent 70%);
+            top: -200px; left: -200px;
+            animation: orb 16s ease-in-out infinite alternate;
+        }
+        .bg-scene::after {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(6,182,212,0.14), transparent 70%);
+            bottom: -150px; right: -150px;
+            animation: orb 20s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes orb {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(60px,80px) scale(1.15); }
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .page-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; padding: 32px 20px;
+        }
+
+        /* ── Top Bar ── */
+        .level-topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(5,8,20,0.85);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 10px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.2s ease;
+        }
+        .btn-back:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+        .btn-back svg { width: 16px; height: 16px; }
+        .topbar-level-info h1 { font-size: 16px; font-weight: 700; }
+        .topbar-level-info span { font-size: 11px; color: var(--text-muted); }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+        .part-indicator {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 14px; border-radius: 100px;
+            background: rgba(139,92,246,0.12);
+            border: 1px solid rgba(139,92,246,0.25);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+        .part-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            transition: background 0.3s ease;
+        }
+        .part-dot.active { background: var(--accent-1); box-shadow: 0 0 8px var(--glow); }
+        .part-dot.done   { background: var(--success); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+
+        /* ── Game Card ── */
+        .game-card {
+            width: 100%; max-width: 660px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 28px; padding: 40px 36px;
+            backdrop-filter: blur(20px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 24px 64px rgba(0,0,0,0.55),
+                0 0 80px rgba(139,92,246,0.07);
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        .game-state { display: none; animation: fade-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display: block; }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Intro ── */
+        .intro-emoji { font-size: 56px; margin-bottom: 16px; animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+            50%       { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(139,92,246,0.4)); }
+        }
+        .intro-title    { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .intro-subtitle { font-size: 14px; color: var(--text-sec); margin-bottom: 6px; }
+        .intro-desc     {
+            font-size: 13px; color: var(--text-muted); margin-bottom: 32px;
+            line-height: 1.7; max-width: 440px; margin-left: auto; margin-right: auto;
+        }
+        .game-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 100px; margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(6,182,212,0.10));
+            border: 1px solid rgba(139,92,246,0.30);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+
+        /* ── Listening State ── */
+        .listening-box {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px; border-radius: 20px; background: rgba(139,92,246,0.05);
+            border: 1px dashed rgba(139,92,246,0.3); margin: 24px auto; max-width: 400px;
+        }
+        .audio-wave {
+            display: flex; gap: 6px; height: 40px; align-items: center; margin-top: 20px;
+        }
+        .wave-bar {
+            width: 4px; height: 10px; background: var(--accent-1); border-radius: 2px;
+            animation: wave 1.2s ease-in-out infinite alternate;
+            animation-play-state: paused;
+        }
+        .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.3s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.6s; }
+        @keyframes wave {
+            0% { height: 10px; }
+            100% { height: 40px; }
+        }
+
+        /* ── Instruments Grid ── */
+        .instruments-options {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px;
+        }
+        .instrument-card {
+            background: var(--bg-card); border: 2px solid var(--border);
+            padding: 16px 8px; border-radius: 14px; cursor: pointer;
+            transition: all 0.2s ease; font-weight: 600; font-size: 14px;
+        }
+        .instrument-card:hover { border-color: var(--border-h); background: var(--bg-card-h); transform: translateY(-2px); }
+
+        .sequence-preview-area {
+            min-height: 80px; padding: 14px; background: rgba(0,0,0,0.15);
+            border-radius: 16px; border: 1px dashed var(--border);
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+            margin: 20px 0; align-items: center;
+        }
+        .preview-badge {
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            padding: 8px 16px; border-radius: 100px; font-weight: 700;
+            color: #fff; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 10px rgba(139,92,246,0.3);
+            animation: pop-in 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .preview-badge:hover { opacity: 0.9; transform: scale(0.95); }
+
+        /* ── Animal Sound Match ── */
+        .animal-cards-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 24px;
+        }
+        .animal-option-card {
+            background: var(--bg-card); border: 2px solid var(--border);
+            padding: 12px; border-radius: 12px; cursor: pointer;
+            text-align: center; transition: all 0.15s ease;
+            font-size: 13px; font-weight: 700;
+        }
+        .animal-option-card.selected {
+            border-color: var(--accent-1); background: rgba(139,92,246,0.1);
+            box-shadow: 0 0 12px var(--glow);
+        }
+        .animal-option-card .emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+
+        .animal-match-table {
+            display: flex; flex-direction: column; gap: 14px; margin: 24px 0;
+        }
+        .match-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 20px; border-radius: 14px; background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+        }
+        .match-label { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .match-slot {
+            padding: 8px 16px; border-radius: 10px; border: 2px dashed var(--border);
+            min-width: 140px; text-align: center; cursor: pointer; font-weight: 700;
+            background: rgba(0,0,0,0.15); transition: all 0.2s ease;
+        }
+        .match-slot.filled {
+            border-style: solid; border-color: var(--accent-2);
+            background: rgba(6,182,212,0.08); color: var(--accent-2);
+        }
+        .match-slot.active-slot {
+            border-color: var(--accent-1); background: rgba(139,92,246,0.08);
+            box-shadow: 0 0 10px var(--glow);
+        }
+        .match-slot.correct-match { border-color: var(--success); color: var(--success); background: rgba(52,211,153,0.05); }
+        .match-slot.wrong-match { border-color: var(--error); color: var(--error); background: rgba(248,113,113,0.05); }
+
+        .play-sound-btn {
+            background: var(--bg-card); border: 1px solid var(--border);
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 13px; transition: all 0.2s ease;
+        }
+        .play-sound-btn:hover { border-color: var(--accent-1); background: var(--bg-card-h); }
+
+        /* ── Result Overlay ── */
+        .result-overlay {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.72); backdrop-filter: blur(12px);
+            align-items: center; justify-content: center;
+        }
+        .result-overlay.open { display: flex; }
+        .result-card {
+            background: rgba(11,15,36,0.97); border: 1px solid var(--border);
+            border-radius: 28px; padding: 44px 40px; width: 90%; max-width: 440px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.60); text-align: center;
+        }
+        .result-emoji { font-size: 64px; margin-bottom: 16px; }
+        .result-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .result-desc  { font-size: 14px; color: var(--text-sec); line-height: 1.7; margin-bottom: 28px; }
+        .result-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+        .result-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 14px; }
+        .result-stat .rs-val { font-size: 22px; font-weight: 800; color: var(--accent-1); }
+        .result-stat .rs-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .result-buttons { display: flex; flex-direction: column; gap: 10px; }
+
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 36px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 24px rgba(139,92,246,0.45);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            min-width: 160px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(139,92,246,0.55); }
+        .btn-secondary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; border-radius: 12px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+
+        .correct-seq-box {
+            background: rgba(52,211,153,0.1); border: 1px solid var(--success);
+            border-radius: 12px; padding: 12px; margin-top: 14px; display: none;
+            justify-content: center; gap: 8px; flex-wrap: wrap;
+        }
+        .correct-seq-item {
+            background: var(--success); padding: 4px 10px; border-radius: 100px;
+            font-size: 12px; font-weight: 700; color: #000;
+        }
+
+        #confetti-canvas { position: fixed; inset: 0; z-index: 250; pointer-events: none; }
+
+        @media (max-width: 600px) {
+            .game-card { padding: 32px 16px; margin-top: 72px; }
+            .instruments-options { grid-template-columns: repeat(2, 1fr); }
+            .animal-cards-grid { grid-template-columns: repeat(3, 1fr); }
+            .match-row { padding: 10px; flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-scene"></div>
+    <div class="bg-grid"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Overlay popups -->
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card" id="result-card">
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <div class="result-title" id="result-title">Excellent!</div>
+            <div class="result-desc"  id="result-desc">You completed the round!</div>
+            <div id="correct-seq-container" class="correct-seq-box">
+                <span style="font-size:12px; width:100%; display:block; color:var(--text-sec); margin-bottom:4px;">Correct Order:</span>
+            </div>
+            <div class="result-stats">
+                <div class="result-stat"><div class="rs-val" id="result-score">+70</div><div class="rs-lbl">Score</div></div>
+                <div class="result-stat"><div class="rs-val" id="result-part">Part 1/2</div><div class="rs-lbl">Progress</div></div>
+            </div>
+            <div class="result-buttons">
+                <button class="btn-primary" id="result-action-btn">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="level-topbar">
+        <div class="topbar-left">
+            <a href="dashboard.html" class="btn-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                Dashboard
+            </a>
+            <div class="topbar-level-info">
+                <h1>Level 8 – Auditory & Word Memory</h1>
+                <span id="topbar-part-label">Part 1: Word Sequence Recall</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <button class="theme-toggle-btn" id="theme-header-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <div class="part-indicator">
+                <span>Parts</span>
+                <div class="part-dot active" id="dot-1"></div>
+                <div class="part-dot" id="dot-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <main class="page-wrapper">
+        <div class="game-card">
+
+            <!-- ── Intro Panel ── -->
+            <div class="game-state active" id="state-intro">
+                <div class="game-badge" id="intro-badge">📝 Level 8 • Part 1</div>
+                <div class="intro-emoji" id="intro-emoji">📝</div>
+                <div class="intro-title" id="intro-title">Word Sequence Recall</div>
+                <div class="intro-subtitle" id="intro-subtitle">Test your sequence memory and spelling!</div>
+                <div class="intro-desc" id="intro-desc">
+                    You will <strong>hear</strong> a sequence of words spoken aloud one by one.
+                    Listen carefully — remember each word's spelling and exact position.
+                    After all words are spoken, type them in the correct order.
+                </div>
+                <button class="btn-primary" id="btn-start">▶ Start Challenge</button>
+            </div>
+
+            <!-- ── Play Audio State ── -->
+            <div class="game-state" id="state-listening">
+                <div class="game-badge" id="listening-badge">🔊 Listening Phase</div>
+                <div class="intro-title" id="listening-title">Listen Carefully!</div>
+                <div class="listening-box">
+                    <span id="listening-status" style="font-size:22px; font-weight:700;">🔊 Speaking word 1 of 5</span>
+                    <span id="listening-sub" style="font-size:12px; color:var(--text-sec); margin-top:8px;">Listen — remember spelling and order!</span>
+                    <div class="audio-wave" id="audio-wave" style="margin-top:20px;">
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                        <div class="wave-bar"></div>
+                    </div>
+                    <div id="p1-word-number-display" style="margin-top:18px; font-size:48px; font-weight:900; color:var(--accent-1); opacity:0; transition:opacity 0.3s;"></div>
+                </div>
+            </div>
+
+            <!-- ── Answer Input Part 1 ── -->
+            <div class="game-state" id="state-p1-input">
+                <div class="game-badge">⚡ Your Turn</div>
+                <div class="intro-title">Recall the Words</div>
+                <div class="intro-subtitle">Type the words in the exact same order and spelling.</div>
+
+                <div id="p1-word-inputs" style="display:flex; flex-direction:column; gap:14px; margin:24px auto; max-width:400px; text-align:left;">
+                    <!-- filled dynamically with input fields -->
+                </div>
+
+                <div class="action-row" style="display:flex; justify-content:center; gap:12px; margin-top:28px;">
+                    <button class="btn-secondary" id="btn-p1-clear">🗑 Clear</button>
+                    <button class="btn-primary" id="btn-p1-submit">Submit Answer</button>
+                </div>
+            </div>
+
+            <!-- ── Answer Input Part 2 (Jumbled Words) ── -->
+            <div class="game-state" id="state-p2-input">
+                <div class="game-badge">🧩 Jumbled Words</div>
+                <div class="intro-title">Unscramble the Words</div>
+                <div class="intro-subtitle" style="margin-bottom:20px;">Unscramble each set of letters to find the correct word.</div>
+
+                <div id="p2-jumbled-words-container" style="display:flex; flex-direction:column; gap:14px; margin:24px auto; max-width:500px; text-align:left;">
+                    <!-- filled dynamically with jumbled words and input fields -->
+                </div>
+
+                <div class="action-row" style="display:flex; justify-content:center; gap:12px; margin-top:28px;">
+                    <button class="btn-secondary" id="btn-p2-clear">🗑 Clear</button>
+                    <button class="btn-primary" id="btn-p2-submit">Submit Answers</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+    <script>
+    let currentPart = 1;
+    let roundNum = 1;
+    let serverSequence = [];
+    let activeSequence = [];
+    let userP1Answers = [];
+    
+    // Part 2 Variables
+    let p2JumbledWords = []; // Array of objects: { original: "Apple", jumbled: "Pplae" }
+
+    function gid(id) { return document.getElementById(id); }
+    function showState(id) {
+        document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+        gid(id).classList.add('active');
+    }
+
+    // --- PART 1: WORD SEQUENCE RECALL ---
+    let p1TimerInterval = null;
+
+    function fetchAndStartPart1() {
+        fetch('level8?part=1&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => {
+                serverSequence = data.words || data.sequence;
+                setupRoundP1();
+            }).catch(() => {
+                // local fallback
+                const words = ["Apple", "River", "Mountain", "Clock", "Garden", "Tiger", "Pencil", "Window", "Mirror", "Castle", "Flower", "Planet", "Ocean", "Forest", "Bridge"];
+                serverSequence = Array.from({length: 7}, () => words[Math.floor(Math.random() * words.length)]);
+                setupRoundP1();
+            });
+    }
+
+    function setupRoundP1() {
+        if (p1TimerInterval) clearInterval(p1TimerInterval);
+        const elementsCount = 4 + roundNum; // R1: 5 words, R2: 6 words, R3: 7 words
+        activeSequence = serverSequence.slice(0, elementsCount);
+
+        // Show Listening UI
+        showState('state-listening');
+        gid('listening-badge').textContent = '🔊 Listening Phase';
+        gid('listening-title').textContent = 'Listen Carefully!';
+        gid('listening-sub').textContent = 'Listen — remember spelling and order!';
+
+        // Animate wave bars
+        const bars = document.querySelectorAll('#audio-wave .wave-bar');
+        bars.forEach(b => b.style.animationPlayState = 'paused');
+
+        const numDisplay = gid('p1-word-number-display');
+        numDisplay.style.opacity = '0';
+        numDisplay.textContent = '';
+
+        speakWordSequence(activeSequence, 0, () => {
+            bars.forEach(b => b.style.animationPlayState = 'paused');
+            numDisplay.style.opacity = '0';
+            setupP1InputFields();
+        });
+    }
+
+    function speakWordSequence(seq, index, onComplete) {
+        if (index >= seq.length) {
+            setTimeout(onComplete, 700);
+            return;
+        }
+
+        const bars = document.querySelectorAll('#audio-wave .wave-bar');
+        const statusEl = gid('listening-status');
+        const numDisplay = gid('p1-word-number-display');
+
+        statusEl.textContent = `🔊 Speaking word ${index + 1} of ${seq.length}`;
+        bars.forEach(b => b.style.animationPlayState = 'running');
+
+        // Flash the word number (NOT the word text)
+        numDisplay.textContent = `#${index + 1}`;
+        numDisplay.style.opacity = '1';
+
+        // Use Web Speech API to speak the word
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(seq[index]);
+        utterance.rate = 0.85;
+        utterance.pitch = 1.05;
+        utterance.volume = 1;
+        utterance.lang = 'en-US';
+
+        utterance.onend = () => {
+            bars.forEach(b => b.style.animationPlayState = 'paused');
+            numDisplay.style.opacity = '0';
+            setTimeout(() => {
+                speakWordSequence(seq, index + 1, onComplete);
+            }, 800); // pause between words
+        };
+
+        utterance.onerror = () => {
+            // fallback: continue even if speech fails
+            setTimeout(() => speakWordSequence(seq, index + 1, onComplete), 1500);
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // Audio sequence player for Part 2 (animal sounds)
+    function playAudioSequence(seq, index, onComplete) {
+        if (index >= seq.length) {
+            setTimeout(onComplete, 800);
+            return;
+        }
+
+        const bars = document.querySelectorAll('#audio-wave .wave-bar');
+        bars.forEach(b => b.style.animationPlayState = 'running');
+
+        gid('listening-status').textContent = `🔊 Playing ${index + 1} of ${seq.length}`;
+        gid('listening-badge').textContent = '🔊 Listening Phase';
+        gid('listening-title').textContent = 'Listen Carefully!';
+        gid('listening-sub').textContent = 'Remember the sound and order!';
+        AudioSynth.play(seq[index]);
+
+        setTimeout(() => {
+            bars.forEach(b => b.style.animationPlayState = 'paused');
+            setTimeout(() => {
+                playAudioSequence(seq, index + 1, onComplete);
+            }, 550);
+        }, 1200);
+    }
+
+    function setupP1InputFields() {
+        const inputsDiv = gid('p1-word-inputs');
+        inputsDiv.innerHTML = '';
+        activeSequence.forEach((_, idx) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.gap = '12px';
+            
+            const num = document.createElement('span');
+            num.style.fontWeight = '700';
+            num.style.width = '80px';
+            num.style.color = 'var(--text-sec)';
+            num.style.fontSize = '14px';
+            num.textContent = `Word ${idx + 1}:`;
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'word-input';
+            input.style.flex = '1';
+            input.style.padding = '12px 16px';
+            input.style.borderRadius = '10px';
+            input.style.border = '1px solid var(--border)';
+            input.style.background = 'rgba(255,255,255,0.03)';
+            input.style.color = '#fff';
+            input.style.fontSize = '15px';
+            input.placeholder = `Enter word ${idx + 1}...`;
+            input.autocomplete = 'off';
+            input.style.outline = 'none';
+            input.onfocus = () => { input.style.borderColor = 'var(--accent-1)'; };
+            input.onblur = () => { input.style.borderColor = 'var(--border)'; };
+            
+            row.appendChild(num);
+            row.appendChild(input);
+            inputsDiv.appendChild(row);
+        });
+        showState('state-p1-input');
+    }
+
+    gid('btn-p1-clear').onclick = () => {
+        document.querySelectorAll('.word-input').forEach(input => input.value = '');
+    };
+
+    gid('btn-p1-submit').onclick = () => {
+        const inputs = document.querySelectorAll('.word-input');
+        let answers = Array.from(inputs).map(input => input.value.trim());
+
+        let correct = answers.length === activeSequence.length && answers.every((val, i) => val.toLowerCase() === activeSequence[i].toLowerCase());
+
+        if (correct) {
+            // Notify server and move directly to Part 2
+            fetch('level8', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ part: 1, correct: true })
+            }).catch(() => {});
+            showResult(true, 1, "Excellent! You remembered all the words correctly!");
+        } else {
+            showResult(false, 1, "Not quite! Check the spelling or order and try again.");
+        }
+    };
+
+    // --- PART 2: JUMBLED WORDS ---
+    function fetchAndStartPart2() {
+        fetch('level8?part=2&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => {
+                const words = data.words || [];
+                p2JumbledWords = words.map(w => ({ original: w, jumbled: jumbleWord(w) }));
+                setupPart2Game();
+            }).catch(() => {
+                // fallback
+                const words = ["Apple", "River", "Mountain", "Clock", "Garden", "Tiger", "Pencil", "Window", "Mirror", "Castle"].sort(() => Math.random() - 0.5);
+                p2JumbledWords = words.map(w => ({ original: w, jumbled: jumbleWord(w) }));
+                setupPart2Game();
+            });
+    }
+
+    function jumbleWord(word) {
+        let arr = word.split('');
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        // ensure it's actually jumbled
+        let jumbledStr = arr.join('');
+        if (jumbledStr.toLowerCase() === word.toLowerCase() && word.length > 1) {
+            return jumbleWord(word); // retry
+        }
+        return jumbledStr.toUpperCase();
+    }
+
+    function setupPart2Game() {
+        const container = gid('p2-jumbled-words-container');
+        container.innerHTML = '';
+        
+        p2JumbledWords.forEach((item, idx) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.gap = '12px';
+            
+            const num = document.createElement('span');
+            num.style.fontWeight = '700';
+            num.style.width = '24px';
+            num.style.color = 'var(--text-sec)';
+            num.style.fontSize = '14px';
+            num.textContent = `${idx + 1}.`;
+            
+            const jumbled = document.createElement('div');
+            jumbled.style.width = '120px';
+            jumbled.style.fontWeight = 'bold';
+            jumbled.style.color = 'var(--accent-1)';
+            jumbled.style.letterSpacing = '2px';
+            jumbled.textContent = item.jumbled;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'p2-word-input';
+            input.style.flex = '1';
+            input.style.padding = '12px 16px';
+            input.style.borderRadius = '10px';
+            input.style.border = '1px solid var(--border)';
+            input.style.background = 'rgba(255,255,255,0.03)';
+            input.style.color = '#fff';
+            input.style.fontSize = '15px';
+            input.placeholder = `Unscramble word...`;
+            input.autocomplete = 'off';
+            input.style.outline = 'none';
+            input.onfocus = () => { input.style.borderColor = 'var(--accent-1)'; };
+            input.onblur = () => { input.style.borderColor = 'var(--border)'; };
+            
+            row.appendChild(num);
+            row.appendChild(jumbled);
+            row.appendChild(input);
+            container.appendChild(row);
+        });
+
+        showState('state-p2-input');
+    }
+
+    gid('btn-p2-clear').onclick = () => {
+        document.querySelectorAll('.p2-word-input').forEach(input => input.value = '');
+    };
+
+    gid('btn-p2-submit').onclick = () => {
+        const inputs = document.querySelectorAll('.p2-word-input');
+        let answers = Array.from(inputs).map(input => input.value.trim());
+
+        let correct = true;
+        answers.forEach((ans, idx) => {
+            const target = p2JumbledWords[idx].original;
+            if (ans.toLowerCase() !== target.toLowerCase()) {
+                correct = false;
+            }
+        });
+
+        if (correct) {
+            fetch('level8', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ part: 2, correct: true })
+            }).catch(()=>{});
+            showResult(true, 2, "Amazing! You unscrambled all words correctly!");
+        } else {
+            showResult(false, 2, "Some words are incorrect! Check your spelling and try again.");
+        }
+    };
+
+    function showResult(win, part, desc) {
+        const overlay = gid('result-overlay');
+        const card = gid('result-card');
+        card.className = 'result-card ' + (win ? 'win' : 'lose');
+        gid('result-emoji').textContent = win ? '🎉' : '❌';
+        gid('result-title').textContent = win ? 'Correct!' : 'Incorrect!';
+        gid('result-desc').textContent = desc;
+
+        const seqContainer = gid('correct-seq-container');
+        seqContainer.style.display = 'none';
+
+        if (win) {
+            gid('result-score').textContent = '+70';
+            if (part === 1) {
+                // Part 1 complete — always go to Part 2
+                gid('result-action-btn').textContent = 'Next Part ▶';
+                gid('result-action-btn').onclick = () => { closeResult(); setupPart2Intro(); };
+            } else {
+                // end of level 8
+                gid('result-action-btn').textContent = 'Back to Dashboard ▶';
+                let p = saveProgressToServer();
+                gid('result-action-btn').onclick = () => {
+                    closeResult();
+                    if (p) { p.finally(() => { window.location.href = 'dashboard.html'; }); }
+                    else { window.location.href = 'dashboard.html'; }
+                };
+            }
+        } else {
+            gid('result-score').textContent = '0';
+            if (part === 1) {
+                // Show correct sequence to learn from
+                seqContainer.style.display = 'flex';
+                // remove previous
+                seqContainer.querySelectorAll('.correct-seq-item').forEach(e => e.remove());
+                activeSequence.forEach(item => {
+                    const el = document.createElement('span');
+                    el.className = 'correct-seq-item';
+                    el.textContent = item;
+                    seqContainer.appendChild(el);
+                });
+                gid('result-action-btn').textContent = 'Retry Round';
+                gid('result-action-btn').onclick = () => { closeResult(); setupRoundP1(); };
+            } else {
+                gid('result-action-btn').textContent = 'Try Again';
+                gid('result-action-btn').onclick = () => { closeResult(); closeResult(); /* user manually retries */ };
+            }
+        }
+        overlay.classList.add('open');
+    }
+
+    function closeResult() { gid('result-overlay').classList.remove('open'); }
+
+    function setupPart2Intro() {
+        currentPart = 2;
+        gid('intro-badge').textContent = '🧩 Level 8 • Part 2';
+        gid('intro-emoji').textContent = '🔠';
+        gid('intro-title').textContent = 'Jumbled Words';
+        gid('intro-subtitle').textContent = 'Word puzzle and spelling recall.';
+        gid('intro-desc').textContent = 'Look at the jumbled letters for 10 different words. Unscramble them and type the correct spelling for each.';
+        gid('topbar-part-label').textContent = 'Part 2: Jumbled Words';
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        showState('state-intro');
+    }
+
+    gid('btn-start').onclick = () => {
+        if (currentPart === 1) fetchAndStartPart1();
+        else fetchAndStartPart2();
+    };
+
+    /* ── Streak Helpers ── */
+    function getLocalDateString() {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+    function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
+        if (!isSuccess) return { streak: 0, dateStr: lastPlayedDateStr };
+        var todayStr = getLocalDateString();
+        if (!lastPlayedDateStr) return { streak: 1, dateStr: todayStr };
+        var today = new Date(todayStr + 'T00:00:00');
+        var lastPlayed = new Date(lastPlayedDateStr + 'T00:00:00');
+        var diffDays = Math.round((today - lastPlayed) / (1000 * 60 * 60 * 24));
+        var newStreak = currentStreak;
+        if (diffDays === 0) { if (newStreak === 0) newStreak = 1; }
+        else if (diffDays === 1) { newStreak = currentStreak + 1; }
+        else { newStreak = 1; }
+        return { streak: newStreak, dateStr: todayStr };
+    }
+
+    function safeParseArray(dataVal, defaultArray) {
+        if (Array.isArray(dataVal)) return dataVal;
+        if (typeof dataVal === 'string') {
+            try {
+                var parsed = JSON.parse(dataVal);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {}
+        }
+        return defaultArray.slice();
+    }
+
+    function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
+        try {
+            localStorage.setItem('mm_score', score);
+            localStorage.setItem('mm_streak', streak);
+            localStorage.setItem('mm_unlocked_level', unlockedLevel);
+            localStorage.setItem('mm_games_played', gamesPlayed);
+            localStorage.setItem('mm_best_streak', bestStreak);
+            localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+            localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+            localStorage.setItem('mm_stars', JSON.stringify(stars));
+            if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+        } catch(e) {}
+    }
+
+    let savePromise = null;
+    function saveProgressToServer() {
+        savePromise = fetch('getProgress?t=' + Date.now())
+            .then(r => r.ok ? r.json() : Promise.reject('Failed to fetch progress'))
+            .then(data => {
+                let score = (parseInt(data.score, 10) || 0) + 140;
+                let gamesPlayed = (parseInt(data.gamesPlayed, 10) || 0) + 1;
+                let unlockedLevel = Math.max(parseInt(data.unlockedLevel, 10) || 1, 9);
+                let bestScores = safeParseArray(data.bestScores, Array(20).fill(0));
+                let bestTimes = safeParseArray(data.bestTimes, Array(20).fill('-'));
+                let stars = safeParseArray(data.stars, Array(20).fill('0'));
+
+                let streakResult   = calculateNewStreak(parseInt(data.streak, 10) || 0, data.lastPlayedDate || '', true);
+                let streak         = streakResult.streak;
+                let lastPlayedDate = streakResult.dateStr;
+                let bestStreak     = Math.max(parseInt(data.bestStreak, 10) || 0, streak);
+
+                if (140 > (parseInt(bestScores[7], 10) || 0)) bestScores[7] = 140;
+                stars[7] = '3';
+                bestTimes[7] = '25s';
+                
+                saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate);
+
+                return fetch('saveProgress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        score: score, streak: streak, unlockedLevel: unlockedLevel, gamesPlayed: gamesPlayed,
+                        bestStreak: bestStreak,
+                        bestScores: JSON.stringify(bestScores), bestTimes: JSON.stringify(bestTimes), stars: JSON.stringify(stars),
+                        lastPlayedDate: lastPlayedDate
+                    })
+                });
+            }).catch(err => { console.error('[Level8] Error saving progress:', err); });
+        return savePromise;
+    }
+
+    // Hint System Hook
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(() => gid('state-p1-input').classList.contains('active') || gid('state-p2-input').classList.contains('active'), () => {
+            if (currentPart === 1) {
+                const inputs = document.querySelectorAll('.word-input');
+                for (let i = 0; i < inputs.length; i++) {
+                    if (inputs[i].value.trim().toLowerCase() !== activeSequence[i].toLowerCase()) {
+                        inputs[i].value = activeSequence[i];
+                        return true;
+                    }
+                }
+            } else {
+                // solve one incorrect/empty jumbled word
+                const inputs = document.querySelectorAll('.p2-word-input');
+                for (let i = 0; i < inputs.length; i++) {
+                    const target = p2JumbledWords[i].original;
+                    if (inputs[i].value.trim().toLowerCase() !== target.toLowerCase()) {
+                        inputs[i].value = target;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        });
+    }
+    </script>
+</body>
+</html>

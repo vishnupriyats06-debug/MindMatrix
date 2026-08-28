@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 10: Mask Memory</title>
+    <meta name="description" content="Level 10 – Remember person–mask associations and recall them from memory." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-deep:#050814; --bg-card:rgba(255,255,255,0.04); --bg-card-h:rgba(255,255,255,0.07);
+            --border:rgba(255,255,255,0.09); --border-h:rgba(139,92,246,0.45);
+            --accent-1:#8b5cf6; --accent-2:#06b6d4; --accent-3:#f59e0b;
+            --glow:rgba(139,92,246,0.35); --text-pri:#f0f4ff;
+            --text-sec:rgba(240,244,255,0.55); --text-muted:rgba(240,244,255,0.28);
+            --success:#34d399; --error:#f87171; --warning:#fbbf24;
+        }
+        html { scroll-behavior:smooth; }
+        body { font-family:'Outfit',sans-serif; background:var(--bg-deep); color:var(--text-pri); min-height:100vh; overflow-x:hidden; }
+        .bg-scene { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+        .bg-scene::before { content:''; position:absolute; border-radius:50%; width:700px; height:700px; background:radial-gradient(circle,rgba(139,92,246,0.18),transparent 70%); top:-200px; left:-200px; animation:orb 16s ease-in-out infinite alternate; }
+        .bg-scene::after  { content:''; position:absolute; border-radius:50%; width:600px; height:600px; background:radial-gradient(circle,rgba(6,182,212,0.14),transparent 70%); bottom:-150px; right:-150px; animation:orb 20s ease-in-out infinite alternate-reverse; }
+        @keyframes orb { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(60px,80px) scale(1.15)} }
+        .bg-grid { position:fixed; inset:0; z-index:0; pointer-events:none; background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px); background-size:60px 60px; }
+        .page-wrapper { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:32px 20px; }
+
+        /* ── Topbar ── */
+        .level-topbar { position:fixed; top:0; left:0; right:0; z-index:50; background:rgba(5,8,20,0.85); backdrop-filter:blur(24px); border-bottom:1px solid var(--border); padding:0 28px; height:64px; display:flex; align-items:center; justify-content:space-between; }
+        .topbar-left { display:flex; align-items:center; gap:14px; }
+        .btn-back { display:flex; align-items:center; gap:8px; padding:8px 16px; border-radius:10px; background:var(--bg-card); border:1px solid var(--border); color:var(--text-sec); font-family:'Outfit',sans-serif; font-size:13px; font-weight:500; cursor:pointer; text-decoration:none; transition:all 0.2s; }
+        .btn-back:hover { background:var(--bg-card-h); color:var(--text-pri); border-color:var(--border-h); }
+        .btn-back svg { width:16px; height:16px; }
+        .topbar-level-info h1 { font-size:16px; font-weight:700; }
+        .topbar-level-info span { font-size:11px; color:var(--text-muted); }
+        .topbar-right { display:flex; align-items:center; gap:12px; }
+        .part-indicator { display:flex; align-items:center; gap:8px; padding:6px 14px; border-radius:100px; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.25); font-size:12px; font-weight:600; color:var(--accent-1); }
+        .part-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.15); transition:background 0.3s; }
+        .part-dot.active { background:var(--accent-1); box-shadow:0 0 8px var(--glow); }
+        .part-dot.done   { background:var(--success); box-shadow:0 0 8px rgba(52,211,153,0.4); }
+
+        /* ── Game Card ── */
+        .game-card { width:100%; max-width:700px; background:var(--bg-card); border:1px solid var(--border); border-radius:28px; padding:40px 36px; backdrop-filter:blur(20px); box-shadow:0 0 0 1px rgba(255,255,255,0.04),0 24px 64px rgba(0,0,0,0.55),0 0 80px rgba(139,92,246,0.07); text-align:center; margin-top:80px; }
+        .game-state { display:none; animation:fade-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display:block; }
+        @keyframes fade-up { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+        .intro-emoji { font-size:56px; margin-bottom:16px; animation:pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08);filter:drop-shadow(0 0 20px rgba(139,92,246,0.4))} }
+        .intro-title { font-size:28px; font-weight:800; letter-spacing:-0.5px; margin-bottom:8px; }
+        .intro-subtitle { font-size:14px; color:var(--text-sec); margin-bottom:6px; }
+        .intro-desc { font-size:13px; color:var(--text-muted); margin-bottom:32px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto; }
+        .game-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:100px; margin-bottom:20px; background:linear-gradient(135deg,rgba(139,92,246,0.18),rgba(6,182,212,0.10)); border:1px solid rgba(139,92,246,0.30); font-size:12px; font-weight:600; color:var(--accent-1); }
+        .btn-primary { padding:14px 36px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--accent-1),var(--accent-2)); color:#fff; font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.25s; box-shadow:0 4px 20px rgba(139,92,246,0.4); }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(139,92,246,0.5); }
+        .btn-secondary { padding:12px 28px; border-radius:12px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-sec); font-family:'Outfit',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+        .btn-secondary:hover { background:var(--bg-card-h); color:var(--text-pri); border-color:var(--border-h); }
+
+        /* ── Person-Mask Grid ── */
+        .pm-grid {
+            display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+            margin:24px auto; max-width:520px;
+        }
+        .pm-card {
+            background:rgba(255,255,255,0.04); border:2px solid var(--border);
+            border-radius:18px; padding:18px 12px; text-align:center;
+            transition:all 0.3s; cursor:default; position:relative;
+        }
+        .pm-card .person-emoji { font-size:42px; display:block; margin-bottom:6px; }
+        .pm-card .person-name { font-size:13px; font-weight:600; color:var(--text-sec); margin-bottom:8px; }
+        .pm-card .mask-emoji { font-size:32px; display:block; min-height:40px; transition:all 0.3s; }
+        .pm-card .mask-placeholder {
+            font-size:13px; color:var(--text-muted); min-height:40px;
+            display:flex; align-items:center; justify-content:center;
+            border:2px dashed rgba(255,255,255,0.1); border-radius:10px; padding:8px;
+        }
+
+        /* Selectable card states */
+        .pm-card.selectable { cursor:pointer; }
+        .pm-card.selectable:hover { border-color:rgba(139,92,246,0.4); background:rgba(139,92,246,0.06); transform:translateY(-2px); }
+        .pm-card.selected { border-color:var(--accent-1); background:rgba(139,92,246,0.12); box-shadow:0 0 20px rgba(139,92,246,0.25); }
+        .pm-card.filled { border-color:var(--accent-2); background:rgba(6,182,212,0.08); }
+        .pm-card.correct-answer { border-color:var(--success); background:rgba(52,211,153,0.1); }
+        .pm-card.wrong-answer { border-color:var(--error); background:rgba(248,113,113,0.1); }
+
+        /* ── Mask/Person Selection Pool ── */
+        .selection-pool {
+            display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
+            margin:20px auto; max-width:520px; padding:16px;
+            background:rgba(255,255,255,0.02); border-radius:16px;
+            border:1px solid var(--border);
+        }
+        .pool-item {
+            width:60px; height:60px; border-radius:14px;
+            border:2px solid var(--border); background:rgba(255,255,255,0.03);
+            display:flex; align-items:center; justify-content:center;
+            font-size:28px; cursor:pointer; transition:all 0.2s; user-select:none;
+        }
+        .pool-item:hover { border-color:rgba(139,92,246,0.5); background:rgba(139,92,246,0.08); transform:scale(1.08); }
+        .pool-item.used { opacity:0.25; pointer-events:none; border-color:rgba(52,211,153,0.3); }
+
+        /* ── Countdown Overlay ── */
+        .countdown-display {
+            font-size:72px; font-weight:900; color:var(--accent-1);
+            text-shadow:0 0 40px rgba(139,92,246,0.6);
+            animation:pulse-glow 1s ease-in-out infinite;
+            margin:12px 0;
+        }
+        .memo-label { font-size:15px; font-weight:600; color:var(--text-sec); margin-bottom:8px; }
+
+        /* ── Result Overlay ── */
+        .result-overlay { position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.35s; }
+        .result-overlay.open { opacity:1; pointer-events:auto; }
+        .result-card { background:rgba(15,18,35,0.96); border:1px solid var(--border); border-radius:28px; padding:40px 36px; text-align:center; max-width:420px; width:90%; box-shadow:0 32px 80px rgba(0,0,0,0.6); }
+        .result-card.win { border-color:var(--success); box-shadow:0 0 60px rgba(52,211,153,0.15); }
+        .result-card.lose { border-color:var(--error); box-shadow:0 0 60px rgba(248,113,113,0.15); }
+        .result-emoji { font-size:56px; margin-bottom:12px; }
+        .result-title { font-size:24px; font-weight:800; margin-bottom:6px; }
+        .result-desc { font-size:13px; color:var(--text-sec); margin-bottom:20px; line-height:1.6; }
+        .result-score { font-size:36px; font-weight:800; background:linear-gradient(135deg,var(--accent-1),var(--accent-2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:24px; }
+
+        /* ── Confetti ── */
+        canvas#confetti-canvas { position:fixed; inset:0; z-index:200; pointer-events:none; }
+
+        /* ── Responsive ── */
+        @media(max-width:600px) {
+            .pm-grid { grid-template-columns:repeat(2,1fr); gap:12px; }
+            .game-card { padding:28px 18px; }
+            .pm-card .person-emoji { font-size:34px; }
+            .pm-card .mask-emoji { font-size:26px; }
+            .pool-item { width:50px; height:50px; font-size:24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-scene"></div>
+    <div class="bg-grid"></div>
+    <div class="page-wrapper">
+
+    <div class="level-topbar">
+        <div class="topbar-left">
+            <a href="dashboard.html" class="btn-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Dashboard
+            </a>
+            <div class="topbar-level-info">
+                <h1>Level 10 – Mask Memory</h1>
+                <span id="topbar-part-label">Part 1: Person → Mask</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="part-indicator">
+                <div class="part-dot active" id="dot-1"></div>
+                <span id="part-label-text">Part 1</span>
+                <div class="part-dot" id="dot-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <div class="game-card">
+
+            <!-- ── Intro State ── -->
+            <div class="game-state active" id="state-intro">
+                <div class="game-badge" id="intro-badge">🎭 Level 10 • Part 1</div>
+                <div class="intro-emoji" id="intro-emoji">🎭</div>
+                <div class="intro-title" id="intro-title">Person → Mask Memory</div>
+                <div class="intro-subtitle" id="intro-subtitle">Test your associative memory!</div>
+                <div class="intro-desc" id="intro-desc">
+                    You will see 6 people, each wearing a unique mask.
+                    Memorize who wears which mask in 5 seconds.
+                    After the masks disappear, assign the correct mask to each person.
+                </div>
+                <button class="btn-primary" id="btn-start">▶ Start Challenge</button>
+            </div>
+
+            <!-- ── Memorization State ── -->
+            <div class="game-state" id="state-memorize">
+                <div class="game-badge" id="memo-badge">⏱ Memorize!</div>
+                <div class="memo-label" id="memo-label">Remember who wears which mask</div>
+                <div class="countdown-display" id="countdown">5</div>
+                <div class="pm-grid" id="memo-grid">
+                    <!-- filled dynamically -->
+                </div>
+            </div>
+
+            <!-- ── Recall State (Part 1: Person → Mask) ── -->
+            <div class="game-state" id="state-recall">
+                <div class="game-badge">🧠 Recall</div>
+                <div class="intro-title" style="font-size:22px;">Assign the Correct Mask</div>
+                <div class="intro-subtitle" style="margin-bottom:16px;">Click a person, then click the mask they were wearing.</div>
+                <div class="pm-grid" id="recall-grid">
+                    <!-- person cards without masks -->
+                </div>
+                <div class="selection-pool" id="mask-pool">
+                    <!-- available masks -->
+                </div>
+                <div style="margin-top:24px; display:flex; justify-content:center; gap:12px;">
+                    <button class="btn-secondary" id="btn-reset">🗑 Reset</button>
+                    <button class="btn-primary" id="btn-submit">Submit Answer</button>
+                </div>
+            </div>
+
+            <!-- ── Recall State (Part 2: Mask → Person) ── -->
+            <div class="game-state" id="state-p2-recall">
+                <div class="game-badge">🧠 Recall</div>
+                <div class="intro-title" style="font-size:22px;">Assign the Correct Person</div>
+                <div class="intro-subtitle" style="margin-bottom:16px;">Click a mask, then click the person who wore it.</div>
+                <div class="pm-grid" id="p2-recall-grid">
+                    <!-- mask cards without people -->
+                </div>
+                <div class="selection-pool" id="person-pool">
+                    <!-- available people -->
+                </div>
+                <div style="margin-top:24px; display:flex; justify-content:center; gap:12px;">
+                    <button class="btn-secondary" id="btn-p2-reset">🗑 Reset</button>
+                    <button class="btn-primary" id="btn-p2-submit">Submit Answer</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card" id="result-card">
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <div class="result-title" id="result-title">Correct!</div>
+            <div class="result-desc" id="result-desc">Amazing work!</div>
+            <div class="result-score" id="result-score">+70</div>
+            <button class="btn-primary" id="result-action-btn">Continue ▶</button>
+        </div>
+    </div>
+
+    <script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+    <script>
+    /* ═══════════════════════════════════════════
+       LEVEL 10 – MASK MEMORY
+    ═══════════════════════════════════════════ */
+
+    let currentPart = 1;
+    let gameData = null;        // { people: [{name, emoji}], masks: [{label, emoji}], mapping: [{personIdx, maskIdx}] }
+    let userAssignments = {};   // Part 1: personIdx → maskIdx  |  Part 2: maskIdx → personIdx
+    let selectedCardIdx = null; // Which card the user clicked first
+
+    function gid(id) { return document.getElementById(id); }
+    function showState(id) {
+        document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+        gid(id).classList.add('active');
+    }
+
+    // ─── START BUTTON ───
+    gid('btn-start').onclick = () => {
+        if (currentPart === 1) fetchAndStart(1);
+        else fetchAndStart(2);
+    };
+
+    function fetchAndStart(part) {
+        fetch('level10?part=' + part + '&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => {
+                gameData = data;
+                startMemorization(part);
+            }).catch(() => {
+                // local fallback
+                gameData = generateFallbackData();
+                startMemorization(part);
+            });
+    }
+
+    function generateFallbackData() {
+        const people = [
+            {name:"Alex",emoji:"👨"},{name:"Maya",emoji:"👩"},{name:"George",emoji:"👴"},
+            {name:"Lily",emoji:"👧"},{name:"Sam",emoji:"🧑"},{name:"Rose",emoji:"👩‍🦰"}
+        ];
+        const masks = [
+            {label:"Star",emoji:"⭐"},{label:"Red",emoji:"🔴"},{label:"Diamond",emoji:"💎"},
+            {label:"Moon",emoji:"🌙"},{label:"Blue",emoji:"🔵"},{label:"Green",emoji:"🟢"}
+        ];
+        // shuffle
+        for (let i = people.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [people[i], people[j]] = [people[j], people[i]];
+        }
+        for (let i = masks.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [masks[i], masks[j]] = [masks[j], masks[i]];
+        }
+        const mapping = people.map((_, i) => ({personIdx: i, maskIdx: i}));
+        return { people, masks, mapping };
+    }
+
+    // ─── MEMORIZATION PHASE ───
+    function startMemorization(part) {
+        userAssignments = {};
+        selectedCardIdx = null;
+
+        const grid = gid('memo-grid');
+        grid.innerHTML = '';
+
+        if (part === 1) {
+            gid('memo-badge').textContent = '⏱ Memorize the Masks!';
+            gid('memo-label').textContent = 'Remember which mask each person wears';
+        } else {
+            gid('memo-badge').textContent = '⏱ Memorize the People!';
+            gid('memo-label').textContent = 'Remember which person wears each mask';
+        }
+
+        gameData.people.forEach((p, i) => {
+            const card = document.createElement('div');
+            card.className = 'pm-card';
+            card.innerHTML = `
+                <span class="person-emoji">${p.emoji}</span>
+                <span class="person-name">${p.name}</span>
+                <span class="mask-emoji">${gameData.masks[gameData.mapping[i].maskIdx].emoji}</span>
+            `;
+            grid.appendChild(card);
+        });
+
+        showState('state-memorize');
+
+        let timeLeft = 5;
+        gid('countdown').textContent = timeLeft;
+
+        const timer = setInterval(() => {
+            timeLeft--;
+            gid('countdown').textContent = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                if (part === 1) setupRecallPart1();
+                else setupRecallPart2();
+            }
+        }, 1000);
+    }
+
+    // ─── PART 1 RECALL: Person → Mask ───
+    function setupRecallPart1() {
+        userAssignments = {};
+        selectedCardIdx = null;
+
+        const grid = gid('recall-grid');
+        grid.innerHTML = '';
+
+        gameData.people.forEach((p, i) => {
+            const card = document.createElement('div');
+            card.className = 'pm-card selectable';
+            card.id = `p1-card-${i}`;
+            card.innerHTML = `
+                <span class="person-emoji">${p.emoji}</span>
+                <span class="person-name">${p.name}</span>
+                <div class="mask-placeholder" id="p1-slot-${i}">? Select Mask</div>
+            `;
+            card.onclick = () => selectPersonCard(i);
+            grid.appendChild(card);
+        });
+
+        const pool = gid('mask-pool');
+        pool.innerHTML = '';
+
+        // Shuffle mask options at the bottom so they appear in a different/random order
+        const shuffledMaskIndices = gameData.masks.map((_, i) => i);
+        for (let i = shuffledMaskIndices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledMaskIndices[i], shuffledMaskIndices[j]] = [shuffledMaskIndices[j], shuffledMaskIndices[i]];
+        }
+        if (shuffledMaskIndices.every((val, idx) => val === idx) && shuffledMaskIndices.length > 1) {
+            [shuffledMaskIndices[0], shuffledMaskIndices[1]] = [shuffledMaskIndices[1], shuffledMaskIndices[0]];
+        }
+
+        shuffledMaskIndices.forEach(i => {
+            const m = gameData.masks[i];
+            const item = document.createElement('div');
+            item.className = 'pool-item';
+            item.id = `mask-pool-${i}`;
+            item.textContent = m.emoji;
+            item.title = m.label;
+            item.onclick = () => assignMaskToPerson(i);
+            pool.appendChild(item);
+        });
+
+        showState('state-recall');
+    }
+
+    function selectPersonCard(idx) {
+        document.querySelectorAll('#recall-grid .pm-card').forEach(c => c.classList.remove('selected'));
+        selectedCardIdx = idx;
+        gid(`p1-card-${idx}`).classList.add('selected');
+    }
+
+    function assignMaskToPerson(maskIdx) {
+        if (selectedCardIdx === null) return;
+
+        // If this mask was already used elsewhere, free it
+        Object.keys(userAssignments).forEach(pIdx => {
+            if (userAssignments[pIdx] === maskIdx) {
+                delete userAssignments[pIdx];
+                const slot = gid(`p1-slot-${pIdx}`);
+                slot.innerHTML = '? Select Mask';
+                slot.className = 'mask-placeholder';
+                gid(`p1-card-${pIdx}`).classList.remove('filled');
+            }
+        });
+
+        // If this person already had a mask, free it
+        if (userAssignments[selectedCardIdx] !== undefined) {
+            const oldMask = userAssignments[selectedCardIdx];
+            gid(`mask-pool-${oldMask}`).classList.remove('used');
+        }
+
+        // Assign
+        userAssignments[selectedCardIdx] = maskIdx;
+        const slot = gid(`p1-slot-${selectedCardIdx}`);
+        slot.innerHTML = `<span style="font-size:28px">${gameData.masks[maskIdx].emoji}</span>`;
+        slot.className = 'mask-emoji';
+        gid(`p1-card-${selectedCardIdx}`).classList.remove('selected');
+        gid(`p1-card-${selectedCardIdx}`).classList.add('filled');
+        gid(`mask-pool-${maskIdx}`).classList.add('used');
+
+        // Update all pool used states
+        updatePoolStates('mask');
+
+        selectedCardIdx = null;
+    }
+
+    function updatePoolStates(type) {
+        if (type === 'mask') {
+            gameData.masks.forEach((_, i) => {
+                const isUsed = Object.values(userAssignments).includes(i);
+                gid(`mask-pool-${i}`).classList.toggle('used', isUsed);
+            });
+        } else {
+            gameData.people.forEach((_, i) => {
+                const isUsed = Object.values(userAssignments).includes(i);
+                gid(`person-pool-${i}`).classList.toggle('used', isUsed);
+            });
+        }
+    }
+
+    // Reset button Part 1
+    gid('btn-reset').onclick = () => {
+        userAssignments = {};
+        selectedCardIdx = null;
+        gameData.people.forEach((_, i) => {
+            const slot = gid(`p1-slot-${i}`);
+            slot.innerHTML = '? Select Mask';
+            slot.className = 'mask-placeholder';
+            gid(`p1-card-${i}`).classList.remove('filled', 'selected', 'correct-answer', 'wrong-answer');
+        });
+        gameData.masks.forEach((_, i) => {
+            gid(`mask-pool-${i}`).classList.remove('used');
+        });
+    };
+
+    // Submit Part 1
+    gid('btn-submit').onclick = () => {
+        if (Object.keys(userAssignments).length < 6) return; // not all assigned
+
+        let correct = true;
+        gameData.mapping.forEach(m => {
+            const userMask = userAssignments[m.personIdx];
+            const card = gid(`p1-card-${m.personIdx}`);
+            if (userMask === m.maskIdx) {
+                card.classList.add('correct-answer');
+            } else {
+                card.classList.add('wrong-answer');
+                correct = false;
+            }
+        });
+
+        if (correct) {
+            fetch('level10', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ part: 1, correct: true })
+            }).catch(() => {});
+            showResult(true, 1, "Excellent! You remembered all the person–mask associations!");
+        } else {
+            showResult(false, 1, "Not quite! Some associations were incorrect. Try again with a new arrangement.");
+        }
+    };
+
+    // ─── PART 2 RECALL: Mask → Person ───
+    function setupRecallPart2() {
+        userAssignments = {};
+        selectedCardIdx = null;
+
+        const grid = gid('p2-recall-grid');
+        grid.innerHTML = '';
+
+        // Show mask cards (without people)
+        gameData.masks.forEach((m, i) => {
+            const card = document.createElement('div');
+            card.className = 'pm-card selectable';
+            card.id = `p2-card-${i}`;
+            card.innerHTML = `
+                <span class="mask-emoji" style="font-size:42px; margin-bottom:6px;">${m.emoji}</span>
+                <span class="person-name">${m.label} Mask</span>
+                <div class="mask-placeholder" id="p2-slot-${i}">? Select Person</div>
+            `;
+            card.onclick = () => selectMaskCard(i);
+            grid.appendChild(card);
+        });
+
+        const pool = gid('person-pool');
+        pool.innerHTML = '';
+
+        // Shuffle person options at the bottom so they appear in a different/random order
+        const shuffledPersonIndices = gameData.people.map((_, i) => i);
+        for (let i = shuffledPersonIndices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledPersonIndices[i], shuffledPersonIndices[j]] = [shuffledPersonIndices[j], shuffledPersonIndices[i]];
+        }
+        if (shuffledPersonIndices.every((val, idx) => val === idx) && shuffledPersonIndices.length > 1) {
+            [shuffledPersonIndices[0], shuffledPersonIndices[1]] = [shuffledPersonIndices[1], shuffledPersonIndices[0]];
+        }
+
+        shuffledPersonIndices.forEach(i => {
+            const p = gameData.people[i];
+            const item = document.createElement('div');
+            item.className = 'pool-item';
+            item.id = `person-pool-${i}`;
+            item.textContent = p.emoji;
+            item.title = p.name;
+            item.onclick = () => assignPersonToMask(i);
+            pool.appendChild(item);
+        });
+
+        showState('state-p2-recall');
+    }
+
+    function selectMaskCard(idx) {
+        document.querySelectorAll('#p2-recall-grid .pm-card').forEach(c => c.classList.remove('selected'));
+        selectedCardIdx = idx;
+        gid(`p2-card-${idx}`).classList.add('selected');
+    }
+
+    function assignPersonToMask(personIdx) {
+        if (selectedCardIdx === null) return;
+
+        // If this person was already used elsewhere, free it
+        Object.keys(userAssignments).forEach(mIdx => {
+            if (userAssignments[mIdx] === personIdx) {
+                delete userAssignments[mIdx];
+                const slot = gid(`p2-slot-${mIdx}`);
+                slot.innerHTML = '? Select Person';
+                slot.className = 'mask-placeholder';
+                gid(`p2-card-${mIdx}`).classList.remove('filled');
+            }
+        });
+
+        // If this mask already had a person, free it
+        if (userAssignments[selectedCardIdx] !== undefined) {
+            const oldPerson = userAssignments[selectedCardIdx];
+            gid(`person-pool-${oldPerson}`).classList.remove('used');
+        }
+
+        // Assign
+        userAssignments[selectedCardIdx] = personIdx;
+        const slot = gid(`p2-slot-${selectedCardIdx}`);
+        const person = gameData.people[personIdx];
+        slot.innerHTML = `<span style="font-size:24px">${person.emoji}</span> <span style="font-size:12px; color:var(--text-sec);">${person.name}</span>`;
+        slot.className = 'mask-emoji';
+        slot.style.display = 'flex';
+        slot.style.alignItems = 'center';
+        slot.style.justifyContent = 'center';
+        slot.style.gap = '6px';
+        gid(`p2-card-${selectedCardIdx}`).classList.remove('selected');
+        gid(`p2-card-${selectedCardIdx}`).classList.add('filled');
+        gid(`person-pool-${personIdx}`).classList.add('used');
+
+        updatePoolStates('person');
+        selectedCardIdx = null;
+    }
+
+    // Reset button Part 2
+    gid('btn-p2-reset').onclick = () => {
+        userAssignments = {};
+        selectedCardIdx = null;
+        gameData.masks.forEach((_, i) => {
+            const slot = gid(`p2-slot-${i}`);
+            slot.innerHTML = '? Select Person';
+            slot.className = 'mask-placeholder';
+            slot.style = '';
+            gid(`p2-card-${i}`).classList.remove('filled', 'selected', 'correct-answer', 'wrong-answer');
+        });
+        gameData.people.forEach((_, i) => {
+            gid(`person-pool-${i}`).classList.remove('used');
+        });
+    };
+
+    // Submit Part 2
+    gid('btn-p2-submit').onclick = () => {
+        if (Object.keys(userAssignments).length < 6) return;
+
+        let correct = true;
+        // mapping[i].maskIdx is the mask for person i
+        // For Part 2: user assigns personIdx to each maskIdx
+        // We need to check: for mask at position m.maskIdx, the correct person is m.personIdx
+        gameData.mapping.forEach(m => {
+            const userPerson = userAssignments[m.maskIdx];
+            const card = gid(`p2-card-${m.maskIdx}`);
+            if (userPerson === m.personIdx) {
+                card.classList.add('correct-answer');
+            } else {
+                card.classList.add('wrong-answer');
+                correct = false;
+            }
+        });
+
+        if (correct) {
+            fetch('level10', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ part: 2, correct: true })
+            }).catch(() => {});
+            showResult(true, 2, "Amazing! You remembered who wore each mask!");
+        } else {
+            showResult(false, 2, "Not quite! Some associations were incorrect. Try again.");
+        }
+    };
+
+    // ─── RESULT OVERLAY ───
+    function showResult(win, part, desc) {
+        const overlay = gid('result-overlay');
+        const card = gid('result-card');
+        card.className = 'result-card ' + (win ? 'win' : 'lose');
+        gid('result-emoji').textContent = win ? '🎉' : '❌';
+        gid('result-title').textContent = win ? 'Correct!' : 'Incorrect!';
+        gid('result-desc').textContent = desc;
+
+        if (win) {
+            gid('result-score').textContent = '+70';
+            if (part === 1) {
+                gid('result-action-btn').textContent = 'Next Part ▶';
+                gid('result-action-btn').onclick = () => { closeResult(); setupPart2Intro(); };
+            } else {
+                gid('result-action-btn').textContent = 'Back to Dashboard ▶';
+                let p = saveProgressToServer();
+                gid('result-action-btn').onclick = () => {
+                    closeResult();
+                    if (p) { p.finally(() => { window.location.href = 'dashboard.html'; }); }
+                    else { window.location.href = 'dashboard.html'; }
+                };
+                launchConfetti();
+            }
+        } else {
+            gid('result-score').textContent = '0';
+            gid('result-action-btn').textContent = 'Try Again';
+            gid('result-action-btn').onclick = () => { closeResult(); fetchAndStart(part); };
+        }
+        overlay.classList.add('open');
+    }
+
+    function closeResult() { gid('result-overlay').classList.remove('open'); }
+
+    // ─── PART 2 INTRO ───
+    function setupPart2Intro() {
+        currentPart = 2;
+        gid('intro-badge').textContent = '🎭 Level 10 • Part 2';
+        gid('intro-emoji').textContent = '🔄';
+        gid('intro-title').textContent = 'Mask → Person Memory';
+        gid('intro-subtitle').textContent = 'Reverse association recall!';
+        gid('intro-desc').textContent =
+            'This time, you\'ll see the same setup — but after memorization, the PEOPLE disappear. ' +
+            'You must remember which person was wearing each mask and assign them correctly.';
+        gid('topbar-part-label').textContent = 'Part 2: Mask → Person';
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        showState('state-intro');
+    }
+
+    /* ── Streak Helpers ── */
+    function getLocalDateString() {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+    function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
+        if (!isSuccess) return { streak: 0, dateStr: lastPlayedDateStr };
+        var todayStr = getLocalDateString();
+        if (!lastPlayedDateStr) return { streak: 1, dateStr: todayStr };
+        var today = new Date(todayStr + 'T00:00:00');
+        var lastPlayed = new Date(lastPlayedDateStr + 'T00:00:00');
+        var diffDays = Math.round((today - lastPlayed) / (1000 * 60 * 60 * 24));
+        var newStreak = currentStreak;
+        if (diffDays === 0) { if (newStreak === 0) newStreak = 1; }
+        else if (diffDays === 1) { newStreak = currentStreak + 1; }
+        else { newStreak = 1; }
+        return { streak: newStreak, dateStr: todayStr };
+    }
+
+    function safeParseArray(dataVal, defaultArray) {
+        if (Array.isArray(dataVal)) return dataVal;
+        if (typeof dataVal === 'string') {
+            try {
+                var parsed = JSON.parse(dataVal);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {}
+        }
+        return defaultArray.slice();
+    }
+
+    function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
+        try {
+            localStorage.setItem('mm_score', score);
+            localStorage.setItem('mm_streak', streak);
+            localStorage.setItem('mm_unlocked_level', unlockedLevel);
+            localStorage.setItem('mm_games_played', gamesPlayed);
+            localStorage.setItem('mm_best_streak', bestStreak);
+            localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+            localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+            localStorage.setItem('mm_stars', JSON.stringify(stars));
+            if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+        } catch(e) {}
+    }
+
+    // ─── SAVE PROGRESS ───
+    let savePromise = null;
+    function saveProgressToServer() {
+        savePromise = fetch('getProgress?t=' + Date.now())
+            .then(r => r.ok ? r.json() : Promise.reject('Failed to fetch progress'))
+            .then(data => {
+                let score = (parseInt(data.score, 10) || 0) + 140;
+                let gamesPlayed = (parseInt(data.gamesPlayed, 10) || 0) + 1;
+                let unlockedLevel = Math.max(parseInt(data.unlockedLevel, 10) || 1, 11);
+                let bestScores = safeParseArray(data.bestScores, Array(20).fill(0));
+                let bestTimes = safeParseArray(data.bestTimes, Array(20).fill('-'));
+                let stars = safeParseArray(data.stars, Array(20).fill('0'));
+
+                let streakResult   = calculateNewStreak(parseInt(data.streak, 10) || 0, data.lastPlayedDate || '', true);
+                let streak         = streakResult.streak;
+                let lastPlayedDate = streakResult.dateStr;
+                let bestStreak     = Math.max(parseInt(data.bestStreak, 10) || 0, streak);
+
+                if (140 > (parseInt(bestScores[9], 10) || 0)) bestScores[9] = 140;
+                stars[9] = '3';
+                bestTimes[9] = '30s';
+
+                saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate);
+
+                return fetch('saveProgress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        score: score, streak: streak, unlockedLevel: unlockedLevel, gamesPlayed: gamesPlayed,
+                        bestStreak: bestStreak,
+                        bestScores: JSON.stringify(bestScores), bestTimes: JSON.stringify(bestTimes), stars: JSON.stringify(stars),
+                        lastPlayedDate: lastPlayedDate
+                    })
+                });
+            }).catch(err => { console.error('[Level10] Error saving progress:', err); });
+        return savePromise;
+    }
+
+    // ─── CONFETTI ───
+    function launchConfetti() {
+        const canvas = gid('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const pieces = Array.from({length: 120}, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            r: Math.random() * 6 + 3,
+            c: `hsl(${Math.random()*360},80%,60%)`,
+            vy: Math.random() * 3 + 2,
+            vx: (Math.random() - 0.5) * 3,
+            a: Math.random() * 360
+        }));
+        let frames = 0;
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pieces.forEach(p => {
+                p.y += p.vy; p.x += p.vx; p.a += 3;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.a * Math.PI / 180);
+                ctx.fillStyle = p.c;
+                ctx.fillRect(-p.r, -p.r/2, p.r*2, p.r);
+                ctx.restore();
+            });
+            frames++;
+            if (frames < 180) requestAnimationFrame(draw);
+            else ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        draw();
+    }
+
+    // ─── HINT SYSTEM ───
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            () => gid('state-recall').classList.contains('active') || gid('state-p2-recall').classList.contains('active'),
+            () => {
+                if (currentPart === 1) {
+                    // Find first unassigned or wrong person and fill correct mask
+                    for (let i = 0; i < gameData.mapping.length; i++) {
+                        const m = gameData.mapping[i];
+                        if (userAssignments[m.personIdx] !== m.maskIdx) {
+                            selectedCardIdx = m.personIdx;
+                            gid(`p1-card-${m.personIdx}`).classList.add('selected');
+                            assignMaskToPerson(m.maskIdx);
+                            return true;
+                        }
+                    }
+                } else {
+                    // Find first unassigned or wrong mask and fill correct person
+                    for (let i = 0; i < gameData.mapping.length; i++) {
+                        const m = gameData.mapping[i];
+                        if (userAssignments[m.maskIdx] !== m.personIdx) {
+                            selectedCardIdx = m.maskIdx;
+                            gid(`p2-card-${m.maskIdx}`).classList.add('selected');
+                            assignPersonToMask(m.personIdx);
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        );
+    }
+    </script>
+</body>
+</html>

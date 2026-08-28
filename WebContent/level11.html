@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 11: Object Memory</title>
+    <meta name="description" content="Level 11 – Remember object positions and detect the missing object." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep: #050814; --bg-card: rgba(255,255,255,0.04); --bg-card-h: rgba(255,255,255,0.07);
+            --border: rgba(255,255,255,0.09); --border-h: rgba(139,92,246,0.45);
+            --accent-1: #8b5cf6; --accent-2: #06b6d4; --accent-3: #f59e0b;
+            --glow: rgba(139,92,246,0.35); --text-pri: #f0f4ff;
+            --text-sec: rgba(240,244,255,0.55); --text-muted: rgba(240,244,255,0.28);
+            --success: #34d399; --error: #f87171; --warning: #fbbf24;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-deep); color: var(--text-pri); min-height: 100vh; overflow-x: hidden; }
+
+        .bg-scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .bg-scene::before { content: ''; position: absolute; border-radius: 50%; width: 700px; height: 700px; background: radial-gradient(circle, rgba(139,92,246,0.18), transparent 70%); top: -200px; left: -200px; animation: orb 16s ease-in-out infinite alternate; }
+        .bg-scene::after  { content: ''; position: absolute; border-radius: 50%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(6,182,212,0.14), transparent 70%); bottom: -150px; right: -150px; animation: orb 20s ease-in-out infinite alternate-reverse; }
+        @keyframes orb { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(60px,80px) scale(1.15)} }
+        .bg-grid { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px); background-size: 60px 60px; }
+        .page-wrapper { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 74px 16px 24px; }
+
+        /* ── Topbar ── */
+        .level-topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(5,8,20,0.85); backdrop-filter: blur(24px); border-bottom: 1px solid var(--border); padding: 0 28px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-sec); font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+        .btn-back:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+        .btn-back svg { width: 16px; height: 16px; }
+        .topbar-level-info h1 { font-size: 16px; font-weight: 700; }
+        .topbar-level-info span { font-size: 11px; color: var(--text-muted); }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+        .part-indicator { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 100px; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.25); font-size: 12px; font-weight: 600; color: var(--accent-1); }
+        .part-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: background 0.3s; }
+        .part-dot.active { background: var(--accent-1); box-shadow: 0 0 8px var(--glow); }
+        .part-dot.done   { background: var(--success); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+
+        /* ── Game Card ── */
+        .game-card { width: 100%; max-width: 620px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px; padding: 28px 24px; backdrop-filter: blur(20px); box-shadow: 0 0 0 1px rgba(255,255,255,0.04),0 24px 64px rgba(0,0,0,0.55),0 0 80px rgba(139,92,246,0.07); text-align: center; }
+        .game-state { display: none; animation: fade-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display: block; }
+        @keyframes fade-up { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ── Intro ── */
+        .intro-emoji { font-size: 56px; margin-bottom: 16px; animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08);filter:drop-shadow(0 0 20px rgba(139,92,246,0.4))} }
+        .intro-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .intro-subtitle { font-size: 14px; color: var(--text-sec); margin-bottom: 6px; }
+        .intro-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.7; max-width: 460px; margin-left: auto; margin-right: auto; }
+        .game-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 100px; margin-bottom: 20px; background: linear-gradient(135deg,rgba(139,92,246,0.18),rgba(6,182,212,0.10)); border: 1px solid rgba(139,92,246,0.30); font-size: 12px; font-weight: 600; color: var(--accent-1); }
+
+        /* ── Buttons ── */
+        .btn-primary { padding: 14px 36px; border-radius: 14px; border: none; background: linear-gradient(135deg,var(--accent-1),var(--accent-2)); color: #fff; font-family: 'Outfit',sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.25s; box-shadow: 0 4px 20px rgba(139,92,246,0.4); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(139,92,246,0.5); }
+        .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+        .btn-secondary { padding: 12px 28px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-sec); font-family: 'Outfit',sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+        .btn-row { margin-top: 16px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+        /* ── Countdown ── */
+        .countdown-display { font-size: 52px; font-weight: 900; color: var(--accent-1); text-shadow: 0 0 30px rgba(139,92,246,0.6); animation: pulse-glow 1s ease-in-out infinite; margin: 6px 0; }
+        .memo-label { font-size: 14px; font-weight: 600; color: var(--text-sec); margin-bottom: 6px; }
+
+        /* ── Part 1: Object Grid ── */
+        .obj-grid-wrap { margin: 14px auto; max-width: 320px; }
+        .obj-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 0 auto;
+        }
+        .obj-cell {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: var(--bg-card);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px;
+            transition: all 0.25s;
+            cursor: default;
+            position: relative;
+            user-select: none;
+        }
+        .obj-cell.occupied { border-color: rgba(139,92,246,0.35); background: rgba(139,92,246,0.06); }
+        .obj-cell.selectable { cursor: pointer; }
+        .obj-cell.selectable:hover { border-color: rgba(139,92,246,0.5); background: rgba(139,92,246,0.1); transform: scale(1.04); }
+        .obj-cell.target-selected { border-color: var(--accent-1); background: rgba(139,92,246,0.15); box-shadow: 0 0 20px rgba(139,92,246,0.3); }
+        .obj-cell.correct { border-color: var(--success); background: rgba(52,211,153,0.12); }
+        .obj-cell.wrong   { border-color: var(--error);   background: rgba(248,113,113,0.12); }
+        .obj-cell.has-obj { border-color: rgba(6,182,212,0.4); background: rgba(6,182,212,0.07); }
+
+        /* ── Object Pool ── */
+        .obj-pool-wrap { margin: 12px auto; max-width: 480px; }
+        .obj-pool-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+        .obj-pool {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+            padding: 10px 14px; background: rgba(255,255,255,0.02);
+            border-radius: 14px; border: 1px solid var(--border);
+        }
+        .pool-obj {
+            width: 52px; height: 52px; border-radius: 12px;
+            border: 2px solid var(--border); background: var(--bg-card);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; cursor: pointer; transition: all 0.2s;
+            user-select: none; flex-direction: column; gap: 2px;
+        }
+        .pool-obj span.pool-label { font-size: 8.5px; color: var(--text-muted); font-weight: 600; text-align: center; line-height: 1; }
+        .pool-obj:hover { border-color: rgba(139,92,246,0.55); background: rgba(139,92,246,0.1); transform: scale(1.08); }
+        .pool-obj.selected-obj { border-color: var(--accent-1); background: rgba(139,92,246,0.18); box-shadow: 0 0 16px rgba(139,92,246,0.35); transform: scale(1.08); }
+        .pool-obj.used { opacity: 0.25; pointer-events: none; border-color: rgba(52,211,153,0.3); }
+
+        /* ── Part 2: Missing Object Options ── */
+        .missing-objects-display {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
+            margin: 14px auto; max-width: 520px;
+            padding: 16px; background: rgba(255,255,255,0.02);
+            border-radius: 16px; border: 1px solid var(--border);
+        }
+        .mo-item {
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            font-size: 34px;
+        }
+        .mo-item span.mo-label { font-size: 10px; color: var(--text-muted); font-weight: 600; }
+        .missing-slot { font-size: 32px; opacity: 0.2; letter-spacing: 4px; margin: 8px 0; }
+
+        .answer-choices {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+            margin: 20px auto; max-width: 580px;
+        }
+        .choice-btn {
+            padding: 12px 16px; border-radius: 14px; border: 2px solid var(--border);
+            background: var(--bg-card); cursor: pointer; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            font-size: 28px; min-width: 72px; user-select: none;
+        }
+        .choice-btn span.ch-label { font-size: 10px; color: var(--text-muted); font-weight: 600; }
+        .choice-btn:hover { border-color: rgba(139,92,246,0.55); background: rgba(139,92,246,0.08); transform: translateY(-3px); }
+        .choice-btn.selected { border-color: var(--accent-1); background: rgba(139,92,246,0.15); box-shadow: 0 0 16px rgba(139,92,246,0.3); }
+        .choice-btn.correct-choice { border-color: var(--success); background: rgba(52,211,153,0.12); }
+        .choice-btn.wrong-choice   { border-color: var(--error);   background: rgba(248,113,113,0.12); }
+
+        /* ── Feedback Message ── */
+        .feedback-msg { min-height: 28px; font-size: 14px; font-weight: 600; margin-top: 12px; transition: all 0.3s; }
+        .feedback-msg.success { color: var(--success); }
+        .feedback-msg.error   { color: var(--error); animation: shake 0.4s ease; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+
+        /* ── Completion Screen ── */
+        .completion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 24px 0; }
+        .comp-stat { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 16px 12px; }
+        .comp-stat-val { font-size: 24px; font-weight: 800; background: linear-gradient(135deg,var(--accent-1),var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .comp-stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .check-list { text-align: left; margin: 20px 0; display: flex; flex-direction: column; gap: 10px; }
+        .check-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-sec); padding: 10px 14px; border-radius: 10px; background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.2); }
+        .check-item .ck-icon { font-size: 18px; }
+
+        /* ── Result Overlay ── */
+        .result-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.7); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.35s; }
+        .result-overlay.open { opacity: 1; pointer-events: auto; }
+        .result-card { background: rgba(15,18,35,0.96); border: 1px solid var(--border); border-radius: 28px; padding: 40px 36px; text-align: center; max-width: 420px; width: 90%; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+        .result-card.win  { border-color: var(--success); box-shadow: 0 0 60px rgba(52,211,153,0.15); }
+        .result-card.lose { border-color: var(--error);   box-shadow: 0 0 60px rgba(248,113,113,0.15); }
+        .result-emoji { font-size: 56px; margin-bottom: 12px; }
+        .result-title { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+        .result-desc  { font-size: 13px; color: var(--text-sec); margin-bottom: 20px; line-height: 1.6; }
+        .result-score { font-size: 36px; font-weight: 800; background: linear-gradient(135deg,var(--accent-1),var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px; }
+
+        /* ── Confetti ── */
+        canvas#confetti-canvas { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+
+        /* ── Responsive ── */
+        @media(max-width:600px) {
+            .page-wrapper { padding: 68px 10px 16px; }
+            .obj-grid-wrap { max-width: 270px; margin: 10px auto; }
+            .obj-grid { gap: 6px; }
+            .obj-cell { font-size: 20px; border-radius: 10px; }
+            .game-card { padding: 20px 12px; }
+            .pool-obj { width: 46px; height: 46px; font-size: 19px; }
+            .choice-btn { min-width: 58px; font-size: 22px; padding: 10px 10px; }
+            .completion-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-scene"></div>
+    <div class="bg-grid"></div>
+    <div class="page-wrapper">
+
+    <!-- ── Topbar ── -->
+    <div class="level-topbar">
+        <div class="topbar-left">
+            <a href="dashboard.html" class="btn-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Dashboard
+            </a>
+            <div class="topbar-level-info">
+                <h1>Level 11 – Object Memory</h1>
+                <span id="topbar-part-label">Part 1: Object Position Memory</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="part-indicator">
+                <div class="part-dot active" id="dot-1"></div>
+                <span id="part-label-text">Part 1</span>
+                <div class="part-dot" id="dot-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <div class="game-card">
+
+            <!-- ── Intro State ── -->
+            <div class="game-state active" id="state-intro">
+                <div class="game-badge" id="intro-badge">🪆 Level 11 • Part 1</div>
+                <div class="intro-emoji" id="intro-emoji">🪆</div>
+                <div class="intro-title" id="intro-title">Object Position Memory</div>
+                <div class="intro-subtitle" id="intro-subtitle">Test your spatial & visual memory!</div>
+                <div class="intro-desc" id="intro-desc">
+                    Different objects will be placed on a grid. Memorize where each object is located.
+                    After the objects disappear, recreate their exact positions.
+                </div>
+                <button class="btn-primary" id="btn-start">▶ Start Game</button>
+            </div>
+
+            <!-- ── Memorization State (Part 1) ── -->
+            <div class="game-state" id="state-memo-p1">
+                <div class="game-badge">⏱ Remember the Positions!</div>
+                <div class="memo-label" id="memo-p1-label">Remember where each object is located</div>
+                <div class="countdown-display" id="countdown-p1">5</div>
+                <div class="obj-grid-wrap">
+                    <div class="obj-grid" id="memo-grid"></div>
+                </div>
+            </div>
+
+            <!-- ── Recall State (Part 1) ── -->
+            <div class="game-state" id="state-recall-p1">
+                <div class="game-badge">🧠 Recall – Place Each Object</div>
+                <div class="intro-title" style="font-size:20px;">Place Objects in Their Positions</div>
+                <div class="intro-subtitle" style="margin-bottom:16px;">Select an object below, then click the grid cell where it belongs.</div>
+                <div class="obj-pool-wrap">
+                    <div class="obj-pool-label">Available Objects</div>
+                    <div class="obj-pool" id="recall-pool"></div>
+                </div>
+                <div class="obj-grid-wrap">
+                    <div class="obj-grid" id="recall-grid"></div>
+                </div>
+                <div class="feedback-msg" id="feedback-p1"></div>
+                <div class="btn-row">
+                    <button class="btn-secondary" id="btn-reset-p1">🗑 Reset</button>
+                    <button class="btn-primary" id="btn-submit-p1">Submit Answer</button>
+                </div>
+            </div>
+
+            <!-- ── Intro State (Part 2) ── -->
+            <div class="game-state" id="state-intro-p2">
+                <div class="game-badge">🪆 Level 11 • Part 2</div>
+                <div class="intro-emoji">🔍</div>
+                <div class="intro-title">Missing Object Detection</div>
+                <div class="intro-subtitle">Find what disappeared!</div>
+                <div class="intro-desc">
+                    You'll see a collection of objects. Memorize them carefully.
+                    After the objects disappear, one will be missing. Identify which one!
+                </div>
+                <button class="btn-primary" id="btn-start-p2">▶ Start Game</button>
+            </div>
+
+            <!-- ── Memorization State (Part 2) ── -->
+            <div class="game-state" id="state-memo-p2">
+                <div class="game-badge">⏱ Remember the Objects!</div>
+                <div class="memo-label">Memorize all the objects carefully</div>
+                <div class="countdown-display" id="countdown-p2">5</div>
+                <div class="missing-objects-display" id="memo-objects"></div>
+            </div>
+
+            <!-- ── Detection State (Part 2) ── -->
+            <div class="game-state" id="state-detect-p2">
+                <div class="game-badge">🔍 Which Object Is Missing?</div>
+                <div class="intro-title" style="font-size:20px;">One Object Has Disappeared</div>
+                <div class="intro-subtitle" style="margin-bottom:12px;">Select the object that is no longer in the collection.</div>
+                <div class="missing-objects-display" id="display-objects-missing"></div>
+                <div style="font-size: 13px; color: var(--text-muted); margin: 12px 0;">Select the missing object:</div>
+                <div class="answer-choices" id="answer-choices"></div>
+                <div class="feedback-msg" id="feedback-p2"></div>
+                <div class="btn-row">
+                    <button class="btn-primary" id="btn-submit-p2">Submit Answer</button>
+                </div>
+            </div>
+
+            <!-- ── Completion State ── -->
+            <div class="game-state" id="state-complete">
+                <div class="game-badge">🏆 Level 11 Complete!</div>
+                <div class="intro-emoji">🎉</div>
+                <div class="intro-title">Object Memory Mastered!</div>
+                <div class="intro-subtitle">You completed both parts!</div>
+                <div class="check-list">
+                    <div class="check-item"><span class="ck-icon">✅</span> Part 1 – Object Position Memory</div>
+                    <div class="check-item"><span class="ck-icon">✅</span> Part 2 – Missing Object Detection</div>
+                </div>
+                <div class="completion-grid">
+                    <div class="comp-stat">
+                        <div class="comp-stat-val" id="comp-score">+140</div>
+                        <div class="comp-stat-lbl">Score Earned</div>
+                    </div>
+                    <div class="comp-stat">
+                        <div class="comp-stat-val" id="comp-attempts">—</div>
+                        <div class="comp-stat-lbl">Total Attempts</div>
+                    </div>
+                    <div class="comp-stat">
+                        <div class="comp-stat-val">⭐⭐⭐</div>
+                        <div class="comp-stat-lbl">Stars</div>
+                    </div>
+                    <div class="comp-stat">
+                        <div class="comp-stat-val">✓</div>
+                        <div class="comp-stat-lbl">Both Parts Done</div>
+                    </div>
+                </div>
+                <div class="intro-desc" style="margin-bottom:20px;">Congratulations! Level 12 is now unlocked.</div>
+                <div class="btn-row">
+                    <button class="btn-primary" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+                    <button class="btn-secondary" onclick="window.location.href='level12.html'">Next Level ▶</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card" id="result-card">
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <div class="result-title" id="result-title">Correct!</div>
+            <div class="result-desc"  id="result-desc">Amazing work!</div>
+            <div class="result-score" id="result-score">+70</div>
+            <button class="btn-primary" id="result-action-btn">Continue ▶</button>
+        </div>
+    </div>
+
+    <script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+    <script>
+    /* ═══════════════════════════════════════════
+       LEVEL 11 – OBJECT MEMORY
+    ═══════════════════════════════════════════ */
+
+    let currentPart = 1;
+    let p1Data = null;      // { placements: [{objIdx,label,emoji,cell}], gridCols, gridRows }
+    let p2Data = null;      // { objects: [{objIdx,label,emoji}], missingIdx }
+    let p1Assignments = {}; // cell -> { emoji, label, objIdx }
+    let p1SelectedObj = null; // currently selected pool object { objIdx, emoji, label, poolEl }
+    let p2SelectedChoice = null; // index in choices array
+    let totalAttempts = 0;
+    let p1Correct = false;
+    let p2Correct = false;
+
+    function gid(id) { return document.getElementById(id); }
+    function showState(id) {
+        document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+        gid(id).classList.add('active');
+    }
+
+    // ─── START BUTTONS ───
+    gid('btn-start').onclick = () => startPart1();
+    gid('btn-start-p2').onclick = () => startPart2();
+
+    // ─── PART 1 ───
+    function startPart1() {
+        totalAttempts++;
+        fetch('level11?part=1&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => { p1Data = data; runMemoPart1(); })
+            .catch(() => { p1Data = fallbackP1(); runMemoPart1(); });
+    }
+
+    function fallbackP1() {
+        const objs = [
+            {objIdx:0,label:'Ball',emoji:'⚽',cell:0},
+            {objIdx:1,label:'Book',emoji:'📖',cell:2},
+            {objIdx:2,label:'Clock',emoji:'🕐',cell:5},
+            {objIdx:3,label:'Pen',emoji:'✏️',cell:7},
+            {objIdx:4,label:'Headphones',emoji:'🎧',cell:8},
+            {objIdx:5,label:'Coffee',emoji:'☕',cell:10},
+        ];
+        return { placements: objs, gridCols: 4, gridRows: 4 };
+    }
+
+    function runMemoPart1() {
+        p1Assignments = {};
+        p1SelectedObj = null;
+        const grid = gid('memo-grid');
+        grid.innerHTML = '';
+        grid.style.gridTemplateColumns = `repeat(${p1Data.gridCols}, 1fr)`;
+
+        const totalCells = p1Data.gridCols * p1Data.gridRows;
+        for (let i = 0; i < totalCells; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'obj-cell';
+            grid.appendChild(cell);
+        }
+        p1Data.placements.forEach(p => {
+            const cellEl = grid.children[p.cell];
+            cellEl.textContent = p.emoji;
+            cellEl.classList.add('occupied');
+        });
+
+        showState('state-memo-p1');
+        startCountdown('countdown-p1', 5, () => setupRecallP1());
+    }
+
+    function setupRecallP1() {
+        p1Assignments = {};
+        p1SelectedObj = null;
+
+        // Build recall grid
+        const grid = gid('recall-grid');
+        grid.innerHTML = '';
+        grid.style.gridTemplateColumns = `repeat(${p1Data.gridCols}, 1fr)`;
+        const totalCells = p1Data.gridCols * p1Data.gridRows;
+        for (let i = 0; i < totalCells; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'obj-cell selectable';
+            cell.id = `recall-cell-${i}`;
+            cell.onclick = () => placeObjectOnCell(i);
+            grid.appendChild(cell);
+        }
+
+        // Build object pool
+        const pool = gid('recall-pool');
+        pool.innerHTML = '';
+        p1Data.placements.forEach(p => {
+            const item = document.createElement('div');
+            item.className = 'pool-obj';
+            item.id = `pool-obj-${p.objIdx}`;
+            item.innerHTML = `${p.emoji}<span class="pool-label">${p.label}</span>`;
+            item.onclick = () => selectPoolObj(p, item);
+            pool.appendChild(item);
+        });
+
+        gid('feedback-p1').textContent = '';
+        gid('feedback-p1').className = 'feedback-msg';
+        showState('state-recall-p1');
+    }
+
+    function selectPoolObj(p, el) {
+        // Deselect previous
+        document.querySelectorAll('.pool-obj').forEach(e => e.classList.remove('selected-obj'));
+        p1SelectedObj = { ...p, poolEl: el };
+        el.classList.add('selected-obj');
+        // Also deselect any grid cell selection
+        document.querySelectorAll('.obj-cell').forEach(e => e.classList.remove('target-selected'));
+    }
+
+    function placeObjectOnCell(cellIdx) {
+        if (!p1SelectedObj) {
+            // Try to remove object if cell already has one
+            if (p1Assignments[cellIdx]) {
+                const existing = p1Assignments[cellIdx];
+                delete p1Assignments[cellIdx];
+                const cellEl = gid(`recall-cell-${cellIdx}`);
+                cellEl.textContent = '';
+                cellEl.classList.remove('has-obj');
+                // Re-enable pool item
+                const poolItem = gid(`pool-obj-${existing.objIdx}`);
+                if (poolItem) poolItem.classList.remove('used');
+            }
+            return;
+        }
+
+        // If this object was already placed elsewhere, free that cell
+        Object.keys(p1Assignments).forEach(prevCell => {
+            if (p1Assignments[prevCell].objIdx === p1SelectedObj.objIdx) {
+                gid(`recall-cell-${prevCell}`).textContent = '';
+                gid(`recall-cell-${prevCell}`).classList.remove('has-obj');
+                delete p1Assignments[prevCell];
+            }
+        });
+
+        // If another object is on this cell, move it back to pool
+        if (p1Assignments[cellIdx]) {
+            const old = p1Assignments[cellIdx];
+            const oldPool = gid(`pool-obj-${old.objIdx}`);
+            if (oldPool) oldPool.classList.remove('used');
+        }
+
+        // Place
+        p1Assignments[cellIdx] = p1SelectedObj;
+        const cellEl = gid(`recall-cell-${cellIdx}`);
+        cellEl.textContent = p1SelectedObj.emoji;
+        cellEl.classList.add('has-obj');
+        cellEl.classList.remove('target-selected');
+
+        // Mark pool item as used
+        p1SelectedObj.poolEl.classList.add('used');
+        p1SelectedObj.poolEl.classList.remove('selected-obj');
+        p1SelectedObj = null;
+    }
+
+    // Reset
+    gid('btn-reset-p1').onclick = () => {
+        p1Assignments = {};
+        p1SelectedObj = null;
+        document.querySelectorAll('#recall-grid .obj-cell').forEach(c => {
+            c.textContent = '';
+            c.classList.remove('has-obj','target-selected','correct','wrong');
+        });
+        document.querySelectorAll('.pool-obj').forEach(p => p.classList.remove('used','selected-obj'));
+        gid('feedback-p1').textContent = '';
+        gid('feedback-p1').className = 'feedback-msg';
+    };
+
+    // Submit Part 1
+    gid('btn-submit-p1').onclick = () => {
+        const placed = Object.keys(p1Assignments).length;
+        const needed = p1Data.placements.length;
+        if (placed < needed) {
+            showFeedback('feedback-p1', `Please place all ${needed} objects first. (${placed}/${needed} placed)`, 'error');
+            return;
+        }
+
+        let allCorrect = true;
+        p1Data.placements.forEach(p => {
+            const cellEl = gid(`recall-cell-${p.cell}`);
+            const placed = p1Assignments[p.cell];
+            if (placed && placed.objIdx === p.objIdx) {
+                cellEl.classList.add('correct');
+            } else {
+                cellEl.classList.add('wrong');
+                allCorrect = false;
+            }
+        });
+
+        if (allCorrect) {
+            p1Correct = true;
+            fetch('level11', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({part:1,correct:true}) }).catch(()=>{});
+            showResult(true, 1, 'Excellent! You remembered all the object positions correctly!');
+        } else {
+            showResult(false, 1, 'Some objects are in the wrong positions. Try again with a new arrangement!');
+        }
+    };
+
+    // ─── PART 2 ───
+    function startPart2() {
+        totalAttempts++;
+        fetch('level11?part=2&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => { p2Data = data; runMemoPart2(); })
+            .catch(() => { p2Data = fallbackP2(); runMemoPart2(); });
+    }
+
+    function fallbackP2() {
+        const objs = [
+            {objIdx:0,label:'Ball',emoji:'⚽'},
+            {objIdx:1,label:'Book',emoji:'📖'},
+            {objIdx:2,label:'Clock',emoji:'🕐'},
+            {objIdx:3,label:'Pen',emoji:'✏️'},
+            {objIdx:4,label:'Headphones',emoji:'🎧'},
+            {objIdx:5,label:'Coffee',emoji:'☕'},
+        ];
+        return { objects: objs, missingIdx: Math.floor(Math.random() * objs.length) };
+    }
+
+    function runMemoPart2() {
+        p2SelectedChoice = null;
+        const container = gid('memo-objects');
+        container.innerHTML = '';
+        p2Data.objects.forEach(o => {
+            const div = document.createElement('div');
+            div.className = 'mo-item';
+            div.innerHTML = `${o.emoji}<span class="mo-label">${o.label}</span>`;
+            container.appendChild(div);
+        });
+
+        showState('state-memo-p2');
+        startCountdown('countdown-p2', 5, () => setupDetectP2());
+    }
+
+    function setupDetectP2() {
+        p2SelectedChoice = null;
+
+        // Show the objects with the missing one replaced by a blank
+        const display = gid('display-objects-missing');
+        display.innerHTML = '';
+        p2Data.objects.forEach((o, i) => {
+            const div = document.createElement('div');
+            div.className = 'mo-item';
+            if (i === p2Data.missingIdx) {
+                div.innerHTML = `<span style="font-size:32px;opacity:0.2;">❓</span><span class="mo-label">???</span>`;
+            } else {
+                div.innerHTML = `${o.emoji}<span class="mo-label">${o.label}</span>`;
+            }
+            display.appendChild(div);
+        });
+
+        // Build answer choices: all original objects + 2 distractor objects
+        const choices = gid('answer-choices');
+        choices.innerHTML = '';
+
+        // Mix: include ALL original objects as choices (user picks missing)
+        const allChoices = [...p2Data.objects];
+        // Shuffle choices
+        for (let i = allChoices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allChoices[i], allChoices[j]] = [allChoices[j], allChoices[i]];
+        }
+
+        allChoices.forEach((o, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.id = `choice-${i}`;
+            btn.innerHTML = `${o.emoji}<span class="ch-label">${o.label}</span>`;
+            btn.dataset.objIdx = o.objIdx;
+            btn.dataset.label = o.label;
+            btn.onclick = () => {
+                document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                p2SelectedChoice = o;
+            };
+            choices.appendChild(btn);
+        });
+
+        gid('feedback-p2').textContent = '';
+        gid('feedback-p2').className = 'feedback-msg';
+        showState('state-detect-p2');
+    }
+
+    gid('btn-submit-p2').onclick = () => {
+        if (!p2SelectedChoice) {
+            showFeedback('feedback-p2', 'Please select the missing object first.', 'error');
+            return;
+        }
+        const missingObj = p2Data.objects[p2Data.missingIdx];
+        if (parseInt(p2SelectedChoice.objIdx) === missingObj.objIdx) {
+            p2Correct = true;
+            fetch('level11', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({part:2,correct:true}) }).catch(()=>{});
+            // Highlight correct
+            document.querySelectorAll('.choice-btn').forEach(b => {
+                if (parseInt(b.dataset.objIdx) === missingObj.objIdx) b.classList.add('correct-choice');
+            });
+            showResult(true, 2, `Correct! ${missingObj.emoji} ${missingObj.label} was the missing object!`);
+        } else {
+            document.querySelectorAll('.choice-btn').forEach(b => {
+                if (parseInt(b.dataset.objIdx) === parseInt(p2SelectedChoice.objIdx)) b.classList.add('wrong-choice');
+            });
+            showResult(false, 2, 'Incorrect! Look carefully and try again with a new set.');
+        }
+    };
+
+    // ─── SHARED: Result Overlay ───
+    function showResult(win, part, desc) {
+        const overlay = gid('result-overlay');
+        const card    = gid('result-card');
+        card.className = 'result-card ' + (win ? 'win' : 'lose');
+        gid('result-emoji').textContent = win ? '🎉' : '❌';
+        gid('result-title').textContent = win ? 'Correct!' : 'Incorrect!';
+        gid('result-desc').textContent  = desc;
+        gid('result-score').textContent = win ? '+70' : '0';
+
+        if (win) {
+            if (part === 1) {
+                gid('result-action-btn').textContent = 'Continue to Part 2 ▶';
+                gid('result-action-btn').onclick = () => { closeResult(); setupPart2Intro(); };
+            } else {
+                gid('result-action-btn').textContent = 'View Results ▶';
+                let p = saveProgress();
+                gid('result-action-btn').onclick = () => {
+                    closeResult();
+                    showCompletion(p);
+                };
+                launchConfetti();
+            }
+        } else {
+            gid('result-action-btn').textContent = 'Try Again';
+            if (part === 1) {
+                gid('result-action-btn').onclick = () => { closeResult(); startPart1(); };
+            } else {
+                gid('result-action-btn').onclick = () => { closeResult(); startPart2(); };
+            }
+        }
+        overlay.classList.add('open');
+    }
+
+    function closeResult() { gid('result-overlay').classList.remove('open'); }
+
+    function setupPart2Intro() {
+        currentPart = 2;
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        gid('topbar-part-label').textContent = 'Part 2: Missing Object Detection';
+        gid('part-label-text').textContent = 'Part 2';
+        showState('state-intro-p2');
+    }
+
+    function showCompletion(saveP) {
+        gid('comp-attempts').textContent = totalAttempts;
+        const btnDash = document.querySelector('#state-complete .btn-primary');
+        const btnNext = document.querySelector('#state-complete .btn-secondary');
+        if (btnDash) {
+            btnDash.onclick = () => {
+                if (saveP) { saveP.finally(() => { window.location.href = 'dashboard.html'; }); }
+                else { window.location.href = 'dashboard.html'; }
+            };
+        }
+        if (btnNext) {
+            btnNext.onclick = () => {
+                if (saveP) { saveP.finally(() => { window.location.href = 'level12.html'; }); }
+                else { window.location.href = 'level12.html'; }
+            };
+        }
+        showState('state-complete');
+    }
+
+    function showFeedback(id, msg, type) {
+        const el = gid(id);
+        el.textContent = msg;
+        el.className = 'feedback-msg ' + type;
+    }
+
+    // ─── Countdown ───
+    function startCountdown(id, secs, onDone) {
+        let t = secs;
+        gid(id).textContent = t;
+        const iv = setInterval(() => {
+            t--;
+            gid(id).textContent = t;
+            if (t <= 0) { clearInterval(iv); onDone(); }
+        }, 1000);
+    }
+
+    /* ── Streak Helpers ── */
+    function getLocalDateString() {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+    function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
+        if (!isSuccess) return { streak: 0, dateStr: lastPlayedDateStr };
+        var todayStr = getLocalDateString();
+        if (!lastPlayedDateStr) return { streak: 1, dateStr: todayStr };
+        var today = new Date(todayStr + 'T00:00:00');
+        var lastPlayed = new Date(lastPlayedDateStr + 'T00:00:00');
+        var diffDays = Math.round((today - lastPlayed) / (1000 * 60 * 60 * 24));
+        var newStreak = currentStreak;
+        if (diffDays === 0) { if (newStreak === 0) newStreak = 1; }
+        else if (diffDays === 1) { newStreak = currentStreak + 1; }
+        else { newStreak = 1; }
+        return { streak: newStreak, dateStr: todayStr };
+    }
+
+    function safeParseArray(dataVal, defaultArray) {
+        if (Array.isArray(dataVal)) return dataVal;
+        if (typeof dataVal === 'string') {
+            try {
+                var parsed = JSON.parse(dataVal);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {}
+        }
+        return defaultArray.slice();
+    }
+
+    function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
+        try {
+            localStorage.setItem('mm_score', score);
+            localStorage.setItem('mm_streak', streak);
+            localStorage.setItem('mm_unlocked_level', unlockedLevel);
+            localStorage.setItem('mm_games_played', gamesPlayed);
+            localStorage.setItem('mm_best_streak', bestStreak);
+            localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+            localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+            localStorage.setItem('mm_stars', JSON.stringify(stars));
+            if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+        } catch(e) {}
+    }
+
+    // ─── Save Progress ───
+    let savePromise = null;
+    function saveProgress() {
+        savePromise = fetch('getProgress?t=' + Date.now())
+            .then(r => r.ok ? r.json() : Promise.reject('Failed to fetch progress'))
+            .then(data => {
+                let score         = (parseInt(data.score, 10) || 0) + 140;
+                let gamesPlayed   = (parseInt(data.gamesPlayed, 10) || 0) + 1;
+                let unlockedLevel = Math.max(parseInt(data.unlockedLevel, 10) || 1, 12);
+                let bestScores    = safeParseArray(data.bestScores, Array(20).fill(0));
+                let bestTimes     = safeParseArray(data.bestTimes, Array(20).fill('-'));
+                let stars         = safeParseArray(data.stars, Array(20).fill('0'));
+
+                let streakResult   = calculateNewStreak(parseInt(data.streak, 10) || 0, data.lastPlayedDate || '', true);
+                let streak         = streakResult.streak;
+                let lastPlayedDate = streakResult.dateStr;
+                let bestStreak     = Math.max(parseInt(data.bestStreak, 10) || 0, streak);
+
+                if (140 > (parseInt(bestScores[10], 10) || 0)) bestScores[10] = 140;
+                stars[10] = '3';
+                bestTimes[10] = '40s';
+
+                saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate);
+
+                return fetch('saveProgress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        score, streak, unlockedLevel, gamesPlayed,
+                        bestStreak,
+                        bestScores: JSON.stringify(bestScores),
+                        bestTimes:  JSON.stringify(bestTimes),
+                        stars:      JSON.stringify(stars),
+                        lastPlayedDate
+                    })
+                });
+            }).catch(err => { console.error('[Level11] Error saving progress:', err); });
+        return savePromise;
+    }
+
+    // ─── Confetti ───
+    function launchConfetti() {
+        const canvas = gid('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const pieces = Array.from({length:120}, () => ({
+            x: Math.random()*canvas.width, y: Math.random()*canvas.height - canvas.height,
+            r: Math.random()*6+3, c:`hsl(${Math.random()*360},80%,60%)`,
+            vy: Math.random()*3+2, vx:(Math.random()-0.5)*3, a:Math.random()*360
+        }));
+        let frames = 0;
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pieces.forEach(p => {
+                p.y += p.vy; p.x += p.vx; p.a += 3;
+                ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a*Math.PI/180);
+                ctx.fillStyle = p.c; ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r); ctx.restore();
+            });
+            frames++;
+            if (frames < 180) requestAnimationFrame(draw);
+            else ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        draw();
+    }
+
+    // ─── HINT SYSTEM ───
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            () => {
+                const s = id => document.getElementById(id);
+                return s('state-recall-p1').classList.contains('active') ||
+                       s('state-detect-p2').classList.contains('active');
+            },
+            () => {
+                if (gid('state-recall-p1').classList.contains('active') && p1Data) {
+                    // Reveal correct position of the first unplaced/wrong object
+                    for (const placement of p1Data.placements) {
+                        const curPlaced = p1Assignments[placement.cell];
+                        if (!curPlaced || curPlaced.objIdx !== placement.objIdx) {
+                            // Find this object in pool and simulate click on cell
+                            const poolEl = gid(`pool-obj-${placement.objIdx}`);
+                            if (poolEl && !poolEl.classList.contains('used')) {
+                                selectPoolObj(placement, poolEl);
+                                placeObjectOnCell(placement.cell);
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }
+                if (gid('state-detect-p2').classList.contains('active') && p2Data) {
+                    // Eliminate one wrong choice by greying it out
+                    const correctIdx = p2Data.objects[p2Data.missingIdx].objIdx;
+                    const wrongBtns = Array.from(document.querySelectorAll('.choice-btn'))
+                        .filter(b => parseInt(b.dataset.objIdx) !== correctIdx && !b.disabled && !b.classList.contains('wrong-choice'));
+                    if (wrongBtns.length > 0) {
+                        wrongBtns[0].style.opacity = '0.2';
+                        wrongBtns[0].style.pointerEvents = 'none';
+                        return true;
+                    }
+                    return false;
+                }
+                return false;
+            }
+        );
+    }
+    </script>
+</body>
+</html>

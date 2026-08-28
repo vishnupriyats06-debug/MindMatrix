@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 13: Neural Shift</title>
+    <meta name="description" content="Level 13 of MindMatrix – Part 1: Shadow Detective and Part 2: Gravity Flip." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        /* ══════════════════════════════════════════
+           RESET & DESIGN TOKENS (Level 1 Standard)
+        ══════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep:     #050814;
+            --bg-mid:      #0b0f24;
+            --bg-card:     rgba(255,255,255,0.04);
+            --bg-card-h:   rgba(255,255,255,0.07);
+            --border:      rgba(255,255,255,0.09);
+            --border-h:    rgba(139,92,246,0.5);
+            --accent-1:    #8b5cf6;
+            --accent-2:    #06b6d4;
+            --accent-3:    #f59e0b;
+            --glow:        rgba(139,92,246,0.35);
+            --text-pri:    #f0f4ff;
+            --text-sec:    rgba(240,244,255,0.55);
+            --text-muted:  rgba(240,244,255,0.28);
+            --success:     #34d399;
+            --warning:     #fbbf24;
+            --error:       #f87171;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-pri);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ══════════════════════════════════════════
+           BACKGROUND
+        ══════════════════════════════════════════ */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            background: var(--bg-deep); overflow: hidden; pointer-events: none;
+        }
+        .bg-scene::before {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 750px; height: 750px;
+            background: radial-gradient(circle, rgba(139,92,246,0.16), transparent 70%);
+            top: -200px; left: -200px;
+            animation: orb 16s ease-in-out infinite alternate;
+        }
+        .bg-scene::after {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 650px; height: 650px;
+            background: radial-gradient(circle, rgba(6,182,212,0.13), transparent 70%);
+            bottom: -150px; right: -150px;
+            animation: orb 20s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes orb {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(60px,80px) scale(1.15); }
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ══════════════════════════════════════════
+           PAGE LAYOUT & TOPBAR (Matches Level 1)
+        ══════════════════════════════════════════ */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; padding: 32px 20px;
+        }
+
+        .level-topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(5,8,20,0.85);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 10px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.2s ease;
+        }
+        .btn-back:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+        .btn-back svg { width: 16px; height: 16px; }
+        .topbar-level-info h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+        .topbar-level-info span { font-size: 11px; color: var(--text-muted); }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+        .part-indicator {
+            display: flex; align-items: center; gap: 7px;
+            padding: 6px 14px; border-radius: 100px;
+            background: rgba(139,92,246,0.12);
+            border: 1px solid rgba(139,92,246,0.3);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+        .part-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); transition: background 0.3s ease;
+        }
+        .part-dot.active { background: var(--accent-1); box-shadow: 0 0 8px var(--glow); }
+        .part-dot.done   { background: var(--success); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+
+        /* ══════════════════════════════════════════
+           GAME CARD
+        ══════════════════════════════════════════ */
+        .game-card {
+            width: 100%; max-width: 680px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 28px; padding: 36px 32px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 24px 64px rgba(0,0,0,0.55),
+                0 0 80px rgba(139,92,246,0.08);
+            text-align: center;
+            margin-top: 72px;
+        }
+
+        .game-state { display: none; animation: fade-up 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display: block; }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Typography & Badges ── */
+        .intro-emoji { font-size: 56px; margin-bottom: 16px; animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(139,92,246,0.4)); }
+        }
+        .intro-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .intro-subtitle { font-size: 14px; color: var(--text-sec); margin-bottom: 8px; }
+        .intro-desc {
+            font-size: 13px; color: var(--text-muted); margin-bottom: 28px;
+            line-height: 1.7; max-width: 460px; margin-left: auto; margin-right: auto;
+        }
+        .game-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 100px; margin-bottom: 16px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(6,182,212,0.10));
+            border: 1px solid rgba(139,92,246,0.35);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 36px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 24px rgba(139,92,246,0.45);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            min-width: 180px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 36px rgba(139,92,246,0.55);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 28px; border-radius: 12px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: var(--bg-card-h); color: var(--text-pri);
+            border-color: var(--border-h);
+        }
+        .btn-row { display: flex; justify-content: center; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+
+        /* ── HUD & Progress ── */
+        .stage-hud {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; padding: 0 4px;
+        }
+        .hud-title { font-size: 13.5px; font-weight: 700; color: var(--accent-2); }
+        .hud-timer {
+            font-size: 14px; font-weight: 800; color: #fbbf24;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .progress-bar-wrap {
+            width: 100%; height: 6px; background: rgba(255,255,255,0.06);
+            border-radius: 10px; overflow: hidden; margin-bottom: 16px;
+        }
+        .progress-bar-fill {
+            height: 100%; width: 33%; background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+            transition: width 0.3s ease;
+        }
+        .prompt-instruction {
+            font-size: 14px; color: var(--text-sec); margin-bottom: 14px; line-height: 1.5;
+        }
+
+        /* ══════════════════════════════════════════
+           PART 1: SHADOW DETECTIVE SCENE
+        ══════════════════════════════════════════ */
+        .scene-container {
+            width: 100%; max-width: 520px; min-height: 230px;
+            background: rgba(0,0,0,0.3); border: 2px solid var(--border);
+            border-radius: 20px; padding: 18px; margin: 12px auto 18px;
+            display: grid; gap: 12px;
+            position: relative; transition: all 0.25s ease;
+        }
+        .scene-grid-r1 { grid-template-columns: repeat(3, 1fr); }
+        .scene-grid-r2 { grid-template-columns: repeat(4, 1fr); }
+        .scene-grid-r3 { grid-template-columns: repeat(5, 1fr); }
+
+        .scene-slot {
+            aspect-ratio: 1; border-radius: 14px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 30px; position: relative; transition: all 0.25s ease;
+            user-select: none;
+        }
+        .scene-slot.hint-glow {
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 16px rgba(245,158,11,0.6);
+            background: rgba(245,158,11,0.15) !important;
+        }
+        .scene-slot .obj-label {
+            font-size: 10.5px; font-weight: 700; color: var(--text-muted);
+            margin-top: 4px; text-transform: uppercase; letter-spacing: 0.4px;
+        }
+
+        .scene-hidden-curtain {
+            position: absolute; inset: 0; border-radius: 20px;
+            background: rgba(11,15,36,0.96); backdrop-filter: blur(14px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: 700; color: var(--accent-2);
+            z-index: 10;
+        }
+
+        .detective-choices-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            max-width: 520px; margin: 14px auto 0;
+        }
+        .det-choice-btn {
+            background: var(--bg-card); border: 2px solid var(--border);
+            border-radius: 14px; padding: 12px 14px; text-align: left;
+            cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; gap: 10px; user-select: none;
+        }
+        .det-choice-btn:hover {
+            border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.08);
+            transform: translateY(-2px);
+        }
+        .det-choice-btn.correct {
+            border-color: var(--success) !important; background: rgba(52,211,153,0.18) !important;
+            color: var(--success); box-shadow: 0 0 16px rgba(52,211,153,0.4);
+        }
+        .det-choice-btn.wrong {
+            border-color: var(--error) !important; background: rgba(248,113,113,0.18) !important;
+            color: var(--error); box-shadow: 0 0 16px rgba(248,113,113,0.4);
+            animation: shake-el 0.3s ease;
+        }
+        .det-choice-letter {
+            width: 26px; height: 26px; border-radius: 8px;
+            background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+            font-size: 12px; font-weight: 800; color: #a78bfa;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .det-choice-text { font-size: 13px; font-weight: 600; color: #f1f5f9; line-height: 1.3; }
+
+        /* ══════════════════════════════════════════
+           PART 2: GRAVITY FLIP ARENA
+        ══════════════════════════════════════════ */
+        .gravity-banner {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 22px; border-radius: 100px; margin-bottom: 14px;
+            background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.35);
+            font-size: 14px; font-weight: 800; color: #38bdf8;
+            letter-spacing: 0.5px;
+        }
+        .gravity-arena {
+            width: 320px; height: 320px; margin: 0 auto 16px;
+            display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
+            gap: 6px; background: rgba(0,0,0,0.4); border: 2px solid var(--border);
+            border-radius: 18px; padding: 8px; position: relative;
+        }
+        .arena-cell {
+            border-radius: 8px; background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.06);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 800; position: relative;
+            user-select: none; transition: all 0.2s ease;
+        }
+        .arena-cell.obstacle {
+            background: #334155; border-color: #475569;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+        }
+        .arena-cell.target {
+            border-color: #38bdf8; background: rgba(6,182,212,0.12);
+            color: #38bdf8; font-size: 15px; font-weight: 900;
+        }
+        .arena-cell.target-active {
+            border-color: var(--success) !important; background: rgba(52,211,153,0.3) !important;
+            color: var(--success); box-shadow: 0 0 16px rgba(52,211,153,0.5);
+        }
+        .arena-ball {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff, #a855f7);
+            box-shadow: 0 0 16px rgba(168,85,247,0.8);
+            position: absolute; z-index: 10;
+            transition: left 0.30s cubic-bezier(0.22,1,0.36,1), top 0.30s cubic-bezier(0.22,1,0.36,1);
+        }
+
+        .target-options-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            max-width: 420px; margin: 0 auto;
+        }
+        .target-btn {
+            background: var(--bg-card); border: 2px solid var(--border);
+            border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 800;
+            color: #38bdf8; cursor: pointer; transition: all 0.2s ease;
+        }
+        .target-btn:hover {
+            border-color: #38bdf8; background: rgba(6,182,212,0.14);
+            transform: translateY(-2px);
+        }
+        .target-btn.correct {
+            border-color: var(--success) !important; background: rgba(52,211,153,0.2) !important;
+            color: var(--success); box-shadow: 0 0 16px rgba(52,211,153,0.4);
+        }
+        .target-btn.wrong {
+            border-color: var(--error) !important; background: rgba(248,113,113,0.2) !important;
+            color: var(--error); box-shadow: 0 0 16px rgba(248,113,113,0.4);
+            animation: shake-el 0.3s ease;
+        }
+
+        /* ── Feedback Notification ── */
+        .toast-msg {
+            display: none; padding: 12px 24px; border-radius: 14px;
+            font-size: 14px; font-weight: 800; margin-bottom: 14px;
+            animation: fade-up 0.25s ease;
+        }
+        .toast-msg.success { display: inline-block; background: rgba(52,211,153,0.15); border: 1px solid var(--success); color: var(--success); }
+        .toast-msg.error   { display: inline-block; background: rgba(248,113,113,0.15); border: 1px solid var(--error); color: var(--error); }
+
+        @keyframes shake-el {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        canvas#confetti-canvas { position: fixed; inset: 0; z-index: 250; pointer-events: none; }
+
+        @media (max-width: 540px) {
+            .game-card { padding: 28px 18px; margin-top: 64px; }
+            .detective-choices-grid { grid-template-columns: 1fr; }
+            .gravity-arena { width: 280px; height: 280px; }
+            .target-options-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-scene"></div>
+<div class="bg-grid"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- Top Bar (Exact Level 1 / Level 2 Style) -->
+<header class="level-topbar">
+    <div class="topbar-left">
+        <a href="dashboard.html" class="btn-back" id="btn-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Dashboard
+        </a>
+        <div class="topbar-level-info">
+            <h1>Level 13 – Neural Shift</h1>
+            <span id="topbar-part-label">Part 1: Shadow Detective</span>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <!-- Single Theme Toggle & Part Indicator with Dots -->
+        <button class="theme-toggle-btn" id="theme-header-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+        <div class="part-indicator">
+            <span>Parts</span>
+            <div class="part-dot active" id="dot-1"></div>
+            <div class="part-dot" id="dot-2"></div>
+        </div>
+    </div>
+</header>
+
+<main class="page-wrapper">
+    <div class="game-card">
+
+        <!-- ═══════ STATE 1: INTRO ═══════ -->
+        <div class="game-state active" id="state-intro">
+            <div class="game-badge">⚡ Level 13 • Advanced Cognitive</div>
+            <div class="intro-emoji">🕵️‍♂️</div>
+            <div class="intro-title">NEURAL SHIFT</div>
+            <div class="intro-subtitle">Part 1: Shadow Detective &amp; Part 2: Gravity Flip</div>
+            <div class="intro-desc">
+                Engage dual cognitive pathways: test visual memory and change detection in <strong>Shadow Detective</strong>, then execute spatial trajectory prediction in <strong>Gravity Flip</strong> across 3 progressive rounds each.
+            </div>
+            <button class="btn-primary" id="btn-start">
+                ▶ Start Part 1
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 2: PART 1 – SHADOW DETECTIVE ═══════ -->
+        <div class="game-state" id="state-part1">
+            <div class="game-badge">🕵️ Part 1 • Shadow Detective</div>
+            <div class="stage-hud">
+                <span class="hud-title" id="p1-round-title">Round 1 / 3</span>
+                <span class="hud-timer" id="p1-timer-hud">⏱ <span id="p1-timer-val">4</span>s</span>
+            </div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="p1-progress-bar" style="width: 33%;"></div>
+            </div>
+
+            <p class="prompt-instruction" id="p1-instruction">Observe the room scene carefully. Remember object positions!</p>
+
+            <div id="p1-toast" class="toast-msg"></div>
+
+            <div class="scene-container scene-grid-r1" id="p1-scene">
+                <!-- Slots generated dynamically -->
+            </div>
+
+            <div class="detective-choices-grid" id="p1-choices-container" style="display: none;">
+                <!-- 4 choice buttons -->
+            </div>
+        </div>
+
+        <!-- ═══════ STATE 3: PART 1 COMPLETE MODAL ═══════ -->
+        <div class="game-state" id="state-part1-complete">
+            <div class="intro-emoji">🎉</div>
+            <div class="intro-title" style="color: #34d399;">PART 1 COMPLETE!</div>
+            <div class="intro-subtitle">Shadow Detective Solved</div>
+            <div class="intro-desc">
+                Brilliant observation skills! You identified every subtle shift in the room scene across all 3 rounds.
+            </div>
+            <button class="btn-primary" id="btn-goto-part2">
+                Continue to Part 2: Gravity Flip ▶
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 4: PART 2 – GRAVITY FLIP ═══════ -->
+        <div class="game-state" id="state-part2">
+            <div class="game-badge">🌀 Part 2 • Gravity Flip</div>
+            <div class="stage-hud">
+                <span class="hud-title" id="p2-round-title">Round 1 / 3</span>
+                <span class="hud-timer">🔮 PREDICT LANDING</span>
+            </div>
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="p2-progress-bar" style="width: 33%;"></div>
+            </div>
+
+            <div class="gravity-banner" id="p2-gravity-banner">GRAVITY ↓</div>
+            <p class="prompt-instruction" id="p2-instruction">Which target position will the ball reach under the influence of gravity?</p>
+
+            <div id="p2-toast" class="toast-msg"></div>
+
+            <div class="gravity-arena" id="p2-arena">
+                <!-- 5x5 cells + ball -->
+            </div>
+
+            <div class="target-options-grid" id="p2-choices-container">
+                <!-- A, B, C, D buttons -->
+            </div>
+        </div>
+
+        <!-- ═══════ STATE 5: LEVEL COMPLETE ═══════ -->
+        <div class="game-state" id="state-complete">
+            <div class="intro-emoji">🏆</div>
+            <div class="intro-title" style="color: #34d399;">LEVEL 13 COMPLETE!</div>
+            <div class="intro-subtitle">Neural Shift Mastered</div>
+            <div class="intro-desc">
+                Exceptional performance! You completed all 6 rounds across both Shadow Detective and Gravity Flip!
+            </div>
+            <div class="btn-row">
+                <button class="btn-primary" onclick="window.location.href='dashboard.html'">Return to Dashboard</button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   LEVEL 13: NEURAL SHIFT
+   Part 1: Shadow Detective (3 Rounds)
+   Part 2: Gravity Flip (3 Rounds)
+   Zero Score, Strict ID Validation, Dynamic Randomization
+   ═══════════════════════════════════════════════════════════════ */
+
+// ── Object Pools with Easy, Medium, and Hard Distractor Sets ──
+const OBJECTS_POOL_EASY = [
+    { id: "book",   emoji: "📖", name: "Book"   },
+    { id: "cup",    emoji: "☕", name: "Cup"    },
+    { id: "plant",  emoji: "🪴", name: "Plant"  },
+    { id: "clock",  emoji: "⏰", name: "Clock"  },
+    { id: "pencil", emoji: "✏️", name: "Pencil" },
+    { id: "box",    emoji: "📦", name: "Box"    }
+];
+
+const OBJECTS_POOL_MEDIUM = [
+    { id: "book",   emoji: "📖", name: "Book"   },
+    { id: "cup",    emoji: "☕", name: "Cup"    },
+    { id: "plant",  emoji: "🪴", name: "Plant"  },
+    { id: "clock",  emoji: "⏰", name: "Clock"  },
+    { id: "pencil", emoji: "✏️", name: "Pencil" },
+    { id: "box",    emoji: "📦", name: "Box"    },
+    { id: "key",    emoji: "🔑", name: "Key"    },
+    { id: "glasses",emoji: "👓", name: "Glasses"},
+    { id: "candle", emoji: "🕯️", name: "Candle" },
+    { id: "phone",  emoji: "📱", name: "Phone"  }
+];
+
+const OBJECTS_POOL_HARD = [
+    { id: "notebook",   emoji: "📓", name: "Notebook"   },
+    { id: "book",       emoji: "📖", name: "Book"       },
+    { id: "mug",        emoji: "☕", name: "Coffee Mug" },
+    { id: "glass",      emoji: "🥛", name: "Glass"      },
+    { id: "clock",      emoji: "⏰", name: "Clock"      },
+    { id: "watch",      emoji: "⌚", name: "Wristwatch" },
+    { id: "plant",      emoji: "🪴", name: "Plant"      },
+    { id: "cactus",     emoji: "🌵", name: "Cactus"     },
+    { id: "key",        emoji: "🔑", name: "Key"        },
+    { id: "old_key",    emoji: "🗝️", name: "Old Key"    },
+    { id: "glasses",    emoji: "👓", name: "Glasses"    },
+    { id: "sunglasses", emoji: "🕶️", name: "Sunglasses" }
+];
+
+let currentPart = 1; // 1 = Shadow Detective, 2 = Gravity Flip
+let p1Round = 1;     // 1, 2, 3
+let p2Round = 1;     // 1, 2, 3
+let activeTimer = null;
+let isLocked = false;
+let startTimeStamp = Date.now();
+
+// ── Part 1 (Shadow Detective) State ──
+let p1CurrentScene = [];
+let p1ChangedScene = [];
+let p1CorrectChoiceId = "";
+let p1ChangedSlotIdx = -1;
+let p1Choices = [];
+
+// ── Part 2 (Gravity Flip) State ──
+let p2GridSize = 5;
+let p2BallStart = { r: 0, c: 0 };
+let p2Obstacles = [];
+let p2Targets = [];
+let p2CorrectTargetId = "";
+let p2PathSteps = [];
+let p2GravityDesc = "";
+
+function gid(id) { return document.getElementById(id); }
+
+function showState(id) {
+    document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+    const target = gid(id);
+    if (target) target.classList.add('active');
+}
+
+function updatePartIndicator(partNum) {
+    currentPart = partNum;
+    if (partNum === 1) {
+        gid('dot-1').className = 'part-dot active';
+        gid('dot-2').className = 'part-dot';
+        gid('topbar-part-label').textContent = 'Part 1: Shadow Detective';
+    } else {
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        gid('topbar-part-label').textContent = 'Part 2: Gravity Flip';
+    }
+}
+
+// ── INITIALIZATION ──
+document.addEventListener('DOMContentLoaded', () => {
+    gid('btn-start').onclick = () => {
+        currentPart = 1;
+        p1Round = 1;
+        startShadowDetective();
+    };
+
+    gid('btn-goto-part2').onclick = () => {
+        currentPart = 2;
+        p2Round = 1;
+        startGravityFlip();
+    };
+
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            () => !isLocked && (currentPart === 1 || currentPart === 2),
+            () => executeGlobalHint()
+        );
+    }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   PART 1 – SHADOW DETECTIVE (3 Rounds: Easy, Medium, Hard)
+   Visual Observation and Change Detection
+   ═══════════════════════════════════════════════════════════════ */
+function startShadowDetective() {
+    updatePartIndicator(1);
+    showState('state-part1');
+    loadShadowRound(p1Round);
+}
+
+function loadShadowRound(roundNum) {
+    if (activeTimer) clearInterval(activeTimer);
+    isLocked = false;
+    p1Round = roundNum;
+
+    gid('p1-round-title').textContent = `Round ${roundNum} / 3`;
+    gid('p1-progress-bar').style.width = `${Math.round((roundNum / 3) * 100)}%`;
+    gid('p1-instruction').textContent = 'Observe the room scene carefully. Remember object positions!';
+    gid('p1-choices-container').style.display = 'none';
+    gid('p1-timer-hud').style.display = 'flex';
+    hideToast('p1-toast');
+
+    let totalSlots = 5;
+    let pool = OBJECTS_POOL_EASY;
+    let observeTime = 4.5;
+    const sceneContainer = gid('p1-scene');
+
+    if (roundNum === 1) {
+        totalSlots = 5;
+        pool = OBJECTS_POOL_EASY;
+        observeTime = 4.5;
+        sceneContainer.className = 'scene-container scene-grid-r1';
+    } else if (roundNum === 2) {
+        totalSlots = 8;
+        pool = OBJECTS_POOL_MEDIUM;
+        observeTime = 4.0;
+        sceneContainer.className = 'scene-container scene-grid-r2';
+    } else {
+        totalSlots = 10;
+        pool = OBJECTS_POOL_HARD;
+        observeTime = 3.0;
+        sceneContainer.className = 'scene-container scene-grid-r3';
+    }
+
+    sceneContainer.innerHTML = '';
+
+    // Pick randomized unique objects
+    const shuffledObjs = [...pool].sort(() => Math.random() - 0.5);
+    p1CurrentScene = shuffledObjs.slice(0, totalSlots).map((o, idx) => ({
+        ...o,
+        slotIdx: idx,
+        rotation: 0,
+        scale: 1,
+        visible: true
+    }));
+
+    // Render Original Scene
+    p1CurrentScene.forEach(obj => {
+        const slot = document.createElement('div');
+        slot.className = 'scene-slot';
+        slot.id = `slot-${obj.slotIdx}`;
+        slot.innerHTML = `
+            <span class="slot-emoji">${obj.emoji}</span>
+            <span class="obj-label">${obj.name}</span>
+        `;
+        sceneContainer.appendChild(slot);
+    });
+
+    // Prepare exactly ONE predetermined change
+    prepareShadowChange(roundNum, totalSlots);
+
+    // Countdown Observation Timer
+    let timeLeft = observeTime;
+    gid('p1-timer-val').textContent = Math.ceil(timeLeft);
+
+    activeTimer = setInterval(() => {
+        timeLeft -= 1;
+        gid('p1-timer-val').textContent = Math.max(0, Math.ceil(timeLeft));
+        if (timeLeft <= 0) {
+            clearInterval(activeTimer);
+            showShadowComparisonPhase();
+        }
+    }, 1000);
+}
+
+function prepareShadowChange(roundNum, totalSlots) {
+    p1ChangedScene = JSON.parse(JSON.stringify(p1CurrentScene));
+    p1ChangedSlotIdx = Math.floor(Math.random() * totalSlots);
+    const targetObj = p1ChangedScene[p1ChangedSlotIdx];
+
+    let changeTypes = [];
+    if (roundNum === 1) {
+        changeTypes = ['disappear', 'move_slot'];
+    } else if (roundNum === 2) {
+        changeTypes = ['swap', 'rotate', 'size', 'disappear'];
+    } else {
+        changeTypes = ['swap_similar', 'rotate_subtle', 'replace_similar', 'swap'];
+    }
+
+    const chosenChange = changeTypes[Math.floor(Math.random() * changeTypes.length)];
+    let changeDescription = "";
+
+    if (chosenChange === 'disappear') {
+        targetObj.visible = false;
+        targetObj.emoji = "❓";
+        changeDescription = `${targetObj.name} disappeared`;
+    } else if (chosenChange === 'move_slot') {
+        const swapIdx = (p1ChangedSlotIdx + 1 + Math.floor(Math.random() * (totalSlots - 1))) % totalSlots;
+        const otherObj = p1ChangedScene[swapIdx];
+        const tempName = targetObj.name;
+        const tempEmoji = targetObj.emoji;
+        targetObj.name = otherObj.name;
+        targetObj.emoji = otherObj.emoji;
+        otherObj.name = tempName;
+        otherObj.emoji = tempEmoji;
+        changeDescription = `${tempName} moved position`;
+    } else if (chosenChange === 'rotate') {
+        targetObj.rotation = 180;
+        changeDescription = `${targetObj.name} rotated upside down`;
+    } else if (chosenChange === 'rotate_subtle') {
+        targetObj.rotation = 90;
+        changeDescription = `${targetObj.name} changed orientation`;
+    } else if (chosenChange === 'size') {
+        targetObj.scale = 0.55;
+        changeDescription = `${targetObj.name} became smaller`;
+    } else if (chosenChange === 'swap' || chosenChange === 'swap_similar') {
+        const swapIdx = (p1ChangedSlotIdx + 1 + Math.floor(Math.random() * (totalSlots - 1))) % totalSlots;
+        const otherObj = p1ChangedScene[swapIdx];
+        const tempEmoji = targetObj.emoji;
+        const tempName = targetObj.name;
+        targetObj.emoji = otherObj.emoji;
+        targetObj.name = otherObj.name;
+        otherObj.emoji = tempEmoji;
+        otherObj.name = tempName;
+        changeDescription = `${tempName} and ${targetObj.name} swapped places`;
+    } else if (chosenChange === 'replace_similar') {
+        const replacementPool = OBJECTS_POOL_HARD.filter(o => o.name !== targetObj.name);
+        const rep = replacementPool[Math.floor(Math.random() * replacementPool.length)];
+        const oldName = targetObj.name;
+        targetObj.name = rep.name;
+        targetObj.emoji = rep.emoji;
+        changeDescription = `${oldName} changed to ${rep.name}`;
+    }
+
+    p1CorrectChoiceId = `change_correct_${p1ChangedSlotIdx}_${Math.random()}`;
+
+    // Create 4 distinct choices (1 correct, 3 decoys)
+    const otherObjs = p1CurrentScene.filter(o => o.slotIdx !== p1ChangedSlotIdx);
+    const decoy1 = `${otherObjs[0].name} disappeared`;
+    const decoy2 = `${otherObjs[1 % otherObjs.length].name} rotated upside down`;
+    const decoy3 = `${otherObjs[2 % otherObjs.length].name} became smaller`;
+
+    p1Choices = [
+        { id: p1CorrectChoiceId, text: changeDescription, isCorrect: true },
+        { id: `decoy_1_${Math.random()}`, text: decoy1, isCorrect: false },
+        { id: `decoy_2_${Math.random()}`, text: decoy2, isCorrect: false },
+        { id: `decoy_3_${Math.random()}`, text: decoy3, isCorrect: false }
+    ].sort(() => Math.random() - 0.5);
+}
+
+function showShadowComparisonPhase() {
+    const sceneContainer = gid('p1-scene');
+    
+    // Brief transition blackout (500ms)
+    sceneContainer.innerHTML = `
+        <div class="scene-hidden-curtain">
+            <div>🔍 SHIFTING SCENE...</div>
+        </div>
+    `;
+    gid('p1-timer-hud').style.display = 'none';
+
+    setTimeout(() => {
+        sceneContainer.innerHTML = '';
+        gid('p1-instruction').textContent = 'What changed? Identify the change from the options below.';
+
+        // Render changed scene
+        p1ChangedScene.forEach(obj => {
+            const slot = document.createElement('div');
+            slot.className = 'scene-slot';
+            slot.id = `slot-changed-${obj.slotIdx}`;
+
+            let transformStyle = "";
+            if (obj.rotation) transformStyle += `rotate(${obj.rotation}deg) `;
+            if (obj.scale && obj.scale !== 1) transformStyle += `scale(${obj.scale}) `;
+
+            slot.innerHTML = `
+                <span class="slot-emoji" style="transform:${transformStyle}; display:inline-block;">${obj.visible ? obj.emoji : "❓"}</span>
+                <span class="obj-label">${obj.visible ? obj.name : "Missing"}</span>
+            `;
+            sceneContainer.appendChild(slot);
+        });
+
+        // Render Choice Buttons
+        const choicesContainer = gid('p1-choices-container');
+        choicesContainer.innerHTML = '';
+        choicesContainer.style.display = 'grid';
+
+        const letters = ['A', 'B', 'C', 'D'];
+        p1Choices.forEach((ch, idx) => {
+            const btn = document.createElement('div');
+            btn.className = 'det-choice-btn';
+            btn.dataset.id = ch.id;
+            btn.innerHTML = `
+                <div class="det-choice-letter">${letters[idx]}</div>
+                <div class="det-choice-text">${ch.text}</div>
+            `;
+            btn.onclick = () => onShadowChoiceSelected(ch.id, btn);
+            choicesContainer.appendChild(btn);
+        });
+    }, 500);
+}
+
+function onShadowChoiceSelected(selectedId, btnEl) {
+    if (isLocked) return;
+    isLocked = true;
+
+    if (selectedId === p1CorrectChoiceId) {
+        btnEl.classList.add('correct');
+        showToast('p1-toast', '✓ CORRECT CHANGE IDENTIFIED!', true);
+
+        setTimeout(() => {
+            if (p1Round < 3) {
+                loadShadowRound(p1Round + 1);
+            } else {
+                showToast('p1-toast', '✓ PART 1 COMPLETE!', true);
+                setTimeout(() => {
+                    showPartCompletion({
+                        part: 1,
+                        totalParts: 2,
+                        score: 50,
+                        title: 'Correct!',
+                        message: 'Excellent memory! You spotted the scene changes with laser focus. Ready for the gravity challenge?',
+                        buttonText: 'Continue to Part 2 ▶',
+                        onContinue: () => {
+                            currentPart = 2;
+                            p2Round = 1;
+                            startGravityFlip();
+                        }
+                    });
+                }, 900);
+            }
+        }, 900);
+    } else {
+        btnEl.classList.add('wrong');
+        showToast('p1-toast', '❌ Incorrect! Starting this Part again with a new challenge…', false);
+
+        document.querySelectorAll('#p1-choices-container .det-choice-btn').forEach(b => {
+            if (b.dataset.id === p1CorrectChoiceId) b.classList.add('correct');
+        });
+
+        setTimeout(() => {
+            loadShadowRound(1); // Restart ONLY Part 1 from Round 1 with fresh puzzles
+        }, 1500);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PART 2 – GRAVITY FLIP (3 Rounds: Easy, Medium, Hard)
+   Spatial Reasoning and Physics Trajectory Prediction
+   ═══════════════════════════════════════════════════════════════ */
+function startGravityFlip() {
+    updatePartIndicator(2);
+    showState('state-part2');
+    loadGravityRound(p2Round);
+}
+
+function loadGravityRound(roundNum) {
+    isLocked = false;
+    p2Round = roundNum;
+
+    gid('p2-round-title').textContent = `Round ${roundNum} / 3`;
+    gid('p2-progress-bar').style.width = `${Math.round((roundNum / 3) * 100)}%`;
+    hideToast('p2-toast');
+
+    setupGravityPuzzle(roundNum);
+    renderGravityArena();
+}
+
+function setupGravityPuzzle(roundNum) {
+    p2GridSize = 5;
+    p2Obstacles = [];
+    p2Targets = [];
+    p2PathSteps = [];
+
+    // Randomize initial positions & directions per round
+    if (roundNum === 1) {
+        // Round 1 (Easy): Single Gravity Direction (e.g. Downward or Rightward)
+        const dirs = [
+            { desc: "GRAVITY ↓", start: { r: 0, c: 2 }, end: { r: 4, c: 2 }, obs: [{ r: 3, c: 1 }, { r: 3, c: 3 }], steps: [{r:0,c:2},{r:1,c:2},{r:2,c:2},{r:3,c:2},{r:4,c:2}], correct: 'B', targets: [{id:'A',r:4,c:0},{id:'B',r:4,c:2},{id:'C',r:4,c:4}] },
+            { desc: "GRAVITY ➡️", start: { r: 2, c: 0 }, end: { r: 2, c: 4 }, obs: [{ r: 1, c: 3 }, { r: 3, c: 3 }], steps: [{r:2,c:0},{r:2,c:1},{r:2,c:2},{r:2,c:3},{r:2,c:4}], correct: 'B', targets: [{id:'A',r:0,c:4},{id:'B',r:2,c:4},{id:'C',r:4,c:4}] },
+            { desc: "GRAVITY ↓", start: { r: 0, c: 3 }, end: { r: 4, c: 3 }, obs: [{ r: 2, c: 1 }], steps: [{r:0,c:3},{r:1,c:3},{r:2,c:3},{r:3,c:3},{r:4,c:3}], correct: 'C', targets: [{id:'A',r:4,c:0},{id:'B',r:4,c:1},{id:'C',r:4,c:3}] }
+        ];
+        const setup = dirs[Math.floor(Math.random() * dirs.length)];
+        p2GravityDesc = setup.desc;
+        p2BallStart = setup.start;
+        p2Obstacles = setup.obs;
+        p2Targets = setup.targets;
+        p2CorrectTargetId = setup.correct;
+        p2PathSteps = setup.steps;
+        gid('p2-gravity-banner').textContent = p2GravityDesc;
+        gid('p2-gravity-banner').style.borderColor = "rgba(6,182,212,0.4)";
+    } else if (roundNum === 2) {
+        // Round 2 (Medium): Gravity Shift Mid-Flight (Initial →, then Flips ↓ or Initial ↓, then Flips ➡️)
+        const shifts = [
+            {
+                desc: "GRAVITY ➡️ THEN FLIPS ↓",
+                start: { r: 1, c: 0 },
+                obs: [{ r: 1, c: 3 }, { r: 3, c: 1 }],
+                targets: [{ id: 'A', r: 4, c: 0 }, { id: 'B', r: 4, c: 2 }, { id: 'C', r: 4, c: 4 }, { id: 'D', r: 2, c: 4 }],
+                correct: 'B',
+                steps: [{r:1,c:0},{r:1,c:1},{r:1,c:2},{r:2,c:2},{r:3,c:2},{r:4,c:2}]
+            },
+            {
+                desc: "GRAVITY ↓ THEN FLIPS ➡️",
+                start: { r: 0, c: 1 },
+                obs: [{ r: 3, c: 1 }, { r: 1, c: 4 }],
+                targets: [{ id: 'A', r: 2, c: 0 }, { id: 'B', r: 2, c: 4 }, { id: 'C', r: 4, c: 4 }, { id: 'D', r: 0, c: 4 }],
+                correct: 'B',
+                steps: [{r:0,c:1},{r:1,c:1},{r:2,c:1},{r:2,c:2},{r:2,c:3},{r:2,c:4}]
+            }
+        ];
+        const setup = shifts[Math.floor(Math.random() * shifts.length)];
+        p2GravityDesc = setup.desc;
+        p2BallStart = setup.start;
+        p2Obstacles = setup.obs;
+        p2Targets = setup.targets;
+        p2CorrectTargetId = setup.correct;
+        p2PathSteps = setup.steps;
+        gid('p2-gravity-banner').textContent = p2GravityDesc;
+        gid('p2-gravity-banner').style.borderColor = "#f59e0b";
+    } else {
+        // Round 3 (Hard): Multi-turn Gravity (e.g. ➡️ THEN ↓ THEN ⬅️)
+        const multi = [
+            {
+                desc: "GRAVITY ➡️ THEN ↓ THEN ⬅️",
+                start: { r: 0, c: 0 },
+                obs: [{ r: 0, c: 4 }, { r: 3, c: 3 }, { r: 4, c: 0 }],
+                targets: [{ id: 'A', r: 2, c: 0 }, { id: 'B', r: 3, c: 0 }, { id: 'C', r: 4, c: 3 }, { id: 'D', r: 4, c: 4 }],
+                correct: 'B',
+                steps: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:0,c:3},{r:1,c:3},{r:2,c:3},{r:3,c:3},{r:3,c:2},{r:3,c:1},{r:3,c:0}]
+            },
+            {
+                desc: "GRAVITY ↓ THEN ➡️ THEN ⬆️",
+                start: { r: 0, c: 0 },
+                obs: [{ r: 4, c: 0 }, { r: 4, c: 4 }, { r: 1, c: 3 }],
+                targets: [{ id: 'A', r: 2, c: 3 }, { id: 'B', r: 0, c: 3 }, { id: 'C', r: 4, c: 2 }, { id: 'D', r: 1, c: 4 }],
+                correct: 'A',
+                steps: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:3,c:0},{r:3,c:1},{r:3,c:2},{r:3,c:3},{r:2,c:3}]
+            }
+        ];
+        const setup = multi[Math.floor(Math.random() * multi.length)];
+        p2GravityDesc = setup.desc;
+        p2BallStart = setup.start;
+        p2Obstacles = setup.obs;
+        p2Targets = setup.targets;
+        p2CorrectTargetId = setup.correct;
+        p2PathSteps = setup.steps;
+        gid('p2-gravity-banner').textContent = p2GravityDesc;
+        gid('p2-gravity-banner').style.borderColor = "#ec4899";
+    }
+}
+
+function renderGravityArena() {
+    const arena = gid('p2-arena');
+    arena.innerHTML = '';
+
+    // Create 5x5 grid cells
+    for (let r = 0; r < p2GridSize; r++) {
+        for (let c = 0; c < p2GridSize; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'arena-cell';
+            cell.id = `cell-${r}-${c}`;
+
+            const isObs = p2Obstacles.some(o => o.r === r && o.c === c);
+            const target = p2Targets.find(t => t.r === r && t.c === c);
+
+            if (isObs) {
+                cell.classList.add('obstacle');
+                cell.textContent = '⬛';
+            } else if (target) {
+                cell.classList.add('target');
+                cell.textContent = target.id;
+            }
+            arena.appendChild(cell);
+        }
+    }
+
+    // Position initial ball
+    const ball = document.createElement('div');
+    ball.className = 'arena-ball';
+    ball.id = 'gravity-ball';
+    arena.appendChild(ball);
+    positionBall(ball, p2BallStart.r, p2BallStart.c);
+
+    // Render target choice buttons
+    const container = gid('p2-choices-container');
+    container.innerHTML = '';
+    p2Targets.forEach(t => {
+        const btn = document.createElement('button');
+        btn.className = 'target-btn';
+        btn.dataset.id = t.id;
+        btn.textContent = `Target ${t.id}`;
+        btn.onclick = () => onGravityTargetSelected(t.id, btn);
+        container.appendChild(btn);
+    });
+}
+
+function positionBall(ballEl, r, c) {
+    const cellSize = (gid('p2-arena').clientWidth - 16 - (4 * 6)) / 5;
+    const offsetLeft = 8 + c * (cellSize + 6) + (cellSize - 32) / 2;
+    const offsetTop  = 8 + r * (cellSize + 6) + (cellSize - 32) / 2;
+    ballEl.style.left = `${offsetLeft}px`;
+    ballEl.style.top  = `${offsetTop}px`;
+}
+
+function onGravityTargetSelected(selectedTargetId, btnEl) {
+    if (isLocked) return;
+    isLocked = true;
+
+    // Animate ball along the physics path
+    const ball = gid('gravity-ball');
+    let stepIdx = 0;
+
+    const animInterval = setInterval(() => {
+        stepIdx++;
+        if (stepIdx < p2PathSteps.length) {
+            positionBall(ball, p2PathSteps[stepIdx].r, p2PathSteps[stepIdx].c);
+        } else {
+            clearInterval(animInterval);
+            finishGravityEvaluation(selectedTargetId, btnEl);
+        }
+    }, 240);
+}
+
+function finishGravityEvaluation(selectedTargetId, btnEl) {
+    if (selectedTargetId === p2CorrectTargetId) {
+        btnEl.classList.add('correct');
+        const targetCell = gid(`cell-${p2PathSteps[p2PathSteps.length - 1].r}-${p2PathSteps[p2PathSteps.length - 1].c}`);
+        if (targetCell) targetCell.classList.add('target-active');
+
+        showToast('p2-toast', '✓ PREDICTION PERFECT!', true);
+
+        setTimeout(() => {
+            if (p2Round < 3) {
+                loadGravityRound(p2Round + 1);
+            } else {
+                showLevel13Completion();
+            }
+        }, 900);
+    } else {
+        btnEl.classList.add('wrong');
+        showToast('p2-toast', '❌ Incorrect! Starting this Part again with a new challenge…', false);
+
+        document.querySelectorAll('#p2-choices-container .target-btn').forEach(b => {
+            if (b.dataset.id === p2CorrectTargetId) b.classList.add('correct');
+        });
+
+        setTimeout(() => {
+            loadGravityRound(1); // Restart ONLY Part 2 from Round 1
+        }, 1500);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL HINT SYSTEM
+   ═══════════════════════════════════════════════════════════════ */
+function executeGlobalHint() {
+    if (isLocked) return false;
+
+    if (currentPart === 1) {
+        // Shadow Detective Hint: briefly highlights the slot where the change occurred
+        const targetSlot = gid(`slot-changed-${p1ChangedSlotIdx}`) || gid(`slot-${p1ChangedSlotIdx}`);
+        if (targetSlot) {
+            targetSlot.classList.add('hint-glow');
+            setTimeout(() => {
+                targetSlot.classList.remove('hint-glow');
+            }, 2000);
+            return true;
+        }
+    } else if (currentPart === 2) {
+        // Gravity Flip Hint: flash the first step of trajectory
+        if (p2PathSteps.length > 1) {
+            const firstStepCell = gid(`cell-${p2PathSteps[1].r}-${p2PathSteps[1].c}`);
+            if (firstStepCell) {
+                firstStepCell.style.background = 'rgba(245,158,11,0.3)';
+                firstStepCell.style.borderColor = '#f59e0b';
+                setTimeout(() => {
+                    firstStepCell.style.background = '';
+                    firstStepCell.style.borderColor = '';
+                }, 2000);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LEVEL COMPLETION & PROGRESS SYNC
+   ═══════════════════════════════════════════════════════════════ */
+function showLevel13Completion() {
+    gid('dot-2').className = 'part-dot done';
+    saveProgress();
+    showPartCompletion({
+        part: 2,
+        totalParts: 2,
+        score: 50,
+        title: 'Correct!',
+        message: 'Exceptional performance! You completed all rounds across both Shadow Detective and Gravity Flip!',
+        buttonText: '🏆 Level Complete – Continue',
+        isFinal: true,
+        onContinue: () => {
+            window.location.href = 'dashboard.html';
+        }
+    });
+}
+
+function saveProgress() {
+    const defaultScores = Array(20).fill(0);
+    const defaultTimes = Array(20).fill("-");
+    const defaultStars = Array(20).fill("0");
+
+    let prevScore = parseInt(localStorage.getItem('mm_score'), 10) || 0;
+    let score = prevScore + 100;
+    let lastPlayedDateStr = localStorage.getItem('mm_last_played_date') || "";
+    let currentStreak = parseInt(localStorage.getItem('mm_streak'), 10) || 0;
+    let streakRes = (window.calculateNewStreak ? window.calculateNewStreak(currentStreak, lastPlayedDateStr, true) : { streak: (currentStreak || 1), dateStr: (window.getLocalDateString ? window.getLocalDateString() : new Date().toISOString().split('T')[0]) });
+    let streak = streakRes.streak;
+    let lastPlayedDate = streakRes.dateStr;
+    let unlockedLevel = Math.max(14, parseInt(localStorage.getItem('mm_unlocked_level'), 10) || 1);
+    let gamesPlayed = (parseInt(localStorage.getItem('mm_games_played'), 10) || 0) + 1;
+    let bestStreak = Math.max(streak, parseInt(localStorage.getItem('mm_best_streak'), 10) || streak);
+
+    let bestScores = safeParseArray(localStorage.getItem('mm_best_scores'), defaultScores);
+    let bestTimes = safeParseArray(localStorage.getItem('mm_best_times'), defaultTimes);
+    let stars = safeParseArray(localStorage.getItem('mm_stars'), defaultStars);
+
+    const elapsedSeconds = Math.round((Date.now() - startTimeStamp) / 1000);
+    const mins = Math.floor(elapsedSeconds / 60);
+    const secs = elapsedSeconds % 60;
+    const timeStr = `${mins}m ${secs}s`;
+
+    bestScores[12] = 100;
+    bestTimes[12] = timeStr;
+    stars[12] = '3';
+
+    localStorage.setItem('mm_score', score);
+    localStorage.setItem('mm_streak', streak);
+    localStorage.setItem('mm_last_played_date', lastPlayedDate);
+    localStorage.setItem('mm_unlocked_level', unlockedLevel);
+    localStorage.setItem('mm_games_played', gamesPlayed);
+    localStorage.setItem('mm_best_streak', bestStreak);
+    localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+    localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+    localStorage.setItem('mm_stars', JSON.stringify(stars));
+
+    fetch('saveProgress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            score: score,
+            streak: streak,
+            unlockedLevel: unlockedLevel,
+            gamesPlayed: gamesPlayed,
+            bestStreak: bestStreak,
+            bestScores: JSON.stringify(bestScores),
+            bestTimes: JSON.stringify(bestTimes),
+            stars: JSON.stringify(stars),
+            lastPlayedDate: lastPlayedDate,
+            clientDate: lastPlayedDate,
+            hints: localStorage.getItem('mm_hints') || 3
+        })
+    }).catch(() => {});
+}
+
+function safeParseArray(val, def) {
+    if (!val) return def;
+    try {
+        const p = JSON.parse(val);
+        return Array.isArray(p) ? p : def;
+    } catch (e) {
+        return def;
+    }
+}
+
+function showToast(id, msg, isSuccess) {
+    const t = gid(id);
+    if (!t) return;
+    t.textContent = msg;
+    t.className = isSuccess ? 'toast-msg success' : 'toast-msg error';
+}
+
+function hideToast(id) {
+    const t = gid(id);
+    if (t) t.className = 'toast-msg';
+}
+
+/* ── Confetti Animation ── */
+function fireConfetti() {
+    const canvas = gid('confetti-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const colors = ['#8b5cf6', '#06b6d4', '#34d399', '#f59e0b', '#ec4899', '#ffffff'];
+
+    for (let i = 0; i < 90; i++) {
+        particles.push({
+            x: canvas.width / 2 + (Math.random() - 0.5) * 200,
+            y: canvas.height / 2,
+            vx: (Math.random() - 0.5) * 14,
+            vy: Math.random() * -16 - 4,
+            w: Math.random() * 8 + 4,
+            h: Math.random() * 6 + 2,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rot: Math.random() * 360,
+            rotSpeed: (Math.random() - 0.5) * 10,
+            gravity: 0.25,
+            opacity: 1
+        });
+    }
+
+    function anim() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.vy += p.gravity;
+            p.y += p.vy;
+            p.rot += p.rotSpeed;
+            p.opacity -= 0.008;
+            if (p.opacity > 0) {
+                alive = true;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rot * Math.PI) / 180);
+                ctx.globalAlpha = Math.max(0, p.opacity);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                ctx.restore();
+            }
+        });
+        if (alive) requestAnimationFrame(anim);
+    }
+    anim();
+}
+</script>
+</body>
+</html>

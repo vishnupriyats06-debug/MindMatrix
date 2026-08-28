@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 9: Emoji Memory & Detection</title>
+    <meta name="description" content="Level 9 – Memorize emoji sequences and detect the odd one in a grid." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-deep:#050814; --bg-card:rgba(255,255,255,0.04); --bg-card-h:rgba(255,255,255,0.07);
+            --border:rgba(255,255,255,0.09); --border-h:rgba(139,92,246,0.45);
+            --accent-1:#8b5cf6; --accent-2:#06b6d4; --accent-3:#f59e0b;
+            --glow:rgba(139,92,246,0.35); --text-pri:#f0f4ff;
+            --text-sec:rgba(240,244,255,0.55); --text-muted:rgba(240,244,255,0.28);
+            --success:#34d399; --error:#f87171; --warning:#fbbf24;
+        }
+        html { scroll-behavior:smooth; }
+        body { font-family:'Outfit',sans-serif; background:var(--bg-deep); color:var(--text-pri); min-height:100vh; overflow-x:hidden; }
+        .bg-scene { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+        .bg-scene::before { content:''; position:absolute; border-radius:50%; width:700px; height:700px; background:radial-gradient(circle,rgba(139,92,246,0.18),transparent 70%); top:-200px; left:-200px; animation:orb 16s ease-in-out infinite alternate; }
+        .bg-scene::after  { content:''; position:absolute; border-radius:50%; width:600px; height:600px; background:radial-gradient(circle,rgba(6,182,212,0.14),transparent 70%); bottom:-150px; right:-150px; animation:orb 20s ease-in-out infinite alternate-reverse; }
+        @keyframes orb { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(60px,80px) scale(1.15)} }
+        .bg-grid { position:fixed; inset:0; z-index:0; pointer-events:none; background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px); background-size:60px 60px; }
+        .page-wrapper { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:32px 20px; }
+
+        /* ── Topbar ── */
+        .level-topbar { position:fixed; top:0; left:0; right:0; z-index:50; background:rgba(5,8,20,0.85); backdrop-filter:blur(24px); border-bottom:1px solid var(--border); padding:0 28px; height:64px; display:flex; align-items:center; justify-content:space-between; }
+        .topbar-left { display:flex; align-items:center; gap:14px; }
+        .btn-back { display:flex; align-items:center; gap:8px; padding:8px 16px; border-radius:10px; background:var(--bg-card); border:1px solid var(--border); color:var(--text-sec); font-family:'Outfit',sans-serif; font-size:13px; font-weight:500; cursor:pointer; text-decoration:none; transition:all 0.2s; }
+        .btn-back:hover { background:var(--bg-card-h); color:var(--text-pri); border-color:var(--border-h); }
+        .btn-back svg { width:16px; height:16px; }
+        .topbar-level-info h1 { font-size:16px; font-weight:700; }
+        .topbar-level-info span { font-size:11px; color:var(--text-muted); }
+        .topbar-right { display:flex; align-items:center; gap:12px; }
+        .part-indicator { display:flex; align-items:center; gap:8px; padding:6px 14px; border-radius:100px; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.25); font-size:12px; font-weight:600; color:var(--accent-1); }
+        .part-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.15); transition:background 0.3s; }
+        .part-dot.active { background:var(--accent-1); box-shadow:0 0 8px var(--glow); }
+        .part-dot.done   { background:var(--success); box-shadow:0 0 8px rgba(52,211,153,0.4); }
+
+        /* ── Game Card ── */
+        .game-card { width:100%; max-width:700px; background:var(--bg-card); border:1px solid var(--border); border-radius:28px; padding:40px 36px; backdrop-filter:blur(20px); box-shadow:0 0 0 1px rgba(255,255,255,0.04),0 24px 64px rgba(0,0,0,0.55),0 0 80px rgba(139,92,246,0.07); text-align:center; margin-top:80px; }
+        .game-state { display:none; animation:fade-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display:block; }
+        @keyframes fade-up { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+        .intro-emoji { font-size:56px; margin-bottom:16px; animation:pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08);filter:drop-shadow(0 0 20px rgba(139,92,246,0.4))} }
+        .intro-title { font-size:28px; font-weight:800; letter-spacing:-0.5px; margin-bottom:8px; }
+        .intro-subtitle { font-size:14px; color:var(--text-sec); margin-bottom:6px; }
+        .intro-desc { font-size:13px; color:var(--text-muted); margin-bottom:32px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto; }
+        .game-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:100px; margin-bottom:20px; background:linear-gradient(135deg,rgba(139,92,246,0.18),rgba(6,182,212,0.10)); border:1px solid rgba(139,92,246,0.30); font-size:12px; font-weight:600; color:var(--accent-1); }
+        .btn-primary { padding:14px 36px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--accent-1),var(--accent-2)); color:#fff; font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.25s; box-shadow:0 4px 20px rgba(139,92,246,0.4); }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(139,92,246,0.5); }
+        .btn-secondary { padding:12px 28px; border-radius:12px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-sec); font-family:'Outfit',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+        .btn-secondary:hover { background:var(--bg-card-h); color:var(--text-pri); border-color:var(--border-h); }
+
+        /* ── Part 1: Emoji Sequence Display ── */
+        .seq-container {
+            display:flex; justify-content:center; gap:10px; margin:32px auto;
+            flex-wrap:wrap; max-width:600px;
+        }
+        .seq-item {
+            font-size:36px; width:52px; height:52px; border-radius:12px;
+            display:flex; align-items:center; justify-content:center;
+            background:rgba(255,255,255,0.03); border:1px solid var(--border);
+            animation:scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+        @keyframes scale-in { from{transform:scale(0);opacity:0;} to{transform:scale(1);opacity:1;} }
+        
+        /* ── Part 1: Answer Board ── */
+        .answer-board {
+            display:flex; justify-content:center; gap:8px; margin:24px auto;
+            flex-wrap:wrap; max-width:600px;
+        }
+        .answer-slot {
+            font-size:28px; width:48px; height:48px; border-radius:10px;
+            display:flex; align-items:center; justify-content:center;
+            border:2px dashed rgba(255,255,255,0.1); background:rgba(0,0,0,0.15);
+            cursor:pointer; transition:all 0.2s;
+        }
+        .answer-slot.filled {
+            border-style:solid; border-color:var(--accent-2);
+            background:rgba(6,182,212,0.06);
+        }
+        .answer-slot:hover { border-color:var(--accent-1); }
+
+        /* ── Selection Pools ── */
+        .selection-grid {
+            display:grid; grid-template-columns:repeat(5, 1fr); gap:12px;
+            max-width:320px; margin:24px auto;
+        }
+        .select-emoji-btn {
+            font-size:32px; height:56px; border-radius:12px;
+            border:1px solid var(--border); background:rgba(255,255,255,0.03);
+            display:flex; align-items:center; justify-content:center;
+            cursor:pointer; transition:all 0.2s; user-select:none;
+        }
+        .select-emoji-btn:hover {
+            transform:scale(1.08); border-color:var(--border-h);
+            background:rgba(139,92,246,0.08);
+        }
+
+        /* ── Part 2: 10x10 Grid ── */
+        .grid-10x10 {
+            display:grid; grid-template-columns:repeat(10, 1fr); gap:4px;
+            max-width:520px; margin:16px auto;
+        }
+        .grid-cell {
+            aspect-ratio:1; font-size:22px; border-radius:8px;
+            border:1px solid var(--border); background:rgba(255,255,255,0.03);
+            display:flex; align-items:center; justify-content:center;
+            cursor:pointer; transition:transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+            user-select:none;
+        }
+        .grid-cell:hover {
+            transform:scale(1.18); border-color:rgba(139,92,246,0.6);
+            background:rgba(139,92,246,0.12); z-index:2;
+        }
+        .grid-cell.selected {
+            border-color:var(--accent-1);
+            background:rgba(139,92,246,0.15);
+            box-shadow:0 0 16px rgba(139,92,246,0.35);
+        }
+        .grid-cell.correct-ans {
+            border-color:var(--success) !important; background:rgba(52,211,153,0.25) !important;
+            transform:scale(1.1); box-shadow:0 0 16px rgba(52,211,153,0.5);
+        }
+        .grid-cell.shake-wrong {
+            animation:cell-shake 0.3s ease-in-out;
+            border-color:var(--error) !important; background:rgba(248,113,113,0.25) !important;
+        }
+        @keyframes cell-shake {
+            0%, 100% { transform:translateX(0); }
+            25% { transform:translateX(-4px); }
+            75% { transform:translateX(4px); }
+        }
+        
+        /* Hint Quadrant Glow style */
+        .grid-cell.hint-quadrant-glow {
+            border-color:var(--warning) !important;
+            background:rgba(251,191,36,0.2) !important;
+            box-shadow:0 0 12px rgba(251,191,36,0.35);
+        }
+
+        /* Part 2 Timer & Progress Bar */
+        .part2-header {
+            display:flex; align-items:center; justify-content:space-between;
+            max-width:520px; margin:0 auto 12px; padding:10px 18px;
+            background:rgba(255,255,255,0.03); border:1px solid var(--border);
+            border-radius:16px;
+        }
+        .part2-timer {
+            font-size:18px; font-weight:800; color:var(--accent-3);
+            display:flex; align-items:center; gap:6px;
+        }
+        .part2-timer.urgent {
+            color:var(--error); animation:pulse-glow 0.6s ease-in-out infinite alternate;
+        }
+        .part2-progress-dots { display:flex; gap:8px; align-items:center; }
+        .p2-dot {
+            width:10px; height:10px; border-radius:50%;
+            background:rgba(255,255,255,0.15); transition:all 0.3s ease;
+        }
+        .p2-dot.active {
+            background:var(--accent-1); box-shadow:0 0 10px var(--glow);
+            transform:scale(1.3);
+        }
+        .p2-dot.done {
+            background:var(--success); box-shadow:0 0 8px rgba(52,211,153,0.4);
+        }
+
+        /* ── Countdown / Progress ── */
+        .countdown-display {
+            font-size:72px; font-weight:900; color:var(--accent-1);
+            text-shadow:0 0 40px rgba(139,92,246,0.6);
+            margin:12px 0; animation:pulse-glow 1s ease-in-out infinite;
+        }
+
+        /* ── Result Overlay ── */
+        .result-overlay { position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.35s; }
+        .result-overlay.open { opacity:1; pointer-events:auto; }
+        .result-card { background:rgba(15,18,35,0.96); border:1px solid var(--border); border-radius:28px; padding:40px 36px; text-align:center; max-width:420px; width:90%; box-shadow:0 32px 80px rgba(0,0,0,0.6); }
+        .result-card.win { border-color:var(--success); box-shadow:0 0 60px rgba(52,211,153,0.15); }
+        .result-card.lose { border-color:var(--error); box-shadow:0 0 60px rgba(248,113,113,0.15); }
+        .result-emoji { font-size:56px; margin-bottom:12px; }
+        .result-title { font-size:24px; font-weight:800; margin-bottom:6px; }
+        .result-desc { font-size:13px; color:var(--text-sec); margin-bottom:20px; line-height:1.6; }
+        .result-score { font-size:36px; font-weight:800; background:linear-gradient(135deg,var(--accent-1),var(--accent-2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:24px; }
+
+        canvas#confetti-canvas { position:fixed; inset:0; z-index:200; pointer-events:none; }
+
+        @media(max-width:600px) {
+            .seq-item { font-size:28px; width:42px; height:42px; }
+            .answer-slot { font-size:24px; width:38px; height:38px; }
+            .grid-10x10 { max-width:100%; gap:2px; }
+            .grid-cell { font-size:15px; border-radius:4px; }
+            .selection-grid { grid-template-columns:repeat(5, 1fr); gap:8px; max-width:280px; }
+            .select-emoji-btn { font-size:26px; height:46px; }
+            .part2-header { padding:8px 12px; }
+            .part2-timer { font-size:15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-scene"></div>
+    <div class="bg-grid"></div>
+    <div class="page-wrapper">
+
+    <div class="level-topbar">
+        <div class="topbar-left">
+            <a href="dashboard.html" class="btn-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Dashboard
+            </a>
+            <div class="topbar-level-info">
+                <h1>Level 9 – Emoji Memory & Detection</h1>
+                <span id="topbar-part-label">Part 1: Emoji Sequence Memory</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="part-indicator">
+                <div class="part-dot active" id="dot-1"></div>
+                <span id="part-label-text">Part 1</span>
+                <div class="part-dot" id="dot-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <div class="game-card">
+
+            <!-- ── Intro State ── -->
+            <div class="game-state active" id="state-intro">
+                <div class="game-badge" id="intro-badge">😀 Level 9 • Part 1</div>
+                <div class="intro-emoji" id="intro-emoji">😀</div>
+                <div class="intro-title" id="intro-title">Emoji Sequence Memory</div>
+                <div class="intro-subtitle" id="intro-subtitle">Test your sequence memory speed!</div>
+                <div class="intro-desc" id="intro-desc">
+                    You will see a sequence of 10 different emojis.
+                    Memorize their sequence and order in 5 seconds.
+                    Reconstruct the exact sequence after it disappears!
+                </div>
+                <button class="btn-primary" id="btn-start">▶ Start Challenge</button>
+            </div>
+
+            <!-- ── Memorization State (Sequence Show) ── -->
+            <div class="game-state" id="state-memorize">
+                <div class="game-badge">⏱ Memorize!</div>
+                <div class="intro-title" style="font-size:22px;">Remember the Sequence & Order</div>
+                <div class="countdown-display" id="countdown-timer">5</div>
+                <div class="seq-container" id="seq-display">
+                    <!-- filled dynamically -->
+                </div>
+            </div>
+
+            <!-- ── Part 1 Recall Input State ── -->
+            <div class="game-state" id="state-recall">
+                <div class="game-badge">🧠 Recall Sequence</div>
+                <div class="intro-title" style="font-size:22px;">Reconstruct the Sequence</div>
+                <div class="intro-subtitle" style="margin-bottom:12px;">Click emojis in the order they originally appeared.</div>
+                
+                <div class="answer-board" id="answer-board">
+                    <!-- 10 answer slots -->
+                </div>
+                
+                <div class="selection-grid" id="emoji-pool">
+                    <!-- emoji pick buttons -->
+                </div>
+                
+                <div style="margin-top:24px; display:flex; justify-content:center; gap:12px;">
+                    <button class="btn-secondary" id="btn-reset">🗑 Reset</button>
+                    <button class="btn-primary" id="btn-submit">Submit Answer</button>
+                </div>
+            </div>
+
+            <!-- ── Part 2 Recall Grid State ── -->
+            <div class="game-state" id="state-grid-detect">
+                <div class="game-badge">⚡ 5 Grids • 20s Speed Challenge</div>
+                <div class="intro-title" style="font-size:22px;">Odd Emoji Detection</div>
+                <div class="intro-subtitle" style="margin-bottom:12px;">Find all 5 odd emojis before time runs out!</div>
+                
+                <div class="part2-header">
+                    <div class="part2-timer" id="part2-timer-display">⏱️ <span id="p2-timer-val">20</span>s</div>
+                    <div style="font-size: 13px; font-weight: 600; color: var(--text-sec);">
+                        Grid <span id="p2-grid-num" style="color:var(--accent-1); font-weight:800;">1</span> / 5
+                    </div>
+                    <div class="part2-progress-dots">
+                        <div class="p2-dot active" id="p2-dot-0"></div>
+                        <div class="p2-dot" id="p2-dot-1"></div>
+                        <div class="p2-dot" id="p2-dot-2"></div>
+                        <div class="p2-dot" id="p2-dot-3"></div>
+                        <div class="p2-dot" id="p2-dot-4"></div>
+                    </div>
+                </div>
+
+                <div class="grid-10x10" id="grid-10x10">
+                    <!-- 100 grid cells -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card" id="result-card">
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <div class="result-title" id="result-title">Correct!</div>
+            <div class="result-desc" id="result-desc">Excellent work!</div>
+            <div class="result-score" id="result-score">+70</div>
+            <button class="btn-primary" id="result-action-btn">Continue ▶</button>
+        </div>
+    </div>
+
+    <script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+    <script>
+    /* ═══════════════════════════════════════════
+       LEVEL 9 – EMOJI MEMORY & DETECTION
+    ═══════════════════════════════════════════ */
+
+    let currentPart = 1;
+    let sequenceData = [];     // Part 1: 10 emojis
+    let userAnswers = [];      // Part 1: indexes/emojis
+    
+    // Part 2 state
+    let part2Grids = [];       // Array of 5 { normal, odd, oddIndex }
+    let currentGridIndex = 0;  // 0 to 4
+    let p2Timer = 20;
+    let p2TimerInterval = null;
+    
+    // Emojis for selection pool (Part 1 distractors)
+    const POOL_EMOJIS = [
+        "😀", "😎", "🐶", "🐱", "🍎", "🚗", "⭐", "🌈", "⚽", "🎵",
+        "🎁", "🔥", "⚡", "🍀", "💡", "🍕", "🚀", "🛸", "🎈", "💎"
+    ];
+
+    function gid(id) { return document.getElementById(id); }
+    function showState(id) {
+        document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+        gid(id).classList.add('active');
+    }
+
+    // Start Button
+    gid('btn-start').onclick = () => {
+        if (currentPart === 1) fetchAndStartPart1();
+        else fetchAndStartPart2();
+    };
+
+    // ─── PART 1: SEQUENCE MEMORY ───
+    function fetchAndStartPart1() {
+        fetch('level9?part=1&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => {
+                sequenceData = data.sequence;
+                startPart1Memorize();
+            }).catch(() => {
+                // fallback
+                sequenceData = ["😀", "🚗", "⭐", "🐶", "🍎", "🎵", "🐱", "⚽", "🌈", "😎"];
+                startPart1Memorize();
+            });
+    }
+
+    function startPart1Memorize() {
+        userAnswers = [];
+        const container = gid('seq-display');
+        container.innerHTML = '';
+
+        sequenceData.forEach((emoji, idx) => {
+            const el = document.createElement('div');
+            el.className = 'seq-item';
+            el.textContent = emoji;
+            el.style.animationDelay = `${idx * 0.08}s`;
+            container.appendChild(el);
+        });
+
+        showState('state-memorize');
+
+        let timer = 5;
+        gid('countdown-timer').textContent = timer;
+        const countdown = setInterval(() => {
+            timer--;
+            gid('countdown-timer').textContent = timer;
+            if (timer <= 0) {
+                clearInterval(countdown);
+                setupPart1Recall();
+            }
+        }, 1000);
+    }
+
+    function setupPart1Recall() {
+        userAnswers = [];
+        
+        // build slots
+        const board = gid('answer-board');
+        board.innerHTML = '';
+        for (let i = 0; i < 10; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'answer-slot';
+            slot.id = `slot-${i}`;
+            slot.onclick = () => clearSlot(i);
+            board.appendChild(slot);
+        }
+
+        // build selection grid
+        const poolContainer = gid('emoji-pool');
+        poolContainer.innerHTML = '';
+
+        // build a pool of 15 buttons (10 correct + 5 distractors)
+        let selectionPool = [...sequenceData];
+        let distractors = POOL_EMOJIS.filter(e => !sequenceData.includes(e));
+        for (let i = 0; i < 5; i++) {
+            if (distractors[i]) selectionPool.push(distractors[i]);
+        }
+        selectionPool.sort(() => Math.random() - 0.5);
+
+        selectionPool.forEach(emoji => {
+            const btn = document.createElement('div');
+            btn.className = 'select-emoji-btn';
+            btn.textContent = emoji;
+            btn.onclick = () => selectEmoji(emoji);
+            poolContainer.appendChild(btn);
+        });
+
+        showState('state-recall');
+    }
+
+    function selectEmoji(emoji) {
+        if (userAnswers.length >= 10) return;
+        userAnswers.push(emoji);
+        renderSlots();
+    }
+
+    function clearSlot(idx) {
+        if (idx < userAnswers.length) {
+            userAnswers.splice(idx, 1);
+            renderSlots();
+        }
+    }
+
+    function renderSlots() {
+        for (let i = 0; i < 10; i++) {
+            const slot = gid(`slot-${i}`);
+            if (i < userAnswers.length) {
+                slot.textContent = userAnswers[i];
+                slot.classList.add('filled');
+            } else {
+                slot.textContent = '';
+                slot.classList.remove('filled');
+            }
+        }
+    }
+
+    gid('btn-reset').onclick = () => {
+        userAnswers = [];
+        renderSlots();
+    };
+
+    gid('btn-submit').onclick = () => {
+        if (userAnswers.length < 10) return;
+
+        let correct = true;
+        for (let i = 0; i < 10; i++) {
+            if (userAnswers[i] !== sequenceData[i]) {
+                correct = false;
+                break;
+            }
+        }
+
+        if (correct) {
+            fetch('level9', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ part: 1, correct: true })
+            }).catch(() => {});
+            showResult(true, 1, "Correct! Excellent Emoji Memory!");
+        } else {
+            showResult(false, 1, "Incorrect Sequence. Try Again!");
+        }
+    };
+
+    // ─── PART 2: ODD EMOJI DETECTION (5 x 10x10 GRIDS IN 20 SECONDS) ───
+    function fetchAndStartPart2() {
+        fetch('level9?part=2&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => {
+                if (data.grids && data.grids.length >= 5) {
+                    part2Grids = data.grids;
+                } else if (data.normal && data.odd) {
+                    // Fallback to single server response duplicated to 5 rounds with random oddIndex
+                    part2Grids = [];
+                    const pairs = [
+                        ["😀", "😃"], ["😐", "😑"], ["😮", "😯"], ["😍", "🥰"], ["😎", "🤓"]
+                    ];
+                    for (let i = 0; i < 5; i++) {
+                        part2Grids.push({
+                            normal: pairs[i][0], odd: pairs[i][1],
+                            oddIndex: Math.floor(Math.random() * 100)
+                        });
+                    }
+                }
+                startPart2Challenge();
+            }).catch(() => {
+                // Fallback
+                part2Grids = [
+                    { normal: "😀", odd: "😃", oddIndex: Math.floor(Math.random() * 100) },
+                    { normal: "😐", odd: "😑", oddIndex: Math.floor(Math.random() * 100) },
+                    { normal: "😮", odd: "😯", oddIndex: Math.floor(Math.random() * 100) },
+                    { normal: "😍", odd: "🥰", oddIndex: Math.floor(Math.random() * 100) },
+                    { normal: "😎", odd: "🤓", oddIndex: Math.floor(Math.random() * 100) }
+                ];
+                startPart2Challenge();
+            });
+    }
+
+    function startPart2Challenge() {
+        currentGridIndex = 0;
+        p2Timer = 20;
+        gid('p2-timer-val').textContent = p2Timer;
+        gid('part2-timer-display').classList.remove('urgent');
+
+        if (p2TimerInterval) clearInterval(p2TimerInterval);
+        p2TimerInterval = setInterval(() => {
+            p2Timer--;
+            gid('p2-timer-val').textContent = Math.max(0, p2Timer);
+            if (p2Timer <= 5) {
+                gid('part2-timer-display').classList.add('urgent');
+            }
+            if (p2Timer <= 0) {
+                clearInterval(p2TimerInterval);
+                p2TimerInterval = null;
+                showResult(false, 2, "Time's Up! You ran out of time. Try again!");
+            }
+        }, 1000);
+
+        renderPart2Grid(0);
+        showState('state-grid-detect');
+    }
+
+    function renderPart2Grid(gridIdx) {
+        gid('p2-grid-num').textContent = gridIdx + 1;
+        for (let i = 0; i < 5; i++) {
+            const dot = gid(`p2-dot-${i}`);
+            if (i < gridIdx) dot.className = 'p2-dot done';
+            else if (i === gridIdx) dot.className = 'p2-dot active';
+            else dot.className = 'p2-dot';
+        }
+
+        const gridInfo = part2Grids[gridIdx];
+        const grid = gid('grid-10x10');
+        grid.innerHTML = '';
+
+        for (let i = 0; i < 100; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.id = `cell-${i}`;
+            cell.textContent = (i === gridInfo.oddIndex) ? gridInfo.odd : gridInfo.normal;
+            cell.onclick = () => handleP2CellClick(i, gridInfo.oddIndex);
+            grid.appendChild(cell);
+        }
+    }
+
+    function handleP2CellClick(clickedIdx, targetOddIdx) {
+        if (p2Timer <= 0) return;
+
+        const cell = gid(`cell-${clickedIdx}`);
+
+        if (clickedIdx === targetOddIdx) {
+            cell.classList.add('correct-ans');
+            
+            if (currentGridIndex < 4) {
+                currentGridIndex++;
+                setTimeout(() => {
+                    renderPart2Grid(currentGridIndex);
+                }, 200);
+            } else {
+                // Completed all 5 grids!
+                if (p2TimerInterval) clearInterval(p2TimerInterval);
+                p2TimerInterval = null;
+
+                fetch('level9', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ part: 2, correct: true })
+                }).catch(() => {});
+                
+                showResult(true, 2, "Sensational! You found all 5 odd emojis in time!");
+            }
+        } else {
+            // Wrong click -> penalty flash + 1s time penalty
+            cell.classList.add('shake-wrong');
+            setTimeout(() => cell.classList.remove('shake-wrong'), 400);
+
+            p2Timer = Math.max(0, p2Timer - 1);
+            gid('p2-timer-val').textContent = p2Timer;
+        }
+    }
+
+    // ─── RESULT OVERLAY ───
+    function showResult(win, part, desc) {
+        if (p2TimerInterval) {
+            clearInterval(p2TimerInterval);
+            p2TimerInterval = null;
+        }
+
+        const overlay = gid('result-overlay');
+        const card = gid('result-card');
+        card.className = 'result-card ' + (win ? 'win' : 'lose');
+        gid('result-emoji').textContent = win ? '🎉' : '❌';
+        gid('result-title').textContent = win ? 'Correct!' : 'Incorrect!';
+        gid('result-desc').textContent = desc;
+
+        if (win) {
+            gid('result-score').textContent = '+70';
+            if (part === 1) {
+                gid('result-action-btn').textContent = 'Next Part ▶';
+                gid('result-action-btn').onclick = () => { closeResult(); setupPart2Intro(); };
+            } else {
+                gid('result-action-btn').textContent = 'Back to Dashboard ▶';
+                let p = saveProgressToServer();
+                gid('result-action-btn').onclick = () => {
+                    closeResult();
+                    if (p) { p.finally(() => { window.location.href = 'dashboard.html'; }); }
+                    else { window.location.href = 'dashboard.html'; }
+                };
+                launchConfetti();
+            }
+        } else {
+            gid('result-score').textContent = '0';
+            gid('result-action-btn').textContent = 'Try Again';
+            gid('result-action-btn').onclick = () => {
+                closeResult();
+                if (part === 1) fetchAndStartPart1();
+                else fetchAndStartPart2();
+            };
+        }
+        overlay.classList.add('open');
+    }
+
+    function closeResult() { gid('result-overlay').classList.remove('open'); }
+
+    // ─── PART 2 INTRO ───
+    function setupPart2Intro() {
+        currentPart = 2;
+        gid('intro-badge').textContent = '🔍 Level 9 • Part 2';
+        gid('intro-emoji').textContent = '🔍';
+        gid('intro-title').textContent = 'Odd Emoji Detection Challenge';
+        gid('intro-subtitle').textContent = '5 Grids • 10×10 Grid • 20 Seconds!';
+        gid('intro-desc').textContent = 'You will face 5 different 10 × 10 emoji grids. Each grid has 99 identical emojis and 1 subtle odd emoji. Find all 5 odd emojis before the 20-second timer runs out!';
+        gid('topbar-part-label').textContent = 'Part 2: Odd Emoji Detection';
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        showState('state-intro');
+    }
+
+    /* ── Streak Helpers ── */
+    function getLocalDateString() {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+    function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
+        if (!isSuccess) return { streak: 0, dateStr: lastPlayedDateStr };
+        var todayStr = getLocalDateString();
+        if (!lastPlayedDateStr) return { streak: 1, dateStr: todayStr };
+        var today = new Date(todayStr + 'T00:00:00');
+        var lastPlayed = new Date(lastPlayedDateStr + 'T00:00:00');
+        var diffDays = Math.round((today - lastPlayed) / (1000 * 60 * 60 * 24));
+        var newStreak = currentStreak;
+        if (diffDays === 0) { if (newStreak === 0) newStreak = 1; }
+        else if (diffDays === 1) { newStreak = currentStreak + 1; }
+        else { newStreak = 1; }
+        return { streak: newStreak, dateStr: todayStr };
+    }
+
+    function safeParseArray(dataVal, defaultArray) {
+        if (Array.isArray(dataVal)) return dataVal;
+        if (typeof dataVal === 'string') {
+            try {
+                var parsed = JSON.parse(dataVal);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {}
+        }
+        return defaultArray.slice();
+    }
+
+    function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
+        try {
+            localStorage.setItem('mm_score', score);
+            localStorage.setItem('mm_streak', streak);
+            localStorage.setItem('mm_unlocked_level', unlockedLevel);
+            localStorage.setItem('mm_games_played', gamesPlayed);
+            localStorage.setItem('mm_best_streak', bestStreak);
+            localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+            localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+            localStorage.setItem('mm_stars', JSON.stringify(stars));
+            if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+        } catch(e) {}
+    }
+
+    // ─── SAVE PROGRESS ───
+    let savePromise = null;
+    function saveProgressToServer() {
+        savePromise = fetch('getProgress?t=' + Date.now())
+            .then(r => r.ok ? r.json() : Promise.reject('Failed to fetch progress'))
+            .then(data => {
+                let score = (parseInt(data.score, 10) || 0) + 140;
+                let gamesPlayed = (parseInt(data.gamesPlayed, 10) || 0) + 1;
+                let unlockedLevel = Math.max(parseInt(data.unlockedLevel, 10) || 1, 10);
+                let bestScores = safeParseArray(data.bestScores, Array(20).fill(0));
+                let bestTimes = safeParseArray(data.bestTimes, Array(20).fill('-'));
+                let stars = safeParseArray(data.stars, Array(20).fill('0'));
+
+                let streakResult   = calculateNewStreak(parseInt(data.streak, 10) || 0, data.lastPlayedDate || '', true);
+                let streak         = streakResult.streak;
+                let lastPlayedDate = streakResult.dateStr;
+                let bestStreak     = Math.max(parseInt(data.bestStreak, 10) || 0, streak);
+
+                if (140 > (parseInt(bestScores[8], 10) || 0)) bestScores[8] = 140;
+                stars[8] = '3';
+                bestTimes[8] = '20s';
+
+                saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate);
+
+                return fetch('saveProgress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        score: score, streak: streak, unlockedLevel: unlockedLevel, gamesPlayed: gamesPlayed,
+                        bestStreak: bestStreak,
+                        bestScores: JSON.stringify(bestScores), bestTimes: JSON.stringify(bestTimes), stars: JSON.stringify(stars),
+                        lastPlayedDate: lastPlayedDate
+                    })
+                });
+            }).catch(err => { console.error('[Level9] Error saving progress:', err); });
+        return savePromise;
+    }
+
+    // ─── CONFETTI ───
+    function launchConfetti() {
+        const canvas = gid('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const pieces = Array.from({length: 120}, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            r: Math.random() * 6 + 3,
+            c: `hsl(${Math.random()*360},80%,60%)`,
+            vy: Math.random() * 3 + 2,
+            vx: (Math.random() - 0.5) * 3,
+            a: Math.random() * 360
+        }));
+        let frames = 0;
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pieces.forEach(p => {
+                p.y += p.vy; p.x += p.vx; p.a += 3;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.a * Math.PI / 180);
+                ctx.fillStyle = p.c;
+                ctx.fillRect(-p.r, -p.r/2, p.r*2, p.r);
+                ctx.restore();
+            });
+            frames++;
+            if (frames < 180) requestAnimationFrame(draw);
+            else ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        draw();
+    }
+
+    // ─── HINT SYSTEM ───
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            () => gid('state-recall').classList.contains('active') || gid('state-grid-detect').classList.contains('active'),
+            () => {
+                if (currentPart === 1) {
+                    for (let i = 0; i < 10; i++) {
+                        if (userAnswers[i] !== sequenceData[i]) {
+                            userAnswers[i] = sequenceData[i];
+                            userAnswers = userAnswers.slice(0, i + 1);
+                            renderSlots();
+                            return true;
+                        }
+                    }
+                } else {
+                    // Part 2 Hint: Highlight the 5x5 quadrant containing the odd emoji for current grid
+                    if (!part2Grids || !part2Grids[currentGridIndex]) return false;
+                    const idx = part2Grids[currentGridIndex].oddIndex;
+                    const row = Math.floor(idx / 10); // 0 to 9
+                    const col = idx % 10;             // 0 to 9
+                    
+                    const rowStart = row < 5 ? 0 : 5;
+                    const rowEnd = row < 5 ? 4 : 9;
+                    const colStart = col < 5 ? 0 : 5;
+                    const colEnd = col < 5 ? 4 : 9;
+
+                    document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('hint-quadrant-glow'));
+                    
+                    for (let r = rowStart; r <= rowEnd; r++) {
+                        for (let c = colStart; c <= colEnd; c++) {
+                            const cellIdx = r * 10 + c;
+                            const el = gid(`cell-${cellIdx}`);
+                            if (el) el.classList.add('hint-quadrant-glow');
+                        }
+                    }
+                    
+                    setTimeout(() => {
+                        document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('hint-quadrant-glow'));
+                    }, 2500);
+                    
+                    return true;
+                }
+                return false;
+            }
+        );
+    }
+    </script>
+</body>
+</html>

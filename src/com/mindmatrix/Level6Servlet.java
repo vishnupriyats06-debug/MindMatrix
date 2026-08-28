@@ -1,0 +1,210 @@
+package com.mindmatrix;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+/**
+ * Level6Servlet – Handles the Level 6 logic.
+ * GET  /level6?part=1   → returns JSON with 10 shuffled numbers.
+ * GET  /level6?part=2   → returns JSON with a shuffled array of image pairs (emojis).
+ * POST /level6          → validates the user's answers.
+ */
+@WebServlet("/level6")
+public class Level6Servlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    private static final Random RAND = new Random();
+
+    private static final String[] EMOJIS = {
+        "🚀", "🐶", "🍕", "🎸", "⚽", "🌈", "🔥", "💎", 
+        "🍔", "🥑", "🌍", "🎲", "🧩", "🦄", "🎨", "🎭", "🎪", "🏆"
+    };
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        HttpSession session = req.getSession();
+        String partParam = req.getParameter("part");
+        int part = partParam == null ? 1 : Integer.parseInt(partParam);
+        PrintWriter out = resp.getWriter();
+        
+        if (part == 1) {
+            List<Integer> numbers = new ArrayList<>();
+            for (int i = 1; i <= 20; i++) {
+                numbers.add(i);
+            }
+            Collections.shuffle(numbers, RAND);
+            session.setAttribute("level6part1", numbers);
+            out.print(listToJsonNumeric(numbers));
+        } else if (part == 2) {
+            List<String> pairs = new ArrayList<>();
+            for (String emoji : EMOJIS) {
+                pairs.add(emoji);
+                pairs.add(emoji);
+            }
+            Collections.shuffle(pairs, RAND);
+            session.setAttribute("level6part2", pairs);
+            out.print(listToJsonString(pairs));
+        } else {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.print("{\"error\":\"Invalid part parameter\"}");
+        }
+        out.flush();
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        HttpSession session = req.getSession(false);
+        if (session == null) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            resp.getWriter().print("{\"error\":\"Session expired\"}");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = req.getReader()) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        }
+        String body = sb.toString();
+        
+        // Simple manual JSON extraction for "part" and "correct" since gameplay is validated client side
+        // to save complex state tracking, we just accept a success signal but we check if session matches
+        int part = extractInt(body, "part");
+        boolean isCorrect = body.contains("\"correct\":true");
+        boolean valid = false;
+
+        if (part == 1 && session.getAttribute("level6part1") != null && isCorrect) {
+            valid = true;
+        } else if (part == 2 && session.getAttribute("level6part2") != null && isCorrect) {
+            valid = true;
+            // updateUserProgress handled via SaveProgressServlet
+        }
+        
+        PrintWriter out = resp.getWriter();
+        out.print("{\"success\":" + valid + "}");
+        out.flush();
+    }
+
+    private void updateUserProgress(int userId, int scoreAdd, int currentLevel) {
+        try (Connection conn = DBConnection.getConnection()) {
+            int currentScore = 0;
+            int currentStreak = 0;
+            int unlockedLevel = 1;
+            int gamesPlayed = 0;
+            int bestStreak = 0;
+            String bestScoresStr = "[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]";
+            String bestTimesStr = "[\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\",\"-\"]";
+            String starsStr = "[\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\",\"0\"]";
+            java.sql.Date dbLastDate = null;
+
+            String selSql = "SELECT * FROM user_progress WHERE user_id = ?";
+            try (PreparedStatement selStmt = conn.prepareStatement(selSql)) {
+                selStmt.setInt(1, userId);
+                try (ResultSet rs = selStmt.executeQuery()) {
+                    if (rs.next()) {
+                        currentScore = rs.getInt("score");
+                        currentStreak = rs.getInt("streak");
+                        unlockedLevel = rs.getInt("unlocked_level");
+                        gamesPlayed = rs.getInt("games_played");
+                        bestStreak = rs.getInt("best_streak");
+                        if (rs.getString("best_scores") != null) bestScoresStr = rs.getString("best_scores");
+                        if (rs.getString("best_times") != null) bestTimesStr = rs.getString("best_times");
+                        if (rs.getString("stars") != null) starsStr = rs.getString("stars");
+                        dbLastDate = rs.getDate("last_played_date");
+                    }
+                }
+            }
+
+            int streak = StreakUtil.calculateDayStreak(currentStreak, dbLastDate, true);
+            int newBestStreak = Math.max(bestStreak, streak);
+            int newScore = currentScore + scoreAdd;
+            int newUnlockedLevel = Math.max(unlockedLevel, currentLevel + 1);
+            int newGamesPlayed = gamesPlayed + 1;
+            java.sql.Date now = java.sql.Date.valueOf(java.time.LocalDate.now());
+
+            String sql = "INSERT INTO user_progress (user_id, score, streak, unlocked_level, games_played, best_streak, best_scores, best_times, stars, last_played_date) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                         "ON DUPLICATE KEY UPDATE score = ?, streak = ?, unlocked_level = ?, games_played = ?, best_streak = ?, best_scores = ?, best_times = ?, stars = ?, last_played_date = ?";
+            
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, userId);
+                stmt.setInt(2, newScore);
+                stmt.setInt(3, streak);
+                stmt.setInt(4, newUnlockedLevel);
+                stmt.setInt(5, newGamesPlayed);
+                stmt.setInt(6, newBestStreak);
+                stmt.setString(7, bestScoresStr);
+                stmt.setString(8, bestTimesStr);
+                stmt.setString(9, starsStr);
+                stmt.setDate(10, now);
+
+                stmt.setInt(11, newScore);
+                stmt.setInt(12, streak);
+                stmt.setInt(13, newUnlockedLevel);
+                stmt.setInt(14, newGamesPlayed);
+                stmt.setInt(15, newBestStreak);
+                stmt.setString(16, bestScoresStr);
+                stmt.setString(17, bestTimesStr);
+                stmt.setString(18, starsStr);
+                stmt.setDate(19, now);
+
+                stmt.executeUpdate();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int extractInt(String json, String key) {
+        String pattern = "\\\"" + key + "\\\":";
+        int idx = json.indexOf(pattern);
+        if (idx == -1) return -1;
+        int start = idx + pattern.length();
+        int end = json.indexOf(',', start);
+        if (end == -1) end = json.indexOf('}', start);
+        return Integer.parseInt(json.substring(start, end).trim());
+    }
+
+    private String listToJsonNumeric(List<Integer> list) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"items\":[");
+        for (int i = 0; i < list.size(); i++) {
+            if (i > 0) sb.append(",");
+            sb.append(list.get(i));
+        }
+        sb.append("]}");
+        return sb.toString();
+    }
+
+    private String listToJsonString(List<String> list) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"items\":[");
+        for (int i = 0; i < list.size(); i++) {
+            if (i > 0) sb.append(",");
+            sb.append("\"").append(list.get(i)).append("\"");
+        }
+        sb.append("]}");
+        return sb.toString();
+    }
+}

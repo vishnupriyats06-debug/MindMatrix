@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 7: Shape Memory</title>
+    <meta name="description" content="Level 7 – Test your memory with Shape Sequence and Position games." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        /* ══════════════════════════════════════════
+           RESET & TOKENS
+        ══════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep:    #050814;
+            --bg-mid:     #0b0f24;
+            --bg-card:    rgba(255,255,255,0.04);
+            --bg-card-h:  rgba(255,255,255,0.07);
+            --border:     rgba(255,255,255,0.09);
+            --border-h:   rgba(139,92,246,0.45);
+            --accent-1:   #8b5cf6;
+            --accent-2:   #06b6d4;
+            --accent-3:   #f59e0b;
+            --glow:       rgba(139,92,246,0.35);
+            --text-pri:   #f0f4ff;
+            --text-sec:   rgba(240,244,255,0.55);
+            --text-muted: rgba(240,244,255,0.28);
+            --success:    #34d399;
+            --warning:    #fbbf24;
+            --error:      #f87171;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-pri);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ── Backgrounds ── */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            background: var(--bg-deep); overflow: hidden; pointer-events: none;
+        }
+        .bg-scene::before {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(139,92,246,0.18), transparent 70%);
+            top: -200px; left: -200px;
+            animation: orb 16s ease-in-out infinite alternate;
+        }
+        .bg-scene::after {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(6,182,212,0.14), transparent 70%);
+            bottom: -150px; right: -150px;
+            animation: orb 20s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes orb {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(60px,80px) scale(1.15); }
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ── Layout ── */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; padding: 32px 20px;
+        }
+
+        /* ── Top Bar ── */
+        .level-topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(5,8,20,0.85);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 10px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.2s ease;
+        }
+        .btn-back:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+        .btn-back svg { width: 16px; height: 16px; }
+        .topbar-level-info h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+        .topbar-level-info span { font-size: 11px; color: var(--text-muted); }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+        .part-indicator {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 14px; border-radius: 100px;
+            background: rgba(139,92,246,0.12);
+            border: 1px solid rgba(139,92,246,0.25);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+        .part-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            transition: background 0.3s ease;
+        }
+        .part-dot.active { background: var(--accent-1); box-shadow: 0 0 8px var(--glow); }
+        .part-dot.done   { background: var(--success); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+
+        /* ── Game Card ── */
+        .game-card {
+            width: 100%; max-width: 640px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 28px; padding: 40px 36px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 24px 64px rgba(0,0,0,0.55),
+                0 0 80px rgba(139,92,246,0.07);
+            text-align: center;
+            margin-top: 80px;
+            max-width: 680px;
+        }
+
+        /* ── Game States ── */
+        .game-state { display: none; animation: fade-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display: block; }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Intro ── */
+        .intro-emoji { font-size: 56px; margin-bottom: 16px; animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+            50%       { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(139,92,246,0.4)); }
+        }
+        .intro-title    { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .intro-subtitle { font-size: 14px; color: var(--text-sec); margin-bottom: 6px; }
+        .intro-desc     {
+            font-size: 13px; color: var(--text-muted); margin-bottom: 32px;
+            line-height: 1.7; max-width: 400px; margin-left: auto; margin-right: auto;
+        }
+        .game-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 100px; margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(6,182,212,0.10));
+            border: 1px solid rgba(139,92,246,0.30);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+
+        /* ── Shared Game Elements ── */
+        .shape-display-area {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            justify-items: center;
+            margin: 20px auto;
+            max-width: 420px;
+        }
+        .shape-box {
+            width: 60px; height: 60px; border-radius: 14px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .shape-box.flashing {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(6,182,212,0.2));
+            border-color: var(--accent-1);
+            box-shadow: 0 0 24px var(--glow);
+        }
+
+        /* Part 1 Specific */
+        .answer-area {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 14px auto 28px;
+            padding: 14px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px dashed var(--border);
+            max-width: 420px;
+        }
+        .answer-slot {
+            width: 100%; aspect-ratio: 1;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.2); border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center; font-size: 22px;
+        }
+
+        /* Part 2 Specific */
+        .shape-grid {
+            display: grid; grid-template-columns: repeat(4, 70px);
+            gap: 10px; justify-content: center; margin: 24px auto;
+        }
+        .grid-cell {
+            width: 70px; height: 70px; border-radius: 12px;
+            background: rgba(255,255,255,0.03); border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center; font-size: 32px;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .grid-cell:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+        .grid-cell.active-drop { border-color: var(--accent-1); background: rgba(139,92,246,0.1); box-shadow: 0 0 12px var(--glow); }
+
+        .available-shapes {
+            display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 24px;
+        }
+        .draggable-shape {
+            width: 60px; height: 60px; border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+            border: 2px solid rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center; font-size: 28px;
+            cursor: pointer; transition: transform 0.2s ease;
+        }
+        .draggable-shape:hover { transform: translateY(-3px) scale(1.05); }
+        .draggable-shape.selected { border-color: var(--accent-1); box-shadow: 0 0 16px var(--glow); transform: scale(1.1); }
+        .draggable-shape.used { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+        /* Timer */
+        .timer-circle {
+            width: 60px; height: 60px; margin: 24px auto 0;
+            position: relative;
+        }
+        .timer-circle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .timer-track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 4; }
+        .timer-progress {
+            fill: none; stroke: var(--accent-1); stroke-width: 4; stroke-linecap: round;
+            stroke-dasharray: 157; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear;
+        }
+        .timer-text {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-size: 20px; font-weight: 700; color: var(--accent-1);
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 36px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 24px rgba(139,92,246,0.45);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            min-width: 160px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 36px rgba(139,92,246,0.55);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; border-radius: 12px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: var(--bg-card-h); color: var(--text-pri);
+            border-color: var(--border-h);
+        }
+
+        /* ── Result Overlay ── */
+        .result-overlay {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.72); backdrop-filter: blur(12px);
+            align-items: center; justify-content: center;
+        }
+        .result-overlay.open { display: flex; }
+
+        .result-card {
+            background: rgba(11,15,36,0.97); border: 1px solid var(--border);
+            border-radius: 28px; padding: 44px 40px;
+            width: 90%; max-width: 420px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.60);
+            animation: pop-in 0.4s cubic-bezier(0.22,1,0.36,1);
+            text-align: center;
+        }
+        @keyframes pop-in {
+            from { opacity: 0; transform: scale(0.85) translateY(24px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .result-emoji { font-size: 64px; margin-bottom: 16px; }
+        .result-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .result-desc  { font-size: 14px; color: var(--text-sec); line-height: 1.7; margin-bottom: 28px; }
+        .result-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+        .result-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 14px; }
+        .result-stat .rs-val { font-size: 22px; font-weight: 800; color: var(--accent-1); }
+        .result-stat .rs-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .result-buttons { display: flex; flex-direction: column; gap: 10px; }
+
+        .result-card.win  { border-color: rgba(52,211,153,0.30); }
+        .result-card.win  .result-title { color: var(--success); }
+        .result-card.lose { border-color: rgba(248,113,113,0.25); }
+        .result-card.lose .result-title { color: var(--error); }
+
+        #confetti-canvas { position: fixed; inset: 0; z-index: 250; pointer-events: none; }
+
+        @media (max-width: 520px) {
+            .game-card { padding: 32px 18px; border-radius: 20px; margin-top: 72px; }
+            .shape-box { width: 56px; height: 56px; font-size: 28px; }
+            .shape-grid { grid-template-columns: repeat(4, 56px); }
+            .grid-cell { width: 56px; height: 56px; font-size: 24px; }
+            .draggable-shape { width: 50px; height: 50px; font-size: 24px; }
+            .result-card { padding: 36px 22px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-scene"></div>
+    <div class="bg-grid"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card" id="result-card">
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <div class="result-title" id="result-title">Congratulations!</div>
+            <div class="result-desc"  id="result-desc">Great job!</div>
+            <div class="result-stats">
+                <div class="result-stat"><div class="rs-val" id="result-score">+50</div><div class="rs-lbl">Score Earned</div></div>
+                <div class="result-stat"><div class="rs-val" id="result-part">Part 1/2</div><div class="rs-lbl">Progress</div></div>
+            </div>
+            <div class="result-buttons">
+                <button class="btn-primary" id="result-action-btn">Continue</button>
+                <button class="btn-secondary" id="result-secondary-btn" style="display:none;">Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="level-topbar">
+        <div class="topbar-left">
+            <a href="dashboard.html" class="btn-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                Dashboard
+            </a>
+            <div class="topbar-level-info">
+                <h1>Level 7 – Shape Memory</h1>
+                <span id="topbar-part-label">Part 1: Sequence</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <!-- Theme Toggle Button -->
+            <button class="theme-toggle-btn" id="theme-header-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <div class="part-indicator">
+                <span>Parts</span>
+                <div class="part-dot active" id="dot-1"></div>
+                <div class="part-dot" id="dot-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <main class="page-wrapper">
+        <div class="game-card">
+
+            <!-- ══ Intro State ══ -->
+            <div class="game-state active" id="state-intro">
+                <div class="game-badge" id="intro-badge">🔺 Level 7 • Part 1</div>
+                <div class="intro-emoji" id="intro-emoji">🟢</div>
+                <div class="intro-title" id="intro-title">Shape Sequence Memory</div>
+                <div class="intro-subtitle" id="intro-subtitle">Remember and reproduce the sequence of shapes.</div>
+                <div class="intro-desc" id="intro-desc">
+                    A sequence of shapes will appear. Memorize their exact order. 
+                    When they disappear, recreate the sequence!
+                </div>
+                <button class="btn-primary" id="btn-start">▶ Start Part 1</button>
+            </div>
+
+            <!-- ══ Showing State ══ -->
+            <div class="game-state" id="state-showing">
+                <div class="game-badge" id="showing-badge">⚡ Memorize!</div>
+                <div class="intro-subtitle" id="showing-desc">Watch the sequence carefully.</div>
+                
+                <div id="p1-display-area" class="shape-display-area" style="display:none;"></div>
+                <div id="p2-grid-area" class="shape-grid" style="display:none;"></div>
+                
+                <div class="timer-circle">
+                    <svg viewBox="0 0 54 54"><circle class="timer-track" cx="27" cy="27" r="25"/><circle class="timer-progress" id="timer-progress" cx="27" cy="27" r="25"/></svg>
+                    <div class="timer-text" id="timer-text">3</div>
+                </div>
+            </div>
+
+            <!-- ══ Input State Part 1 ══ -->
+            <div class="game-state" id="state-p1-input">
+                <div class="game-badge">⚡ Your Turn</div>
+                <div class="intro-subtitle">Recreate the exact shape sequence.</div>
+                
+                <div class="available-shapes" id="p1-options"></div>
+                <div class="answer-area" id="p1-answer-area">
+                    <div class="answer-slot" id="slot-0"></div>
+                    <div class="answer-slot" id="slot-1"></div>
+                    <div class="answer-slot" id="slot-2"></div>
+                    <div class="answer-slot" id="slot-3"></div>
+                    <div class="answer-slot" id="slot-4"></div>
+                    <div class="answer-slot" id="slot-5"></div>
+                    <div class="answer-slot" id="slot-6"></div>
+                    <div class="answer-slot" id="slot-7"></div>
+                    <div class="answer-slot" id="slot-8"></div>
+                    <div class="answer-slot" id="slot-9"></div>
+                </div>
+                
+                <div style="display:flex; gap:12px; justify-content:center;">
+                    <button class="btn-secondary" id="btn-p1-clear">Clear</button>
+                    <button class="btn-primary" id="btn-p1-submit">Submit Answer</button>
+                </div>
+            </div>
+
+            <!-- ══ Input State Part 2 ══ -->
+            <div class="game-state" id="state-p2-input">
+                <div class="game-badge">⚡ Your Turn</div>
+                <div class="intro-subtitle">Place the shapes in their original positions.</div>
+                
+                <div class="shape-grid" id="p2-interactive-grid"></div>
+                
+                <div class="intro-subtitle" style="margin-top:20px; margin-bottom:10px; font-size:12px;">Select a shape, then tap a grid cell.</div>
+                <div class="available-shapes" id="p2-options"></div>
+                
+                <div style="margin-top:24px;">
+                    <button class="btn-primary" id="btn-p2-submit">Submit Answer</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+    <script>
+    const SHAPE_ICONS = {
+        "shape-circle": "🔴",
+        "shape-square": "🟦",
+        "shape-triangle": "🔺",
+        "shape-star": "⭐",
+        "shape-diamond": "🔷",
+        "shape-hexagon": "🟣"
+    };
+
+    let currentPart = 1;
+    let sequenceData = [];
+    let p2GridData = [];
+    let timerInterval;
+    
+    // Part 1
+    let p1UserAnswers = [];
+    
+    // Part 2
+    let p2SelectedShape = null;
+    let p2UserGrid = Array(16).fill(null);
+    let p2PlacedShapesCount = 0;
+
+    function gid(id) { return document.getElementById(id); }
+    function showState(id) {
+        document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+        gid(id).classList.add('active');
+    }
+
+    function startTimer(seconds, onComplete) {
+        let timeLeft = seconds;
+        const timerText = gid('timer-text');
+        const timerCircle = gid('timer-progress');
+        timerText.textContent = timeLeft;
+        timerCircle.style.strokeDashoffset = '0';
+        
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerText.textContent = timeLeft;
+            const offset = 157 - (timeLeft / seconds) * 157;
+            timerCircle.style.strokeDashoffset = offset;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                onComplete();
+            }
+        }, 1000);
+    }
+
+    /* ── PART 1 ── */
+    function startPart1() {
+        fetch('level7?part=1').then(r => r.json()).then(data => {
+            sequenceData = data.items;
+            showSequencePart1();
+        }).catch(() => {
+            let shapes = Object.keys(SHAPE_ICONS);
+            sequenceData = Array.from({length:10}, () => shapes[Math.floor(Math.random() * shapes.length)]);
+            showSequencePart1();
+        });
+    }
+
+    function showSequencePart1() {
+        const area = gid('p1-display-area');
+        area.innerHTML = '';
+        area.style.display = 'grid';
+        gid('p2-grid-area').style.display = 'none';
+        
+        sequenceData.forEach(s => {
+            const box = document.createElement('div');
+            box.className = 'shape-box';
+            box.textContent = SHAPE_ICONS[s];
+            area.appendChild(box);
+        });
+        
+        showState('state-showing');
+        startTimer(4, () => {
+            setupPart1Input();
+        });
+    }
+
+    function setupPart1Input() {
+        p1UserAnswers = [];
+        updateP1Answers();
+        
+        const optionsArea = gid('p1-options');
+        optionsArea.innerHTML = '';
+        Object.keys(SHAPE_ICONS).forEach(s => {
+            const btn = document.createElement('div');
+            btn.className = 'draggable-shape';
+            btn.textContent = SHAPE_ICONS[s];
+            btn.onclick = () => {
+                if (p1UserAnswers.length < 10) {
+                    p1UserAnswers.push(s);
+                    updateP1Answers();
+                }
+            };
+            optionsArea.appendChild(btn);
+        });
+        
+        showState('state-p1-input');
+    }
+
+    function updateP1Answers() {
+        for (let i = 0; i < 10; i++) {
+            gid('slot-' + i).textContent = p1UserAnswers[i] ? SHAPE_ICONS[p1UserAnswers[i]] : '';
+        }
+    }
+
+    gid('btn-p1-clear').onclick = () => { p1UserAnswers = []; updateP1Answers(); };
+    gid('btn-p1-submit').onclick = () => {
+        if (p1UserAnswers.length < 10) return;
+        let isCorrect = p1UserAnswers.every((ans, i) => ans === sequenceData[i]);
+        if (isCorrect) {
+            fetch('level7', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ part: 1, correct: true })
+            }).catch(()=>{});
+            showResult(true, 1);
+        } else {
+            showResult(false, 1);
+        }
+    };
+
+    /* ── PART 2 ── */
+    function startPart2() {
+        fetch('level7?part=2').then(r => r.json()).then(data => {
+            p2GridData = data.items;
+            showGridPart2();
+        }).catch(() => {
+            // fallback
+            let shapes = Object.keys(SHAPE_ICONS).sort(()=>0.5-Math.random()).slice(0,6);
+            let cells = Array.from({length:16}, (_,i)=>i).sort(()=>0.5-Math.random());
+            p2GridData = shapes.map((s,i) => ({ shape: s, cell: cells[i] }));
+            showGridPart2();
+        });
+    }
+
+    function showGridPart2() {
+        gid('p1-display-area').style.display = 'none';
+        const gridArea = gid('p2-grid-area');
+        gridArea.innerHTML = '';
+        gridArea.style.display = 'grid';
+        
+        for (let i = 0; i < 16; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            const item = p2GridData.find(x => x.cell === i);
+            cell.textContent = item ? SHAPE_ICONS[item.shape] : '';
+            gridArea.appendChild(cell);
+        }
+        
+        gid('showing-badge').textContent = '⚡ Memorize Grid!';
+        showState('state-showing');
+        startTimer(5, () => {
+            setupPart2Input();
+        });
+    }
+
+    function setupPart2Input() {
+        p2UserGrid = Array(16).fill(null);
+        p2PlacedShapesCount = 0;
+        p2SelectedShape = null;
+        
+        const gridArea = gid('p2-interactive-grid');
+        gridArea.innerHTML = '';
+        
+        for (let i = 0; i < 16; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.idx = i;
+            cell.onclick = () => handleP2CellClick(i, cell);
+            gridArea.appendChild(cell);
+        }
+        
+        const optionsArea = gid('p2-options');
+        optionsArea.innerHTML = '';
+        p2GridData.forEach(item => {
+            const btn = document.createElement('div');
+            btn.className = 'draggable-shape';
+            btn.dataset.shape = item.shape;
+            btn.textContent = SHAPE_ICONS[item.shape];
+            btn.onclick = () => {
+                if (btn.classList.contains('used')) return;
+                document.querySelectorAll('#p2-options .draggable-shape').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                p2SelectedShape = item.shape;
+            };
+            optionsArea.appendChild(btn);
+        });
+        
+        showState('state-p2-input');
+    }
+
+    function handleP2CellClick(idx, cellEl) {
+        if (!p2SelectedShape && !p2UserGrid[idx]) return;
+        
+        if (p2SelectedShape) {
+            // Place shape
+            if (p2UserGrid[idx]) {
+                // Return old shape to pool
+                const oldShape = p2UserGrid[idx];
+                document.querySelector(`#p2-options .draggable-shape[data-shape="${oldShape}"]`).classList.remove('used');
+                p2PlacedShapesCount--;
+            }
+            p2UserGrid[idx] = p2SelectedShape;
+            cellEl.textContent = SHAPE_ICONS[p2SelectedShape];
+            const optionBtn = document.querySelector(`#p2-options .draggable-shape[data-shape="${p2SelectedShape}"]`);
+            optionBtn.classList.remove('selected');
+            optionBtn.classList.add('used');
+            p2SelectedShape = null;
+            p2PlacedShapesCount++;
+        } else if (p2UserGrid[idx]) {
+            // Remove shape
+            const oldShape = p2UserGrid[idx];
+            document.querySelector(`#p2-options .draggable-shape[data-shape="${oldShape}"]`).classList.remove('used');
+            p2UserGrid[idx] = null;
+            cellEl.textContent = '';
+            p2PlacedShapesCount--;
+        }
+    }
+
+    gid('btn-p2-submit').onclick = () => {
+        if (p2PlacedShapesCount < p2GridData.length) return;
+        
+        let isCorrect = true;
+        p2GridData.forEach(item => {
+            if (p2UserGrid[item.cell] !== item.shape) {
+                isCorrect = false;
+            }
+        });
+        
+        if (isCorrect) {
+            fetch('level7', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ part: 2, correct: true })
+            }).catch(()=>{});
+            showResult(true, 2);
+        } else {
+            showResult(false, 2);
+        }
+    };
+
+    /* ── Results & Navigation ── */
+    function showResult(isWin, part) {
+        const overlay = gid('result-overlay');
+        const card = gid('result-card');
+        card.className = 'result-card ' + (isWin ? 'win' : 'lose');
+        
+        if (isWin) {
+            gid('result-score').textContent = '+50';
+            gid('result-emoji').textContent = '🎉';
+            gid('result-title').textContent = 'Correct!';
+            gid('result-secondary-btn').style.display = 'none';
+            
+            if (part === 1) {
+                gid('result-desc').textContent = 'Part 1 complete! Ready for Part 2?';
+                gid('result-part').textContent = 'Part 1 / 2 ✓';
+                gid('result-action-btn').textContent = 'Next Part ▶';
+                gid('result-action-btn').onclick = () => { closeResult(); setupPart2Intro(); };
+            } else {
+                gid('result-desc').textContent = 'Great Memory! Level 7 Completed!';
+                gid('result-part').textContent = 'Part 2 / 2 ✓';
+                gid('result-action-btn').textContent = 'Back to Dashboard ▶';
+                let p = saveProgressToServer();
+                gid('result-action-btn').onclick = () => {
+                    closeResult();
+                    if (p) { p.finally(() => { window.location.href = 'dashboard.html'; }); }
+                    else { window.location.href = 'dashboard.html'; }
+                };
+            }
+        } else {
+            gid('result-score').textContent = '0';
+            gid('result-emoji').textContent = '❌';
+            gid('result-title').textContent = 'Incorrect!';
+            gid('result-desc').textContent = 'Your answer was incorrect. Try again!';
+            gid('result-part').textContent = `Part ${part} / 2`;
+            gid('result-action-btn').textContent = 'Try Again';
+            gid('result-action-btn').onclick = () => { closeResult(); part === 1 ? startPart1() : startPart2(); };
+        }
+        overlay.classList.add('open');
+    }
+    
+    function closeResult() { gid('result-overlay').classList.remove('open'); }
+
+    function setupPart2Intro() {
+        currentPart = 2;
+        gid('intro-badge').textContent = '🔺 Level 7 • Part 2';
+        gid('intro-emoji').textContent = '🧩';
+        gid('intro-title').textContent = 'Shape Position Memory';
+        gid('intro-subtitle').textContent = 'Remember the positions of shapes in a grid.';
+        gid('intro-desc').textContent = 'A grid containing shapes will be shown briefly. Memorize where each shape is located, then place them back into the empty grid!';
+        gid('topbar-part-label').textContent = 'Part 2: Positions';
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        showState('state-intro');
+    }
+
+    gid('btn-start').onclick = () => {
+        if (currentPart === 1) startPart1();
+        else startPart2();
+    };
+
+    /* ── Streak Helpers ── */
+    function getLocalDateString() {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+    function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
+        if (!isSuccess) return { streak: 0, dateStr: lastPlayedDateStr };
+        var todayStr = getLocalDateString();
+        if (!lastPlayedDateStr) return { streak: 1, dateStr: todayStr };
+        var today = new Date(todayStr + 'T00:00:00');
+        var lastPlayed = new Date(lastPlayedDateStr + 'T00:00:00');
+        var diffDays = Math.round((today - lastPlayed) / (1000 * 60 * 60 * 24));
+        var newStreak = currentStreak;
+        if (diffDays === 0) { if (newStreak === 0) newStreak = 1; }
+        else if (diffDays === 1) { newStreak = currentStreak + 1; }
+        else { newStreak = 1; }
+        return { streak: newStreak, dateStr: todayStr };
+    }
+
+    function safeParseArray(dataVal, defaultArray) {
+        if (Array.isArray(dataVal)) return dataVal;
+        if (typeof dataVal === 'string') {
+            try {
+                var parsed = JSON.parse(dataVal);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {}
+        }
+        return defaultArray.slice();
+    }
+
+    function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
+        try {
+            localStorage.setItem('mm_score', score);
+            localStorage.setItem('mm_streak', streak);
+            localStorage.setItem('mm_unlocked_level', unlockedLevel);
+            localStorage.setItem('mm_games_played', gamesPlayed);
+            localStorage.setItem('mm_best_streak', bestStreak);
+            localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+            localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+            localStorage.setItem('mm_stars', JSON.stringify(stars));
+            if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+        } catch(e) {}
+    }
+
+    let savePromise = null;
+    function saveProgressToServer() {
+        savePromise = fetch('getProgress?t=' + new Date().getTime())
+            .then(r => r.ok ? r.json() : Promise.reject('Failed to fetch progress'))
+            .then(data => {
+                let score = (parseInt(data.score, 10) || 0) + 100;
+                let gamesPlayed = (parseInt(data.gamesPlayed, 10) || 0) + 1;
+                let unlockedLevel = Math.max(parseInt(data.unlockedLevel, 10) || 1, 8);
+                let bestScores = safeParseArray(data.bestScores, Array(20).fill(0));
+                let bestTimes = safeParseArray(data.bestTimes, Array(20).fill('-'));
+                let stars = safeParseArray(data.stars, Array(20).fill('0'));
+
+                let streakResult   = calculateNewStreak(parseInt(data.streak, 10) || 0, data.lastPlayedDate || '', true);
+                let streak         = streakResult.streak;
+                let lastPlayedDate = streakResult.dateStr;
+                let bestStreak     = Math.max(parseInt(data.bestStreak, 10) || 0, streak);
+
+                if (100 > (parseInt(bestScores[6], 10) || 0)) bestScores[6] = 100;
+                stars[6] = '3';
+                bestTimes[6] = '20s';
+                
+                saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate);
+
+                return fetch('saveProgress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        score: score, streak: streak, unlockedLevel: unlockedLevel, gamesPlayed: gamesPlayed,
+                        bestStreak: bestStreak,
+                        bestScores: JSON.stringify(bestScores), bestTimes: JSON.stringify(bestTimes), stars: JSON.stringify(stars),
+                        lastPlayedDate: lastPlayedDate
+                    })
+                });
+            }).catch(err => { console.error('[Level7] Error saving progress:', err); });
+        return savePromise;
+    }
+
+    /* Hint System Integration */
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(() => gid('state-p1-input').classList.contains('active') || gid('state-p2-input').classList.contains('active'), () => {
+            if (currentPart === 1) {
+                if (p1UserAnswers.length < 10) {
+                    p1UserAnswers.push(sequenceData[p1UserAnswers.length]);
+                    updateP1Answers();
+                    return true;
+                }
+            } else if (currentPart === 2) {
+                // Find a shape not yet placed correctly
+                let hintPlaced = false;
+                p2GridData.forEach(item => {
+                    if (!hintPlaced && p2UserGrid[item.cell] !== item.shape) {
+                        // Place it for them
+                        p2UserGrid[item.cell] = item.shape;
+                        gid('p2-interactive-grid').children[item.cell].textContent = SHAPE_ICONS[item.shape];
+                        const btn = document.querySelector(`#p2-options .draggable-shape[data-shape="${item.shape}"]`);
+                        if(btn) btn.classList.add('used');
+                        p2PlacedShapesCount++;
+                        hintPlaced = true;
+                    }
+                });
+                return hintPlaced;
+            }
+            return false;
+        });
+    }
+    </script>
+</body>
+</html>

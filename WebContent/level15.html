@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 15: Visual Story Memory</title>
+    <meta name="description" content="Level 15 – Test visual memory, attention, observation, and sequence recall through storytelling." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep: #050814; --bg-card: rgba(255,255,255,0.04); --bg-card-h: rgba(255,255,255,0.07);
+            --border: rgba(255,255,255,0.09); --border-h: rgba(139,92,246,0.45);
+            --accent-1: #8b5cf6; --accent-2: #06b6d4; --accent-3: #f59e0b;
+            --glow: rgba(139,92,246,0.35); --text-pri: #f0f4ff;
+            --text-sec: rgba(240,244,255,0.55); --text-muted: rgba(240,244,255,0.28);
+            --success: #34d399; --error: #f87171; --warning: #fbbf24;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-deep); color: var(--text-pri); min-height: 100vh; overflow-x: hidden; }
+
+        .bg-scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .bg-scene::before { content: ''; position: absolute; border-radius: 50%; width: 700px; height: 700px; background: radial-gradient(circle,rgba(139,92,246,0.18),transparent 70%); top:-200px; left:-200px; animation:orb 16s ease-in-out infinite alternate; }
+        .bg-scene::after  { content: ''; position: absolute; border-radius: 50%; width: 600px; height: 600px; background: radial-gradient(circle,rgba(6,182,212,0.14),transparent 70%); bottom:-150px; right:-150px; animation:orb 20s ease-in-out infinite alternate-reverse; }
+        @keyframes orb { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(60px,80px) scale(1.15)} }
+        .bg-grid { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px); background-size:60px 60px; }
+        .page-wrapper { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 88px 20px 32px; }
+
+        /* ── Topbar ── */
+        .level-topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(5,8,20,0.85); backdrop-filter: blur(24px); border-bottom: 1px solid var(--border); padding: 0 28px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back { display:flex; align-items:center; gap:8px; padding:8px 16px; border-radius:10px; background:var(--bg-card); border:1px solid var(--border); color:var(--text-sec); font-family:'Outfit',sans-serif; font-size:13px; font-weight:500; cursor:pointer; text-decoration:none; transition:all 0.2s; }
+        .btn-back:hover { background:var(--bg-card-h); color:var(--text-pri); border-color:var(--border-h); }
+        .btn-back svg { width:16px; height:16px; }
+        .topbar-level-info h1 { font-size:16px; font-weight:700; }
+        .topbar-level-info span { font-size:11px; color:var(--text-muted); }
+        .topbar-right { display:flex; align-items:center; gap:12px; }
+        .part-indicator { display:flex; align-items:center; gap:8px; padding:6px 14px; border-radius:100px; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.25); font-size:12px; font-weight:600; color:var(--accent-1); }
+        .part-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.15); transition:background 0.3s; }
+        .part-dot.active { background:var(--accent-1); box-shadow:0 0 8px var(--glow); }
+        .part-dot.done   { background:var(--success); box-shadow:0 0 8px rgba(52,211,153,0.4); }
+
+        /* ── Game Card ── */
+        .game-card { width:100%; max-width:760px; background:var(--bg-card); border:1px solid var(--border); border-radius:28px; padding:40px 36px; backdrop-filter:blur(20px); box-shadow:0 0 0 1px rgba(255,255,255,0.04),0 24px 64px rgba(0,0,0,0.55),0 0 80px rgba(139,92,246,0.07); text-align:center; }
+        .game-state { display:none; animation:fade-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display:block; }
+        @keyframes fade-up { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ── Intro ── */
+        .intro-emoji { font-size:56px; margin-bottom:16px; animation:pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08);filter:drop-shadow(0 0 20px rgba(139,92,246,0.4))} }
+        .intro-title { font-size:28px; font-weight:800; letter-spacing:-0.5px; margin-bottom:8px; }
+        .intro-subtitle { font-size:14px; color:var(--text-sec); margin-bottom:6px; }
+        .intro-desc { font-size:13px; color:var(--text-muted); margin-bottom:32px; line-height:1.7; max-width:500px; margin-left:auto; margin-right:auto; }
+        .game-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:100px; margin-bottom:20px; background:linear-gradient(135deg,rgba(139,92,246,0.18),rgba(6,182,212,0.10)); border:1px solid rgba(139,92,246,0.30); font-size:12px; font-weight:600; color:var(--accent-1); }
+
+        /* ── Buttons ── */
+        .btn-primary { padding:14px 36px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--accent-1),var(--accent-2)); color:#fff; font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.25s; box-shadow:0 4px 20px rgba(139,92,246,0.4); }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(139,92,246,0.5); }
+        .btn-primary:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
+        .btn-secondary { padding:12px 24px; border-radius:12px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-sec); font-family:'Outfit',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+        .btn-secondary:hover { background:var(--bg-card-h); color:var(--text-pri); border-color:var(--border-h); }
+        .btn-row { margin-top:24px; display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+
+        /* ── Scene Display Card ── */
+        .scene-card-wrap {
+            margin: 20px auto;
+            max-width: 580px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(6,182,212,0.08));
+            border: 2px solid rgba(139,92,246,0.35);
+            border-radius: 24px;
+            padding: 32px 24px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+            animation: pop-in 0.4s ease-out;
+        }
+        @keyframes pop-in { 0%{transform:scale(0.9);opacity:0} 100%{transform:scale(1);opacity:1} }
+        .scene-header-tag {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .scene-icon-banner {
+            font-size: 54px;
+            margin: 10px 0 18px;
+            filter: drop-shadow(0 4px 12px rgba(139,92,246,0.4));
+        }
+        .scene-story-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-pri);
+            line-height: 1.6;
+            min-height: 56px;
+        }
+
+        /* ── Questions (Part 1) ── */
+        .questions-container {
+            text-align: left;
+            margin: 20px auto;
+            max-width: 640px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .question-block {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px 22px;
+        }
+        .question-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-pri);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .option-btn {
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-sec);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .option-btn:hover {
+            border-color: rgba(139,92,246,0.5);
+            background: rgba(139,92,246,0.08);
+            color: var(--text-pri);
+        }
+        .option-btn.selected {
+            border-color: #06b6d4;
+            background: rgba(6,182,212,0.18);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(6,182,212,0.3);
+        }
+        .option-btn.correct-choice {
+            border-color: var(--success) !important;
+            background: rgba(52,211,153,0.2) !important;
+            color: #fff;
+        }
+        .option-btn.wrong-choice {
+            border-color: var(--error) !important;
+            background: rgba(248,113,113,0.2) !important;
+            color: #fff;
+        }
+
+        /* ── Sequence Reorder Grid (Part 2) ── */
+        .reorder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px auto;
+            max-width: 620px;
+        }
+        .reorder-item {
+            background: rgba(255,255,255,0.03);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: all 0.25s;
+            cursor: grab;
+            user-select: none;
+        }
+        .reorder-item:hover {
+            border-color: rgba(139,92,246,0.5);
+            background: rgba(139,92,246,0.06);
+            transform: translateY(-2px);
+        }
+        .reorder-item.dragging {
+            opacity: 0.5;
+            border-color: #06b6d4;
+        }
+        .reorder-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-align: left;
+        }
+        .order-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            color: #fff;
+            font-size: 14px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .item-icon { font-size: 26px; flex-shrink: 0; }
+        .item-desc { font-size: 14px; font-weight: 600; color: var(--text-pri); line-height: 1.4; }
+        .reorder-ctrls {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .ctrl-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-sec);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .ctrl-btn:hover {
+            border-color: rgba(139,92,246,0.6);
+            background: rgba(139,92,246,0.15);
+            color: #fff;
+        }
+
+        /* Feedback Message */
+        .feedback-msg { min-height: 28px; font-size: 14px; font-weight: 600; margin-top: 14px; transition: all 0.3s; }
+        .feedback-msg.success { color: var(--success); }
+        .feedback-msg.error { color: var(--error); animation: shake 0.4s ease; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+
+        /* Completion & Statistics */
+        .completion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 24px 0; }
+        .comp-stat { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 16px 12px; }
+        .comp-stat-val { font-size: 24px; font-weight: 800; background: linear-gradient(135deg,var(--accent-1),var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .comp-stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .check-list { text-align: left; margin: 20px 0; display: flex; flex-direction: column; gap: 10px; }
+        .check-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-sec); padding: 10px 14px; border-radius: 10px; background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.2); }
+        .check-item .ck-icon { font-size: 18px; }
+
+        /* Result Overlay */
+        .result-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.7); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.35s; }
+        .result-overlay.open { opacity: 1; pointer-events: auto; }
+        .result-card { background: rgba(15,18,35,0.96); border: 1px solid var(--border); border-radius: 28px; padding: 40px 36px; text-align: center; max-width: 440px; width: 90%; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+        .result-card.win  { border-color: var(--success); box-shadow: 0 0 60px rgba(52,211,153,0.15); }
+        .result-card.lose { border-color: var(--error);   box-shadow: 0 0 60px rgba(248,113,113,0.15); }
+        .result-emoji { font-size: 56px; margin-bottom: 12px; }
+        .result-title { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+        .result-desc  { font-size: 13px; color: var(--text-sec); margin-bottom: 20px; line-height: 1.6; }
+        .result-score { font-size: 36px; font-weight: 800; background: linear-gradient(135deg,var(--accent-1),var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px; }
+
+        canvas#confetti-canvas { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+
+        @media(max-width: 600px) {
+            .game-card { padding: 24px 14px; }
+            .options-grid { grid-template-columns: 1fr; gap: 8px; }
+            .scene-card-wrap { padding: 24px 16px; }
+            .scene-story-text { font-size: 16px; }
+            .reorder-item { padding: 12px 14px; }
+            .item-desc { font-size: 13px; }
+            .completion-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-scene"></div>
+    <div class="bg-grid"></div>
+    <div class="page-wrapper">
+
+    <!-- ── Topbar ── -->
+    <div class="level-topbar">
+        <div class="topbar-left">
+            <a href="dashboard.html" class="btn-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Dashboard
+            </a>
+            <div class="topbar-level-info">
+                <h1>Level 15 – Visual Story Memory</h1>
+                <span id="topbar-part-label">Part 1: Visual Story Recall</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="part-indicator">
+                <div class="part-dot active" id="dot-1"></div>
+                <span id="part-label-text">Part 1</span>
+                <div class="part-dot" id="dot-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <div class="game-card">
+
+            <!-- ── Intro (Part 1) ── -->
+            <div class="game-state active" id="state-intro-p1">
+                <div class="game-badge">📖 Level 15 • Part 1</div>
+                <div class="intro-emoji">🎬</div>
+                <div class="intro-title">Visual Story Recall</div>
+                <div class="intro-subtitle">Observe each scene carefully!</div>
+                <div class="intro-desc">
+                    Observe the visual story carefully and remember the important details. After the story disappears, you will be asked questions about what you saw.
+                </div>
+                <button class="btn-primary" id="btn-start-p1">▶ Start Game</button>
+            </div>
+
+            <!-- ── Story Display (Part 1) ── -->
+            <div class="game-state" id="state-story-p1">
+                <div class="game-badge" id="story-p1-badge">⏱ Scene 1 of 5</div>
+                <div style="font-size:13px;color:var(--text-sec);font-weight:600;margin-bottom:4px;">Time Remaining: <span id="scene-timer-p1" style="color:var(--accent-1);font-weight:800;font-size:18px;">5</span>s</div>
+
+                <div class="scene-card-wrap">
+                    <div class="scene-header-tag" id="scene-tag-p1">SCENE 1</div>
+                    <div class="scene-icon-banner" id="scene-icon-p1">👦🎒🌳</div>
+                    <div class="scene-story-text" id="scene-text-p1">Loading scene...</div>
+                </div>
+            </div>
+
+            <!-- ── Questions Stage (Part 1) ── -->
+            <div class="game-state" id="state-questions-p1">
+                <div class="game-badge">❓ Story Questions</div>
+                <div class="intro-title" style="font-size:20px;">Recall the Story Details</div>
+                <div class="intro-subtitle" style="margin-bottom:16px;">Answer all questions based on the visual story you observed.</div>
+
+                <div class="questions-container" id="questions-list-p1"></div>
+
+                <div class="feedback-msg" id="feedback-p1"></div>
+
+                <div class="btn-row">
+                    <button class="btn-primary" id="btn-submit-p1">Submit Answers</button>
+                </div>
+            </div>
+
+            <!-- ── Intro (Part 2) ── -->
+            <div class="game-state" id="state-intro-p2">
+                <div class="game-badge">📖 Level 15 • Part 2</div>
+                <div class="intro-emoji">🎞️</div>
+                <div class="intro-title">Story Sequence Recall</div>
+                <div class="intro-subtitle">Remember the chronological order of events!</div>
+                <div class="intro-desc">
+                    Observe the story carefully and remember the order of events. After the story disappears, the scenes will be shuffled. Arrange them in the correct order.
+                </div>
+                <button class="btn-primary" id="btn-start-p2">▶ Start Game</button>
+            </div>
+
+            <!-- ── Story Display (Part 2) ── -->
+            <div class="game-state" id="state-story-p2">
+                <div class="game-badge" id="story-p2-badge">⏱ Scene 1 of 5</div>
+                <div style="font-size:13px;color:var(--text-sec);font-weight:600;margin-bottom:4px;">Time Remaining: <span id="scene-timer-p2" style="color:var(--accent-1);font-weight:800;font-size:18px;">5</span>s</div>
+
+                <div class="scene-card-wrap">
+                    <div class="scene-header-tag" id="scene-tag-p2">SCENE 1</div>
+                    <div class="scene-icon-banner" id="scene-icon-p2">🕵️🔍📚</div>
+                    <div class="scene-story-text" id="scene-text-p2">Loading scene...</div>
+                </div>
+            </div>
+
+            <!-- ── Reorder Stage (Part 2) ── -->
+            <div class="game-state" id="state-reorder-p2">
+                <div class="game-badge">🧩 Reconstruct the Story</div>
+                <div class="intro-title" style="font-size:20px;">Arrange in Correct Chronological Order</div>
+                <div class="intro-subtitle" style="margin-bottom:16px;">Use the ◀ / ▶ arrows or drag cards into their original sequential order.</div>
+
+                <div class="reorder-list" id="reorder-list-p2"></div>
+
+                <div class="feedback-msg" id="feedback-p2"></div>
+
+                <div class="btn-row">
+                    <button class="btn-primary" id="btn-submit-p2">Submit Sequence</button>
+                </div>
+            </div>
+
+            <!-- ── Completion ── -->
+            <div class="game-state" id="state-complete">
+                <div class="game-badge">🏆 Level 15 Complete!</div>
+                <div class="intro-emoji">🎉</div>
+                <div class="intro-title">Visual Story Memory Mastered!</div>
+                <div class="intro-subtitle">You completed both visual storytelling challenges!</div>
+                <div class="check-list">
+                    <div class="check-item"><span class="ck-icon">✅</span> Part 1 – Visual Story Recall</div>
+                    <div class="check-item"><span class="ck-icon">✅</span> Part 2 – Story Sequence Recall</div>
+                </div>
+                <div class="completion-grid">
+                    <div class="comp-stat">
+                        <div class="comp-stat-val" id="comp-score">+170</div>
+                        <div class="comp-stat-lbl">Score Earned</div>
+                    </div>
+                    <div class="comp-stat">
+                        <div class="comp-stat-val" id="comp-attempts">1</div>
+                        <div class="comp-stat-lbl">Total Attempts</div>
+                    </div>
+                    <div class="comp-stat">
+                        <div class="comp-stat-val" id="comp-accuracy">100%</div>
+                        <div class="comp-stat-lbl">Accuracy</div>
+                    </div>
+                    <div class="comp-stat">
+                        <div class="comp-stat-val">⭐⭐⭐</div>
+                        <div class="comp-stat-lbl">Stars Earned</div>
+                    </div>
+                </div>
+                <div class="intro-desc" style="margin-bottom:20px;">Congratulations! Level 16 is now unlocked.</div>
+                <div class="btn-row">
+                    <button class="btn-primary" id="btn-finish-dash">Back to Dashboard</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card" id="result-card">
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <div class="result-title" id="result-title">Correct!</div>
+            <div class="result-desc"  id="result-desc">Amazing work!</div>
+            <div class="result-score" id="result-score">+85</div>
+            <button class="btn-primary" id="result-action-btn">Continue ▶</button>
+        </div>
+    </div>
+
+    <script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+    <script>
+    /* ═══════════════════════════════════════════
+       LEVEL 15 – VISUAL STORY MEMORY
+    ═══════════════════════════════════════════ */
+
+    let currentPart = 1;
+    let p1Data = null; // { title, scenes: [...], questions: [...] }
+    let p2Data = null; // { title, scenes: [...] }
+
+    let p1UserAnswers = {}; // { questionIdx: selectedOptionIdx }
+    let p2UserSequence = []; // array of scene objects in user order
+
+    let totalAttempts = 0;
+    let p1Attempts = 0;
+    let p2Attempts = 0;
+
+    let storyTimerInterval = null;
+
+    function gid(id) { return document.getElementById(id); }
+    function showState(id) {
+        document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+        gid(id).classList.add('active');
+    }
+
+    // ─── START BUTTONS ───
+    gid('btn-start-p1').onclick = () => startPart1();
+    gid('btn-start-p2').onclick = () => startPart2();
+
+    // ─── PART 1: Visual Story Recall ───
+    function startPart1() {
+        totalAttempts++;
+        p1Attempts++;
+        p1UserAnswers = {};
+
+        fetch('level15?part=1&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => { p1Data = data; runStoryPart1(); })
+            .catch(() => { p1Data = fallbackP1(); runStoryPart1(); });
+    }
+
+    function fallbackP1() {
+        return {
+            part: 1,
+            title: "Park Adventure",
+            secondsPerScene: 5,
+            scenes: [
+                { index: 1, text: "A boy enters a green park wearing a red backpack.", icon: "👦🎒🌳" },
+                { index: 2, text: "He discovers a blue bicycle resting against a tall oak tree.", icon: "🚲🌳✨" },
+                { index: 3, text: "He gently places his red backpack beside the tree roots.", icon: "🎒🌿🌳" },
+                { index: 4, text: "A playful golden dog runs over toward the bicycle.", icon: "🐕🚲🌼" },
+                { index: 5, text: "The boy picks up his backpack and sits on a wooden bench.", icon: "👦🎒🪑" }
+            ],
+            questions: [
+                { question: "What color was the boy's backpack?", options: ["Red", "Blue", "Green", "Yellow"], correct: 0, hint: "Think about what the boy was carrying entering the park." },
+                { question: "What was resting against the tall oak tree?", options: ["A blue bicycle", "A skateboard", "A scooter", "A red wagon"], correct: 0, hint: "Look back at what he discovered near the tree." },
+                { question: "Which animal appeared near the bicycle?", options: ["A cat", "A golden dog", "A squirrel", "A rabbit"], correct: 1, hint: "Remember the playful animal that ran over." },
+                { question: "Where did the boy finally sit?", options: ["On the grass", "On a wooden bench", "On a stone wall", "On a swing"], correct: 1, hint: "Think about where he went after picking up his backpack." }
+            ]
+        };
+    }
+
+    function runStoryPart1() {
+        showState('state-story-p1');
+        let currentSceneIdx = 0;
+
+        function showScene(idx) {
+            if (idx >= p1Data.scenes.length) {
+                setupQuestionsP1();
+                return;
+            }
+
+            const scene = p1Data.scenes[idx];
+            gid('story-p1-badge').textContent = `⏱ Scene ${idx + 1} of ${p1Data.scenes.length}`;
+            gid('scene-tag-p1').textContent = `SCENE ${idx + 1}`;
+            gid('scene-icon-p1').textContent = scene.icon;
+            gid('scene-text-p1').textContent = scene.text;
+
+            let timeLeft = p1Data.secondsPerScene || 5;
+            gid('scene-timer-p1').textContent = timeLeft;
+
+            if (storyTimerInterval) clearInterval(storyTimerInterval);
+            storyTimerInterval = setInterval(() => {
+                timeLeft--;
+                gid('scene-timer-p1').textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(storyTimerInterval);
+                    showScene(idx + 1);
+                }
+            }, 1000);
+        }
+
+        showScene(0);
+    }
+
+    function setupQuestionsP1() {
+        if (storyTimerInterval) clearInterval(storyTimerInterval);
+        p1UserAnswers = {};
+
+        const list = gid('questions-list-p1');
+        list.innerHTML = '';
+
+        p1Data.questions.forEach((q, qIdx) => {
+            const block = document.createElement('div');
+            block.className = 'question-block';
+            block.id = `q-block-${qIdx}`;
+
+            block.innerHTML = `<div class="question-title"><span>Q${qIdx + 1}.</span> ${q.question}</div>`;
+
+            const optGrid = document.createElement('div');
+            optGrid.className = 'options-grid';
+
+            q.options.forEach((opt, optIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => selectOption(qIdx, optIdx, btn);
+                optGrid.appendChild(btn);
+            });
+
+            block.appendChild(optGrid);
+            list.appendChild(block);
+        });
+
+        gid('feedback-p1').textContent = '';
+        gid('feedback-p1').className = 'feedback-msg';
+        showState('state-questions-p1');
+    }
+
+    function selectOption(qIdx, optIdx, btnEl) {
+        p1UserAnswers[qIdx] = optIdx;
+        const block = gid(`q-block-${qIdx}`);
+        block.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+        btnEl.classList.add('selected');
+    }
+
+    gid('btn-submit-p1').onclick = () => {
+        const totalQ = p1Data.questions.length;
+        const answeredCount = Object.keys(p1UserAnswers).length;
+
+        if (answeredCount < totalQ) {
+            showFeedback('feedback-p1', `Please answer all questions before submitting. (${answeredCount}/${totalQ})`, 'error');
+            return;
+        }
+
+        let allCorrect = true;
+        p1Data.questions.forEach((q, qIdx) => {
+            const selected = p1UserAnswers[qIdx];
+            const block = gid(`q-block-${qIdx}`);
+            const buttons = block.querySelectorAll('.option-btn');
+
+            if (selected === q.correct) {
+                buttons[selected].classList.add('correct-choice');
+            } else {
+                if (selected !== undefined) buttons[selected].classList.add('wrong-choice');
+                buttons[q.correct].classList.add('correct-choice');
+                allCorrect = false;
+            }
+        });
+
+        if (allCorrect) {
+            fetch('level15', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ part: 1, correct: true })
+            }).catch(() => {});
+            showResult(true, 1, 'Excellent! You remembered the visual story correctly!');
+        } else {
+            showResult(false, 1, 'Some answers are incorrect. Try the visual story again.');
+        }
+    };
+
+    // ─── PART 2: Story Sequence Recall ───
+    function startPart2() {
+        totalAttempts++;
+        p2Attempts++;
+        p2UserSequence = [];
+
+        fetch('level15?part=2&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => { p2Data = data; runStoryPart2(); })
+            .catch(() => { p2Data = fallbackP2(); runStoryPart2(); });
+    }
+
+    function fallbackP2() {
+        return {
+            part: 2,
+            title: "Detective Mystery",
+            secondsPerScene: 5,
+            scenes: [
+                { index: 1, text: "Detective enters the dark library carrying a brass magnifying glass.", icon: "🕵️🔍📚" },
+                { index: 2, text: "He discovers mysterious muddy footprints leading to the bookcase.", icon: "👣📖🔎" },
+                { index: 3, text: "He pulls a secret blue book to open a hidden passageway.", icon: "📘🚪✨" },
+                { index: 4, text: "Inside the secret room, he finds a locked safe with a code dial.", icon: "🔐🚪🗝️" },
+                { index: 5, text: "He enters the secret code and retrieves the missing diamond necklace.", icon: "💎✨🕵️" }
+            ]
+        };
+    }
+
+    function runStoryPart2() {
+        showState('state-story-p2');
+        let currentSceneIdx = 0;
+
+        function showScene(idx) {
+            if (idx >= p2Data.scenes.length) {
+                setupReorderP2();
+                return;
+            }
+
+            const scene = p2Data.scenes[idx];
+            gid('story-p2-badge').textContent = `⏱ Scene ${idx + 1} of ${p2Data.scenes.length}`;
+            gid('scene-tag-p2').textContent = `SCENE ${idx + 1}`;
+            gid('scene-icon-p2').textContent = scene.icon;
+            gid('scene-text-p2').textContent = scene.text;
+
+            let timeLeft = p2Data.secondsPerScene || 5;
+            gid('scene-timer-p2').textContent = timeLeft;
+
+            if (storyTimerInterval) clearInterval(storyTimerInterval);
+            storyTimerInterval = setInterval(() => {
+                timeLeft--;
+                gid('scene-timer-p2').textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(storyTimerInterval);
+                    showScene(idx + 1);
+                }
+            }, 1000);
+        }
+
+        showScene(0);
+    }
+
+    function setupReorderP2() {
+        if (storyTimerInterval) clearInterval(storyTimerInterval);
+
+        // Shuffle scenes
+        p2UserSequence = [...p2Data.scenes];
+        for (let i = p2UserSequence.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [p2UserSequence[i], p2UserSequence[j]] = [p2UserSequence[j], p2UserSequence[i]];
+        }
+
+        renderReorderList();
+        gid('feedback-p2').textContent = '';
+        gid('feedback-p2').className = 'feedback-msg';
+        showState('state-reorder-p2');
+    }
+
+    function renderReorderList() {
+        const container = gid('reorder-list-p2');
+        container.innerHTML = '';
+
+        p2UserSequence.forEach((scene, idx) => {
+            const item = document.createElement('div');
+            item.className = 'reorder-item';
+            item.dataset.index = idx;
+            item.draggable = true;
+
+            item.innerHTML = `
+                <div class="reorder-left">
+                    <div class="order-badge">#${idx + 1}</div>
+                    <div class="item-icon">${scene.icon}</div>
+                    <div class="item-desc">${scene.text}</div>
+                </div>
+                <div class="reorder-ctrls">
+                    <button class="ctrl-btn" title="Move Up" onclick="moveItem(${idx}, -1)">▲</button>
+                    <button class="ctrl-btn" title="Move Down" onclick="moveItem(${idx}, 1)">▼</button>
+                </div>
+            `;
+
+            // Drag and drop handlers
+            item.addEventListener('dragstart', () => { item.classList.add('dragging'); });
+            item.addEventListener('dragend', () => { item.classList.remove('dragging'); });
+
+            container.appendChild(item);
+        });
+
+        setupDragAndDrop();
+    }
+
+    window.moveItem = function(idx, dir) {
+        const target = idx + dir;
+        if (target < 0 || target >= p2UserSequence.length) return;
+        const temp = p2UserSequence[idx];
+        p2UserSequence[idx] = p2UserSequence[target];
+        p2UserSequence[target] = temp;
+        renderReorderList();
+    };
+
+    function setupDragAndDrop() {
+        const container = gid('reorder-list-p2');
+        container.addEventListener('dragover', e => {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(container, e.clientY);
+            const dragging = document.querySelector('.reorder-item.dragging');
+            if (!dragging) return;
+            if (afterElement == null) {
+                container.appendChild(dragging);
+            } else {
+                container.insertBefore(dragging, afterElement);
+            }
+        });
+
+        container.addEventListener('drop', () => {
+            const newOrder = [];
+            container.querySelectorAll('.reorder-item').forEach(el => {
+                const oldIdx = parseInt(el.dataset.index, 10);
+                newOrder.push(p2UserSequence[oldIdx]);
+            });
+            p2UserSequence = newOrder;
+            renderReorderList();
+        });
+    }
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.reorder-item:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    gid('btn-submit-p2').onclick = () => {
+        let allCorrect = true;
+        p2UserSequence.forEach((scene, i) => {
+            if (scene.index !== (i + 1)) {
+                allCorrect = false;
+            }
+        });
+
+        if (allCorrect) {
+            fetch('level15', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ part: 2, correct: true })
+            }).catch(() => {});
+
+            let p = saveProgress();
+            showResult(true, 2, 'Perfect! You remembered the complete story sequence!', p);
+            launchConfetti();
+        } else {
+            showResult(false, 2, 'Incorrect! The story sequence is not correct. Try again.');
+        }
+    };
+
+    // ─── RESULT OVERLAY ───
+    function showResult(win, part, desc, saveP) {
+        const overlay = gid('result-overlay');
+        const card = gid('result-card');
+        card.className = 'result-card ' + (win ? 'win' : 'lose');
+        gid('result-emoji').textContent = win ? '🎉' : '❌';
+        gid('result-title').textContent = win ? 'Correct!' : 'Incorrect!';
+        gid('result-desc').textContent = desc;
+        gid('result-score').textContent = win ? '+85' : '0';
+
+        if (win) {
+            if (part === 1) {
+                gid('result-action-btn').textContent = 'Continue to Part 2 ▶';
+                gid('result-action-btn').onclick = () => { closeResult(); setupPart2Intro(); };
+            } else {
+                gid('result-action-btn').textContent = 'View Results ▶';
+                gid('result-action-btn').onclick = () => { closeResult(); showCompletion(saveP); };
+            }
+        } else {
+            gid('result-action-btn').textContent = 'Try Again';
+            if (part === 1) {
+                gid('result-action-btn').onclick = () => { closeResult(); startPart1(); };
+            } else {
+                gid('result-action-btn').onclick = () => { closeResult(); startPart2(); };
+            }
+        }
+        overlay.classList.add('open');
+    }
+
+    function closeResult() { gid('result-overlay').classList.remove('open'); }
+
+    function setupPart2Intro() {
+        currentPart = 2;
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        gid('topbar-part-label').textContent = 'Part 2: Story Sequence Recall';
+        gid('part-label-text').textContent = 'Part 2';
+        showState('state-intro-p2');
+    }
+
+    function showCompletion(saveP) {
+        gid('comp-attempts').textContent = totalAttempts;
+        const accuracy = totalAttempts <= 2 ? '100%' : (Math.round((2 / totalAttempts) * 100) + '%');
+        gid('comp-accuracy').textContent = accuracy;
+
+        const btnDash = gid('btn-finish-dash');
+        if (btnDash) {
+            btnDash.onclick = () => {
+                if (saveP) { saveP.finally(() => { window.location.href = 'dashboard.html'; }); }
+                else { window.location.href = 'dashboard.html'; }
+            };
+        }
+        showState('state-complete');
+    }
+
+    function showFeedback(id, msg, type) {
+        const el = gid(id);
+        el.textContent = msg;
+        el.className = 'feedback-msg ' + type;
+    }
+
+    /* ── Streak & Progress Helpers ── */
+    function getLocalDateString() {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
+        if (!isSuccess) return { streak: 0, dateStr: lastPlayedDateStr };
+        var todayStr = getLocalDateString();
+        if (!lastPlayedDateStr) return { streak: 1, dateStr: todayStr };
+        var today = new Date(todayStr + 'T00:00:00');
+        var lastPlayed = new Date(lastPlayedDateStr + 'T00:00:00');
+        var diffDays = Math.round((today - lastPlayed) / (1000 * 60 * 60 * 24));
+        var newStreak = currentStreak;
+        if (diffDays === 0) { if (newStreak === 0) newStreak = 1; }
+        else if (diffDays === 1) { newStreak = currentStreak + 1; }
+        else { newStreak = 1; }
+        return { streak: newStreak, dateStr: todayStr };
+    }
+
+    function safeParseArray(dataVal, defaultArray) {
+        if (Array.isArray(dataVal)) return dataVal;
+        if (typeof dataVal === 'string') {
+            try {
+                var parsed = JSON.parse(dataVal);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {}
+        }
+        return defaultArray.slice();
+    }
+
+    function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
+        try {
+            localStorage.setItem('mm_score', score);
+            localStorage.setItem('mm_streak', streak);
+            localStorage.setItem('mm_unlocked_level', unlockedLevel);
+            localStorage.setItem('mm_games_played', gamesPlayed);
+            localStorage.setItem('mm_best_streak', bestStreak);
+            localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+            localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+            localStorage.setItem('mm_stars', JSON.stringify(stars));
+            if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+        } catch(e) {}
+    }
+
+    // ─── Save Progress ───
+    let savePromise = null;
+    function saveProgress() {
+        // 1. Immediately save to localStorage synchronously so progress is never lost
+        let curScore       = parseInt(localStorage.getItem('mm_score'), 10) || 0;
+        let curGames       = parseInt(localStorage.getItem('mm_games_played'), 10) || 0;
+        let curLevel       = parseInt(localStorage.getItem('mm_unlocked_level'), 10) || 1;
+        let curStreak      = parseInt(localStorage.getItem('mm_streak'), 10) || 0;
+        let curBestStreak  = parseInt(localStorage.getItem('mm_best_streak'), 10) || 0;
+        let curScores      = safeParseArray(localStorage.getItem('mm_best_scores'), Array(20).fill(0));
+        let curTimes       = safeParseArray(localStorage.getItem('mm_best_times'), Array(20).fill('-'));
+        let curStars       = safeParseArray(localStorage.getItem('mm_stars'), Array(20).fill('0'));
+
+        let targetUnlockLevel = 16;
+        let newLevel = Math.max(curLevel, targetUnlockLevel);
+        let newScore = curScore + 170;
+        let newGames = curGames + 1;
+        let streakRes = calculateNewStreak(curStreak, localStorage.getItem('mm_last_played_date') || '', true);
+        let newStreak = streakRes.streak;
+        let newBestStreak = Math.max(curBestStreak, newStreak);
+        if (170 > (parseInt(curScores[14], 10) || 0)) curScores[14] = 170;
+        curStars[14] = '3';
+        curTimes[14] = '40s';
+
+        saveLocalProgress(newScore, newStreak, newLevel, newGames, newBestStreak, curScores, curTimes, curStars, streakRes.dateStr);
+
+        // 2. Also asynchronously sync with DB
+        savePromise = fetch('getProgress?t=' + Date.now())
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                let dbScore         = data ? ((parseInt(data.score, 10) || 0) + 170) : newScore;
+                let dbGamesPlayed   = data ? ((parseInt(data.gamesPlayed, 10) || 0) + 1) : newGames;
+                let dbUnlockedLevel = data ? Math.max(parseInt(data.unlockedLevel, 10) || 1, targetUnlockLevel) : newLevel;
+                let dbBestScores    = data ? safeParseArray(data.bestScores, Array(20).fill(0)) : curScores;
+                let dbBestTimes     = data ? safeParseArray(data.bestTimes, Array(20).fill('-')) : curTimes;
+                let dbStars         = data ? safeParseArray(data.stars, Array(20).fill('0')) : curStars;
+
+                let dbStreakResult   = data ? calculateNewStreak(parseInt(data.streak, 10) || 0, data.lastPlayedDate || '', true) : streakRes;
+                let dbStreak         = dbStreakResult.streak;
+                let dbLastPlayedDate = dbStreakResult.dateStr;
+                let dbBestStreak     = data ? Math.max(parseInt(data.bestStreak, 10) || 0, dbStreak) : newBestStreak;
+
+                if (170 > (parseInt(dbBestScores[14], 10) || 0)) dbBestScores[14] = 170;
+                dbStars[14] = '3';
+                dbBestTimes[14] = '40s';
+
+                saveLocalProgress(dbScore, dbStreak, dbUnlockedLevel, dbGamesPlayed, dbBestStreak, dbBestScores, dbBestTimes, dbStars, dbLastPlayedDate);
+
+                return fetch('saveProgress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        score: dbScore,
+                        streak: dbStreak,
+                        unlockedLevel: dbUnlockedLevel,
+                        gamesPlayed: dbGamesPlayed,
+                        bestStreak: dbBestStreak,
+                        bestScores: JSON.stringify(dbBestScores),
+                        bestTimes:  JSON.stringify(dbBestTimes),
+                        stars:      JSON.stringify(dbStars),
+                        lastPlayedDate: dbLastPlayedDate
+                    }).toString()
+                });
+            }).catch(err => { console.error('[Level15] Server save error:', err); });
+        return savePromise;
+    }
+
+    // ─── Confetti ───
+    function launchConfetti() {
+        const canvas = gid('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const pieces = Array.from({length:120}, () => ({
+            x:Math.random()*canvas.width, y:Math.random()*canvas.height-canvas.height,
+            r:Math.random()*6+3, c:`hsl(${Math.random()*360},80%,60%)`,
+            vy:Math.random()*3+2, vx:(Math.random()-0.5)*3, a:Math.random()*360
+        }));
+        let frames = 0;
+        function draw() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            pieces.forEach(p => {
+                p.y+=p.vy; p.x+=p.vx; p.a+=3;
+                ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a*Math.PI/180);
+                ctx.fillStyle=p.c; ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r); ctx.restore();
+            });
+            frames++;
+            if (frames < 180) requestAnimationFrame(draw);
+            else ctx.clearRect(0,0,canvas.width,canvas.height);
+        }
+        draw();
+    }
+
+    // ─── HINT SYSTEM INTEGRATION ───
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            () => {
+                return gid('state-questions-p1').classList.contains('active') ||
+                       gid('state-reorder-p2').classList.contains('active');
+            },
+            () => {
+                if (gid('state-questions-p1').classList.contains('active') && p1Data) {
+                    // Find an unanswered or incorrectly answered question and show its hint
+                    const unans = p1Data.questions.findIndex((q, i) => p1UserAnswers[i] !== q.correct);
+                    const qIdx = unans !== -1 ? unans : 0;
+                    const q = p1Data.questions[qIdx];
+
+                    showFeedback('feedback-p1', `💡 Hint for Q${qIdx + 1}: ${q.hint}`, 'success');
+                    return true;
+                }
+
+                if (gid('state-reorder-p2').classList.contains('active') && p2Data) {
+                    // Find a misplaced scene and reveal its correct position
+                    const misplacedIdx = p2UserSequence.findIndex((scene, i) => scene.index !== (i + 1));
+                    if (misplacedIdx !== -1) {
+                        const scene = p2UserSequence[misplacedIdx];
+                        showFeedback('feedback-p2', `💡 Hint: The scene '${scene.text.substring(0, 30)}...' belongs at Position #${scene.index}.`, 'success');
+                        return true;
+                    }
+                    return false;
+                }
+                return false;
+            }
+        );
+    }
+    </script>
+</body>
+</html>

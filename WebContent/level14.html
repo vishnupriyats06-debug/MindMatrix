@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 14: Sequence Transformation Memory</title>
+    <meta name="description" content="Level 14 – Memorize mixed sequences and apply dynamic logical rules to transform them from memory." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep: #050814; --bg-card: rgba(255,255,255,0.04); --bg-card-h: rgba(255,255,255,0.07);
+            --border: rgba(255,255,255,0.09); --border-h: rgba(139,92,246,0.45);
+            --accent-1: #8b5cf6; --accent-2: #06b6d4; --accent-3: #f59e0b;
+            --glow: rgba(139,92,246,0.35); --text-pri: #f0f4ff;
+            --text-sec: rgba(240,244,255,0.55); --text-muted: rgba(240,244,255,0.28);
+            --success: #34d399; --error: #f87171; --warning: #fbbf24;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-deep); color: var(--text-pri); min-height: 100vh; overflow-x: hidden; }
+
+        .bg-scene { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .bg-scene::before { content: ''; position: absolute; border-radius: 50%; width: 700px; height: 700px; background: radial-gradient(circle,rgba(139,92,246,0.18),transparent 70%); top:-200px; left:-200px; animation:orb 16s ease-in-out infinite alternate; }
+        .bg-scene::after  { content: ''; position: absolute; border-radius: 50%; width: 600px; height: 600px; background: radial-gradient(circle,rgba(6,182,212,0.14),transparent 70%); bottom:-150px; right:-150px; animation:orb 20s ease-in-out infinite alternate-reverse; }
+        @keyframes orb { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(60px,80px) scale(1.15)} }
+        .bg-grid { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px); background-size:60px 60px; }
+        .page-wrapper { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 88px 20px 32px; }
+
+        /* ── Topbar ── */
+        .level-topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(5,8,20,0.85); backdrop-filter: blur(24px); border-bottom: 1px solid var(--border); padding: 0 28px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back { display:flex; align-items:center; gap:8px; padding:8px 16px; border-radius:10px; background:var(--bg-card); border:1px solid var(--border); color:var(--text-sec); font-family:'Outfit',sans-serif; font-size:13px; font-weight:500; cursor:pointer; text-decoration:none; transition:all 0.2s; }
+        .btn-back:hover { background:var(--bg-card-h); color:var(--text-pri); border-color:var(--border-h); }
+        .btn-back svg { width:16px; height:16px; }
+        .topbar-level-info h1 { font-size:16px; font-weight:700; }
+        .topbar-level-info span { font-size:11px; color:var(--text-muted); }
+        .topbar-right { display:flex; align-items:center; gap:12px; }
+        .part-indicator { display:flex; align-items:center; gap:8px; padding:6px 14px; border-radius:100px; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.25); font-size:12px; font-weight:600; color:var(--accent-1); }
+        .part-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.15); transition:background 0.3s; }
+        .part-dot.active { background:var(--accent-1); box-shadow:0 0 8px var(--glow); }
+        .part-dot.done   { background:var(--success); box-shadow:0 0 8px rgba(52,211,153,0.4); }
+
+        /* ── Game Card ── */
+        .game-card { width:100%; max-width:760px; background:var(--bg-card); border:1px solid var(--border); border-radius:28px; padding:40px 36px; backdrop-filter:blur(20px); box-shadow:0 0 0 1px rgba(255,255,255,0.04),0 24px 64px rgba(0,0,0,0.55),0 0 80px rgba(139,92,246,0.07); text-align:center; }
+        .game-state { display:none; animation:fade-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display:block; }
+        @keyframes fade-up { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ── Intro ── */
+        .intro-emoji { font-size:56px; margin-bottom:16px; animation:pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08);filter:drop-shadow(0 0 20px rgba(139,92,246,0.4))} }
+        .intro-title { font-size:28px; font-weight:800; letter-spacing:-0.5px; margin-bottom:8px; }
+        .intro-subtitle { font-size:14px; color:var(--text-sec); margin-bottom:6px; }
+        .intro-desc { font-size:13px; color:var(--text-muted); margin-bottom:32px; line-height:1.7; max-width:500px; margin-left:auto; margin-right:auto; }
+        .game-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:100px; margin-bottom:20px; background:linear-gradient(135deg,rgba(139,92,246,0.18),rgba(6,182,212,0.10)); border:1px solid rgba(139,92,246,0.30); font-size:12px; font-weight:600; color:var(--accent-1); }
+
+        /* ── Buttons ── */
+        .btn-primary { padding:14px 36px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--accent-1),var(--accent-2)); color:#fff; font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.25s; box-shadow:0 4px 20px rgba(139,92,246,0.4); }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(139,92,246,0.5); }
+        .btn-primary:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
+        .btn-secondary { padding:12px 24px; border-radius:12px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-sec); font-family:'Outfit',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+        .btn-secondary:hover { background:var(--bg-card-h); color:var(--text-pri); border-color:var(--border-h); }
+        .btn-row { margin-top:24px; display:flex; justify-content:center; gap:12px; flex-wrap:wrap; }
+
+        /* ── Countdown ── */
+        .countdown-display { font-size:64px; font-weight:900; color:var(--accent-1); text-shadow:0 0 40px rgba(139,92,246,0.6); animation:pulse-glow 1s ease-in-out infinite; margin:10px 0; }
+        .memo-label { font-size:15px; font-weight:600; color:var(--text-sec); margin-bottom:8px; }
+
+        /* ── Sequence Display (Memorization) ── */
+        .sequence-display {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 24px auto;
+            max-width: 680px;
+        }
+
+        .seq-token {
+            width: 68px;
+            height: 74px;
+            border-radius: 16px;
+            border: 2px solid rgba(139,92,246,0.4);
+            background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(6,182,212,0.1));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--text-pri);
+            box-shadow: 0 0 20px rgba(139,92,246,0.2);
+            animation: token-pop 0.3s ease-out;
+            position: relative;
+        }
+        @keyframes token-pop {
+            0% { transform: scale(0.6); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .seq-pos {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+            position: absolute;
+            bottom: 4px;
+        }
+
+        /* ── Transformation Rule Box ── */
+        .rule-card {
+            background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(139,92,246,0.08));
+            border: 1px solid rgba(245,158,11,0.35);
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin: 16px auto 24px;
+            max-width: 620px;
+            text-align: center;
+        }
+        .rule-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .rule-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-pri);
+            line-height: 1.5;
+        }
+
+        /* ── Answer Slots ── */
+        .answer-slots-wrap {
+            margin: 20px auto 14px;
+            max-width: 680px;
+        }
+        .answer-slots {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        .answer-slot {
+            width: 64px;
+            height: 70px;
+            border-radius: 14px;
+            border: 2px dashed rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-pri);
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        .answer-slot:hover { border-color: rgba(248,113,113,0.5); }
+        .answer-slot.filled {
+            border-color: rgba(139,92,246,0.6);
+            background: rgba(139,92,246,0.12);
+            border-style: solid;
+        }
+        .answer-slot.correct {
+            border-color: var(--success);
+            background: rgba(52,211,153,0.18);
+            border-style: solid;
+        }
+        .answer-slot.wrong {
+            border-color: var(--error);
+            background: rgba(248,113,113,0.18);
+            border-style: solid;
+        }
+        .clear-item-btn {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(248,113,113,0.85);
+            border: none;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #fff;
+        }
+        .answer-slot.filled .clear-item-btn { display: flex; }
+
+        /* ── Element Choice Buttons ── */
+        .picker-section {
+            margin: 18px auto 10px;
+            max-width: 640px;
+            padding: 16px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 18px;
+            border: 1px solid var(--border);
+        }
+        .picker-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .token-picker {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+        .picker-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-pri);
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .picker-btn:hover {
+            border-color: rgba(139,92,246,0.6);
+            background: rgba(139,92,246,0.12);
+            transform: scale(1.08);
+        }
+        .picker-btn.used {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Feedback Message */
+        .feedback-msg { min-height: 28px; font-size: 14px; font-weight: 600; margin-top: 14px; transition: all 0.3s; }
+        .feedback-msg.success { color: var(--success); }
+        .feedback-msg.error { color: var(--error); animation: shake 0.4s ease; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+
+        /* Completion & Statistics */
+        .completion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 24px 0; }
+        .comp-stat { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 16px 12px; }
+        .comp-stat-val { font-size: 24px; font-weight: 800; background: linear-gradient(135deg,var(--accent-1),var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .comp-stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .check-list { text-align: left; margin: 20px 0; display: flex; flex-direction: column; gap: 10px; }
+        .check-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-sec); padding: 10px 14px; border-radius: 10px; background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.2); }
+        .check-item .ck-icon { font-size: 18px; }
+
+        /* Result Overlay */
+        .result-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.7); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.35s; }
+        .result-overlay.open { opacity: 1; pointer-events: auto; }
+        .result-card { background: rgba(15,18,35,0.96); border: 1px solid var(--border); border-radius: 28px; padding: 40px 36px; text-align: center; max-width: 440px; width: 90%; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+        .result-card.win  { border-color: var(--success); box-shadow: 0 0 60px rgba(52,211,153,0.15); }
+        .result-card.lose { border-color: var(--error);   box-shadow: 0 0 60px rgba(248,113,113,0.15); }
+        .result-emoji { font-size: 56px; margin-bottom: 12px; }
+        .result-title { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+        .result-desc  { font-size: 13px; color: var(--text-sec); margin-bottom: 20px; line-height: 1.6; }
+        .result-score { font-size: 36px; font-weight: 800; background: linear-gradient(135deg,var(--accent-1),var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 24px; }
+
+        canvas#confetti-canvas { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
+
+        @media(max-width: 600px) {
+            .game-card { padding: 24px 14px; }
+            .seq-token { width: 50px; height: 58px; font-size: 22px; }
+            .answer-slot { width: 48px; height: 54px; font-size: 20px; }
+            .picker-btn { width: 42px; height: 42px; font-size: 18px; }
+            .rule-text { font-size: 14px; }
+            .completion-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-scene"></div>
+    <div class="bg-grid"></div>
+    <div class="page-wrapper">
+
+    <!-- ── Topbar ── -->
+    <div class="level-topbar">
+        <div class="topbar-left">
+            <a href="dashboard.html" class="btn-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Dashboard
+            </a>
+            <div class="topbar-level-info">
+                <h1>Level 14 – Sequence Transformation</h1>
+                <span id="topbar-part-label">Part 1: Alternating Sequence Recall</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="part-indicator">
+                <div class="part-dot active" id="dot-1"></div>
+                <span id="part-label-text">Part 1</span>
+                <div class="part-dot" id="dot-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <div class="game-card">
+
+            <!-- ── Intro (Part 1) ── -->
+            <div class="game-state active" id="state-intro-p1">
+                <div class="game-badge">🔄 Level 14 • Part 1</div>
+                <div class="intro-emoji">🔤</div>
+                <div class="intro-title">Alternating Sequence Recall</div>
+                <div class="intro-subtitle">Memorize first, transform after!</div>
+                <div class="intro-desc">
+                    Memorize the complete sequence carefully. You have 15 seconds. After the sequence disappears, follow the given rule and enter the correct answer.
+                </div>
+                <button class="btn-primary" id="btn-start-p1">▶ Start Game</button>
+            </div>
+
+            <!-- ── Memorization (Part 1) ── -->
+            <div class="game-state" id="state-memo-p1">
+                <div class="game-badge">⏱ Remember the Sequence</div>
+                <div class="memo-label">Time Remaining</div>
+                <div class="countdown-display" id="countdown-p1">15</div>
+                <div class="sequence-display" id="memo-seq-p1"></div>
+            </div>
+
+            <!-- ── Recall (Part 1) ── -->
+            <div class="game-state" id="state-recall-p1">
+                <div class="game-badge">🧠 Apply Transformation Rule</div>
+
+                <div class="rule-card">
+                    <div class="rule-title">📜 Transformation Rule</div>
+                    <div class="rule-text" id="rule-text-p1">Loading rule...</div>
+                </div>
+
+                <div class="answer-slots-wrap">
+                    <div class="answer-slots" id="answer-slots-p1"></div>
+                </div>
+
+                <div class="picker-section">
+                    <div class="picker-title">Select Items to Build Answer:</div>
+                    <div class="token-picker" id="token-picker-p1"></div>
+                </div>
+
+                <div class="feedback-msg" id="feedback-p1"></div>
+
+                <div class="btn-row">
+                    <button class="btn-secondary" id="btn-clear-p1">🗑 Clear All</button>
+                    <button class="btn-secondary" id="btn-backspace-p1">⌫ Backspace</button>
+                    <button class="btn-primary" id="btn-submit-p1">Submit Answer</button>
+                </div>
+            </div>
+
+            <!-- ── Intro (Part 2) ── -->
+            <div class="game-state" id="state-intro-p2">
+                <div class="game-badge">🔄 Level 14 • Part 2</div>
+                <div class="intro-emoji">🧩</div>
+                <div class="intro-title">Rule-Based Memory Challenge</div>
+                <div class="intro-subtitle">Letters, Numbers & Symbols Transformation</div>
+                <div class="intro-desc">
+                    Study the complete sequence carefully. You have 15 seconds to memorize it. After it disappears, apply the given rule and enter the correct transformed sequence.
+                </div>
+                <button class="btn-primary" id="btn-start-p2">▶ Start Game</button>
+            </div>
+
+            <!-- ── Memorization (Part 2) ── -->
+            <div class="game-state" id="state-memo-p2">
+                <div class="game-badge">⏱ Study the Complex Sequence</div>
+                <div class="memo-label">Time Remaining</div>
+                <div class="countdown-display" id="countdown-p2">15</div>
+                <div class="sequence-display" id="memo-seq-p2"></div>
+            </div>
+
+            <!-- ── Recall (Part 2) ── -->
+            <div class="game-state" id="state-recall-p2">
+                <div class="game-badge">🛠 Apply Advanced Rule</div>
+
+                <div class="rule-card">
+                    <div class="rule-title">📜 Transformation Rule</div>
+                    <div class="rule-text" id="rule-text-p2">Loading rule...</div>
+                </div>
+
+                <div class="answer-slots-wrap">
+                    <div class="answer-slots" id="answer-slots-p2"></div>
+                </div>
+
+                <div class="picker-section">
+                    <div class="picker-title">Select Items to Build Answer:</div>
+                    <div class="token-picker" id="token-picker-p2"></div>
+                </div>
+
+                <div class="feedback-msg" id="feedback-p2"></div>
+
+                <div class="btn-row">
+                    <button class="btn-secondary" id="btn-clear-p2">🗑 Clear All</button>
+                    <button class="btn-secondary" id="btn-backspace-p2">⌫ Backspace</button>
+                    <button class="btn-primary" id="btn-submit-p2">Submit Answer</button>
+                </div>
+            </div>
+
+            <!-- ── Completion ── -->
+            <div class="game-state" id="state-complete">
+                <div class="game-badge">🏆 Level 14 Complete!</div>
+                <div class="intro-emoji">🎉</div>
+                <div class="intro-title">Sequence Transformation Mastered!</div>
+                <div class="intro-subtitle">You completed both transformation challenges!</div>
+                <div class="check-list">
+                    <div class="check-item"><span class="ck-icon">✅</span> Part 1 – Alternating Sequence Recall</div>
+                    <div class="check-item"><span class="ck-icon">✅</span> Part 2 – Rule-Based Memory Challenge</div>
+                </div>
+                <div class="completion-grid">
+                    <div class="comp-stat">
+                        <div class="comp-stat-val" id="comp-score">+160</div>
+                        <div class="comp-stat-lbl">Score Earned</div>
+                    </div>
+                    <div class="comp-stat">
+                        <div class="comp-stat-val" id="comp-attempts">1</div>
+                        <div class="comp-stat-lbl">Total Attempts</div>
+                    </div>
+                    <div class="comp-stat">
+                        <div class="comp-stat-val" id="comp-accuracy">100%</div>
+                        <div class="comp-stat-lbl">Accuracy</div>
+                    </div>
+                    <div class="comp-stat">
+                        <div class="comp-stat-val">⭐⭐⭐</div>
+                        <div class="comp-stat-lbl">Stars Earned</div>
+                    </div>
+                </div>
+                <div class="intro-desc" style="margin-bottom:20px;">Congratulations! Level 15 is now unlocked.</div>
+                <div class="btn-row">
+                    <button class="btn-primary" id="btn-finish-dash">Back to Dashboard</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card" id="result-card">
+            <div class="result-emoji" id="result-emoji">🎉</div>
+            <div class="result-title" id="result-title">Correct!</div>
+            <div class="result-desc"  id="result-desc">Amazing work!</div>
+            <div class="result-score" id="result-score">+80</div>
+            <button class="btn-primary" id="result-action-btn">Continue ▶</button>
+        </div>
+    </div>
+
+    <script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+    <script>
+    /* ═══════════════════════════════════════════
+       LEVEL 14 – SEQUENCE TRANSFORMATION MEMORY
+    ═══════════════════════════════════════════ */
+
+    let currentPart = 1;
+    let p1Data = null; // { sequence: [...], ruleId: "...", ruleText: "...", transformed: [...], memorizeTime: 15 }
+    let p2Data = null;
+
+    let p1UserAnswer = [];
+    let p2UserAnswer = [];
+
+    let totalAttempts = 0;
+    let p1Attempts = 0;
+    let p2Attempts = 0;
+
+    function gid(id) { return document.getElementById(id); }
+    function showState(id) {
+        document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+        gid(id).classList.add('active');
+    }
+
+    // ─── START BUTTONS ───
+    gid('btn-start-p1').onclick = () => startPart1();
+    gid('btn-start-p2').onclick = () => startPart2();
+
+    // ─── PART 1: Alternating Sequence Recall ───
+    function startPart1() {
+        totalAttempts++;
+        p1Attempts++;
+        p1UserAnswer = [];
+
+        fetch('level14?part=1&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => { p1Data = data; runMemoPart1(); })
+            .catch(() => { p1Data = fallbackP1(); runMemoPart1(); });
+    }
+
+    function fallbackP1() {
+        const seq = ["A", "7", "C", "3", "F", "9", "B", "2"];
+        const trans = ["A", "C", "F", "B", "7", "3", "9", "2"];
+        return {
+            part: 1,
+            sequence: seq,
+            ruleId: "LETTERS_FIRST",
+            ruleText: "Enter all alphabets first, followed by all numbers (maintaining original relative order).",
+            transformed: trans,
+            memorizeTime: 15
+        };
+    }
+
+    function runMemoPart1() {
+        p1UserAnswer = [];
+        const container = gid('memo-seq-p1');
+        container.innerHTML = '';
+
+        p1Data.sequence.forEach((tok, i) => {
+            const el = document.createElement('div');
+            el.className = 'seq-token';
+            el.innerHTML = `${tok}<span class="seq-pos">#${i+1}</span>`;
+            container.appendChild(el);
+        });
+
+        showState('state-memo-p1');
+        startCountdown('countdown-p1', p1Data.memorizeTime || 15, () => setupRecallP1());
+    }
+
+    function setupRecallP1() {
+        p1UserAnswer = [];
+        gid('rule-text-p1').textContent = p1Data.ruleText;
+
+        renderAnswerSlots(1, p1Data.transformed.length);
+        renderTokenPicker(1, p1Data.sequence);
+
+        gid('feedback-p1').textContent = '';
+        gid('feedback-p1').className = 'feedback-msg';
+        showState('state-recall-p1');
+    }
+
+    // ─── PART 2: Rule-Based Memory Challenge ───
+    function startPart2() {
+        totalAttempts++;
+        p2Attempts++;
+        p2UserAnswer = [];
+
+        fetch('level14?part=2&t=' + Date.now())
+            .then(r => r.json())
+            .then(data => { p2Data = data; runMemoPart2(); })
+            .catch(() => { p2Data = fallbackP2(); runMemoPart2(); });
+    }
+
+    function fallbackP2() {
+        const seq = ["★", "4", "A", "▲", "8", "B", "●", "2"];
+        const trans = ["4", "▲", "B", "2", "★", "A", "8", "●"];
+        return {
+            part: 2,
+            sequence: seq,
+            ruleId: "EVEN_THEN_ODD",
+            ruleText: "Enter every second item (positions 2, 4, 6, 8) first, followed by the remaining items (positions 1, 3, 5, 7).",
+            transformed: trans,
+            memorizeTime: 15
+        };
+    }
+
+    function runMemoPart2() {
+        p2UserAnswer = [];
+        const container = gid('memo-seq-p2');
+        container.innerHTML = '';
+
+        p2Data.sequence.forEach((tok, i) => {
+            const el = document.createElement('div');
+            el.className = 'seq-token';
+            el.innerHTML = `${tok}<span class="seq-pos">#${i+1}</span>`;
+            container.appendChild(el);
+        });
+
+        showState('state-memo-p2');
+        startCountdown('countdown-p2', p2Data.memorizeTime || 15, () => setupRecallP2());
+    }
+
+    function setupRecallP2() {
+        p2UserAnswer = [];
+        gid('rule-text-p2').textContent = p2Data.ruleText;
+
+        renderAnswerSlots(2, p2Data.transformed.length);
+        renderTokenPicker(2, p2Data.sequence);
+
+        gid('feedback-p2').textContent = '';
+        gid('feedback-p2').className = 'feedback-msg';
+        showState('state-recall-p2');
+    }
+
+    // ─── RENDER HELPERS ───
+    function renderAnswerSlots(part, count) {
+        const slotsWrap = gid(part === 1 ? 'answer-slots-p1' : 'answer-slots-p2');
+        slotsWrap.innerHTML = '';
+
+        for (let i = 0; i < count; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'answer-slot';
+            slot.id = `p${part}-slot-${i}`;
+            slot.innerHTML = `<span class="seq-pos">#${i+1}</span>`;
+            slot.onclick = () => removeAnswerItem(part, i);
+            slotsWrap.appendChild(slot);
+        }
+    }
+
+    function renderTokenPicker(part, originalSequence) {
+        const picker = gid(part === 1 ? 'token-picker-p1' : 'token-picker-p2');
+        picker.innerHTML = '';
+
+        // Copy and shuffle available items so the original sequence order is not directly given away
+        const shuffled = [...originalSequence];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+
+        shuffled.forEach((tok, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'picker-btn';
+            btn.dataset.token = tok;
+            btn.dataset.originalIndex = idx;
+            btn.textContent = tok;
+            btn.onclick = () => addAnswerItem(part, tok, btn);
+            picker.appendChild(btn);
+        });
+    }
+
+    function addAnswerItem(part, tok, btnEl) {
+        const answerArr = part === 1 ? p1UserAnswer : p2UserAnswer;
+        const maxCount = part === 1 ? p1Data.transformed.length : p2Data.transformed.length;
+
+        if (answerArr.length >= maxCount) return;
+
+        const idx = answerArr.length;
+        answerArr.push(tok);
+
+        const slot = gid(`p${part}-slot-${idx}`);
+        slot.classList.add('filled');
+        slot.innerHTML = `${tok}<span class="seq-pos">#${idx+1}</span><button class="clear-item-btn" onclick="removeAnswerItem(${part}, ${idx})">✕</button>`;
+
+        updatePickerButtonState(part);
+    }
+
+    window.removeAnswerItem = function(part, idx) {
+        const answerArr = part === 1 ? p1UserAnswer : p2UserAnswer;
+        if (idx >= answerArr.length) return;
+
+        // Remove item at idx
+        answerArr.splice(idx, 1);
+
+        // Re-render all slots up to max
+        const maxCount = part === 1 ? p1Data.transformed.length : p2Data.transformed.length;
+        for (let i = 0; i < maxCount; i++) {
+            const slot = gid(`p${part}-slot-${i}`);
+            slot.className = 'answer-slot';
+            if (i < answerArr.length) {
+                slot.classList.add('filled');
+                slot.innerHTML = `${answerArr[i]}<span class="seq-pos">#${i+1}</span><button class="clear-item-btn" onclick="removeAnswerItem(${part}, ${i})">✕</button>`;
+            } else {
+                slot.innerHTML = `<span class="seq-pos">#${i+1}</span>`;
+            }
+        }
+
+        updatePickerButtonState(part);
+    };
+
+    function updatePickerButtonState(part) {
+        const answerArr = part === 1 ? p1UserAnswer : p2UserAnswer;
+        const picker = gid(part === 1 ? 'token-picker-p1' : 'token-picker-p2');
+        const buttons = Array.from(picker.querySelectorAll('.picker-btn'));
+
+        // Count occurrences in answer
+        const countMap = {};
+        answerArr.forEach(t => countMap[t] = (countMap[t] || 0) + 1);
+
+        // Mark buttons used matching counts
+        const buttonCountMap = {};
+        buttons.forEach(btn => {
+            const tok = btn.dataset.token;
+            buttonCountMap[tok] = (buttonCountMap[tok] || 0) + 1;
+            if (buttonCountMap[tok] <= (countMap[tok] || 0)) {
+                btn.classList.add('used');
+            } else {
+                btn.classList.remove('used');
+            }
+        });
+    }
+
+    // ─── CLEAR & BACKSPACE ───
+    gid('btn-clear-p1').onclick = () => clearAll(1);
+    gid('btn-clear-p2').onclick = () => clearAll(2);
+    gid('btn-backspace-p1').onclick = () => backspace(1);
+    gid('btn-backspace-p2').onclick = () => backspace(2);
+
+    function clearAll(part) {
+        if (part === 1) p1UserAnswer = [];
+        else p2UserAnswer = [];
+
+        const maxCount = part === 1 ? p1Data.transformed.length : p2Data.transformed.length;
+        for (let i = 0; i < maxCount; i++) {
+            const slot = gid(`p${part}-slot-${i}`);
+            slot.className = 'answer-slot';
+            slot.innerHTML = `<span class="seq-pos">#${i+1}</span>`;
+        }
+        updatePickerButtonState(part);
+        gid(part === 1 ? 'feedback-p1' : 'feedback-p2').textContent = '';
+        gid(part === 1 ? 'feedback-p1' : 'feedback-p2').className = 'feedback-msg';
+    }
+
+    function backspace(part) {
+        const answerArr = part === 1 ? p1UserAnswer : p2UserAnswer;
+        if (answerArr.length > 0) {
+            removeAnswerItem(part, answerArr.length - 1);
+        }
+    }
+
+    // ─── SUBMIT VALIDATION ───
+    gid('btn-submit-p1').onclick = () => validateAnswer(1);
+    gid('btn-submit-p2').onclick = () => validateAnswer(2);
+
+    function validateAnswer(part) {
+        const userAns = part === 1 ? p1UserAnswer : p2UserAnswer;
+        const target = part === 1 ? p1Data.transformed : p2Data.transformed;
+        const feedbackId = part === 1 ? 'feedback-p1' : 'feedback-p2';
+
+        if (userAns.length < target.length) {
+            showFeedback(feedbackId, `Please fill all ${target.length} slots before submitting. (${userAns.length}/${target.length})`, 'error');
+            return;
+        }
+
+        let allCorrect = true;
+        for (let i = 0; i < target.length; i++) {
+            const slot = gid(`p${part}-slot-${i}`);
+            if (userAns[i] === target[i]) {
+                slot.classList.add('correct');
+            } else {
+                slot.classList.add('wrong');
+                allCorrect = false;
+            }
+        }
+
+        if (allCorrect) {
+            fetch('level14', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ part: part, correct: true })
+            }).catch(() => {});
+
+            if (part === 1) {
+                showResult(true, 1, 'Excellent! You remembered and transformed the sequence correctly!');
+            } else {
+                let p = saveProgress();
+                showResult(true, 2, 'Perfect! You remembered the sequence and applied the rule correctly!', p);
+                launchConfetti();
+            }
+        } else {
+            if (part === 1) {
+                showResult(false, 1, 'Incorrect! Try Again with a new sequence and rule.');
+            } else {
+                showResult(false, 2, 'Incorrect! The sequence transformation is not correct. Try again.');
+            }
+        }
+    }
+
+    // ─── RESULT OVERLAY ───
+    function showResult(win, part, desc, saveP) {
+        const overlay = gid('result-overlay');
+        const card = gid('result-card');
+        card.className = 'result-card ' + (win ? 'win' : 'lose');
+        gid('result-emoji').textContent = win ? '🎉' : '❌';
+        gid('result-title').textContent = win ? 'Correct!' : 'Incorrect!';
+        gid('result-desc').textContent = desc;
+        gid('result-score').textContent = win ? '+80' : '0';
+
+        if (win) {
+            if (part === 1) {
+                gid('result-action-btn').textContent = 'Continue to Part 2 ▶';
+                gid('result-action-btn').onclick = () => { closeResult(); setupPart2Intro(); };
+            } else {
+                gid('result-action-btn').textContent = 'View Results ▶';
+                gid('result-action-btn').onclick = () => { closeResult(); showCompletion(saveP); };
+            }
+        } else {
+            gid('result-action-btn').textContent = 'Try Again';
+            if (part === 1) {
+                gid('result-action-btn').onclick = () => { closeResult(); startPart1(); };
+            } else {
+                gid('result-action-btn').onclick = () => { closeResult(); startPart2(); };
+            }
+        }
+        overlay.classList.add('open');
+    }
+
+    function closeResult() { gid('result-overlay').classList.remove('open'); }
+
+    function setupPart2Intro() {
+        currentPart = 2;
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        gid('topbar-part-label').textContent = 'Part 2: Rule-Based Memory Challenge';
+        gid('part-label-text').textContent = 'Part 2';
+        showState('state-intro-p2');
+    }
+
+    function showCompletion(saveP) {
+        gid('comp-attempts').textContent = totalAttempts;
+        const accuracy = totalAttempts <= 2 ? '100%' : (Math.round((2 / totalAttempts) * 100) + '%');
+        gid('comp-accuracy').textContent = accuracy;
+
+        const btnDash = gid('btn-finish-dash');
+        if (btnDash) {
+            btnDash.onclick = () => {
+                if (saveP) { saveP.finally(() => { window.location.href = 'dashboard.html'; }); }
+                else { window.location.href = 'dashboard.html'; }
+            };
+        }
+        showState('state-complete');
+    }
+
+    function showFeedback(id, msg, type) {
+        const el = gid(id);
+        el.textContent = msg;
+        el.className = 'feedback-msg ' + type;
+    }
+
+    function startCountdown(id, secs, onDone) {
+        let t = secs;
+        gid(id).textContent = t;
+        const iv = setInterval(() => {
+            t--;
+            gid(id).textContent = t;
+            if (t <= 0) { clearInterval(iv); onDone(); }
+        }, 1000);
+    }
+
+    /* ── Streak & Progress Helpers ── */
+    function getLocalDateString() {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
+        if (!isSuccess) return { streak: 0, dateStr: lastPlayedDateStr };
+        var todayStr = getLocalDateString();
+        if (!lastPlayedDateStr) return { streak: 1, dateStr: todayStr };
+        var today = new Date(todayStr + 'T00:00:00');
+        var lastPlayed = new Date(lastPlayedDateStr + 'T00:00:00');
+        var diffDays = Math.round((today - lastPlayed) / (1000 * 60 * 60 * 24));
+        var newStreak = currentStreak;
+        if (diffDays === 0) { if (newStreak === 0) newStreak = 1; }
+        else if (diffDays === 1) { newStreak = currentStreak + 1; }
+        else { newStreak = 1; }
+        return { streak: newStreak, dateStr: todayStr };
+    }
+
+    function safeParseArray(dataVal, defaultArray) {
+        if (Array.isArray(dataVal)) return dataVal;
+        if (typeof dataVal === 'string') {
+            try {
+                var parsed = JSON.parse(dataVal);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {}
+        }
+        return defaultArray.slice();
+    }
+
+    function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
+        try {
+            localStorage.setItem('mm_score', score);
+            localStorage.setItem('mm_streak', streak);
+            localStorage.setItem('mm_unlocked_level', unlockedLevel);
+            localStorage.setItem('mm_games_played', gamesPlayed);
+            localStorage.setItem('mm_best_streak', bestStreak);
+            localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+            localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+            localStorage.setItem('mm_stars', JSON.stringify(stars));
+            if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+        } catch(e) {}
+    }
+
+    // ─── Save Progress ───
+    let savePromise = null;
+    function saveProgress() {
+        // 1. Immediately save to localStorage synchronously so progress is never lost
+        let curScore       = parseInt(localStorage.getItem('mm_score'), 10) || 0;
+        let curGames       = parseInt(localStorage.getItem('mm_games_played'), 10) || 0;
+        let curLevel       = parseInt(localStorage.getItem('mm_unlocked_level'), 10) || 1;
+        let curStreak      = parseInt(localStorage.getItem('mm_streak'), 10) || 0;
+        let curBestStreak  = parseInt(localStorage.getItem('mm_best_streak'), 10) || 0;
+        let curScores      = safeParseArray(localStorage.getItem('mm_best_scores'), Array(20).fill(0));
+        let curTimes       = safeParseArray(localStorage.getItem('mm_best_times'), Array(20).fill('-'));
+        let curStars       = safeParseArray(localStorage.getItem('mm_stars'), Array(20).fill('0'));
+
+        let targetUnlockLevel = 15;
+        let newLevel = Math.max(curLevel, targetUnlockLevel);
+        let newScore = curScore + 160;
+        let newGames = curGames + 1;
+        let streakRes = calculateNewStreak(curStreak, localStorage.getItem('mm_last_played_date') || '', true);
+        let newStreak = streakRes.streak;
+        let newBestStreak = Math.max(curBestStreak, newStreak);
+        if (160 > (parseInt(curScores[13], 10) || 0)) curScores[13] = 160;
+        curStars[13] = '3';
+        curTimes[13] = '35s';
+
+        saveLocalProgress(newScore, newStreak, newLevel, newGames, newBestStreak, curScores, curTimes, curStars, streakRes.dateStr);
+
+        // 2. Also asynchronously sync with DB
+        savePromise = fetch('getProgress?t=' + Date.now())
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+                let dbScore         = data ? ((parseInt(data.score, 10) || 0) + 160) : newScore;
+                let dbGamesPlayed   = data ? ((parseInt(data.gamesPlayed, 10) || 0) + 1) : newGames;
+                let dbUnlockedLevel = data ? Math.max(parseInt(data.unlockedLevel, 10) || 1, targetUnlockLevel) : newLevel;
+                let dbBestScores    = data ? safeParseArray(data.bestScores, Array(20).fill(0)) : curScores;
+                let dbBestTimes     = data ? safeParseArray(data.bestTimes, Array(20).fill('-')) : curTimes;
+                let dbStars         = data ? safeParseArray(data.stars, Array(20).fill('0')) : curStars;
+
+                let dbStreakResult   = data ? calculateNewStreak(parseInt(data.streak, 10) || 0, data.lastPlayedDate || '', true) : streakRes;
+                let dbStreak         = dbStreakResult.streak;
+                let dbLastPlayedDate = dbStreakResult.dateStr;
+                let dbBestStreak     = data ? Math.max(parseInt(data.bestStreak, 10) || 0, dbStreak) : newBestStreak;
+
+                if (160 > (parseInt(dbBestScores[13], 10) || 0)) dbBestScores[13] = 160;
+                dbStars[13] = '3';
+                dbBestTimes[13] = '35s';
+
+                saveLocalProgress(dbScore, dbStreak, dbUnlockedLevel, dbGamesPlayed, dbBestStreak, dbBestScores, dbBestTimes, dbStars, dbLastPlayedDate);
+
+                return fetch('saveProgress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        score: dbScore,
+                        streak: dbStreak,
+                        unlockedLevel: dbUnlockedLevel,
+                        gamesPlayed: dbGamesPlayed,
+                        bestStreak: dbBestStreak,
+                        bestScores: JSON.stringify(dbBestScores),
+                        bestTimes:  JSON.stringify(dbBestTimes),
+                        stars:      JSON.stringify(dbStars),
+                        lastPlayedDate: dbLastPlayedDate
+                    }).toString()
+                });
+            }).catch(err => { console.error('[Level14] Server save error:', err); });
+        return savePromise;
+    }
+
+    // ─── Confetti ───
+    function launchConfetti() {
+        const canvas = gid('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const pieces = Array.from({length:120}, () => ({
+            x:Math.random()*canvas.width, y:Math.random()*canvas.height-canvas.height,
+            r:Math.random()*6+3, c:`hsl(${Math.random()*360},80%,60%)`,
+            vy:Math.random()*3+2, vx:(Math.random()-0.5)*3, a:Math.random()*360
+        }));
+        let frames = 0;
+        function draw() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            pieces.forEach(p => {
+                p.y+=p.vy; p.x+=p.vx; p.a+=3;
+                ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a*Math.PI/180);
+                ctx.fillStyle=p.c; ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r); ctx.restore();
+            });
+            frames++;
+            if (frames < 180) requestAnimationFrame(draw);
+            else ctx.clearRect(0,0,canvas.width,canvas.height);
+        }
+        draw();
+    }
+
+    // ─── HINT SYSTEM INTEGRATION ───
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            () => {
+                return gid('state-recall-p1').classList.contains('active') ||
+                       gid('state-recall-p2').classList.contains('active');
+            },
+            () => {
+                if (gid('state-recall-p1').classList.contains('active') && p1Data) {
+                    const pos = p1UserAnswer.length;
+                    if (pos < p1Data.transformed.length) {
+                        const nextItem = p1Data.transformed[pos];
+                        addAnswerItem(1, nextItem, null);
+                        showFeedback('feedback-p1', `💡 Hint: Slot #${pos+1} is '${nextItem}' according to the rule!`, 'success');
+                        return true;
+                    }
+                    return false;
+                }
+
+                if (gid('state-recall-p2').classList.contains('active') && p2Data) {
+                    const pos = p2UserAnswer.length;
+                    if (pos < p2Data.transformed.length) {
+                        const nextItem = p2Data.transformed[pos];
+                        addAnswerItem(2, nextItem, null);
+                        showFeedback('feedback-p2', `💡 Hint: Slot #${pos+1} is '${nextItem}' according to the rule!`, 'success');
+                        return true;
+                    }
+                    return false;
+                }
+                return false;
+            }
+        );
+    }
+    </script>
+</body>
+</html>

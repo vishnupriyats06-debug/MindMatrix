@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 16: Shadow Tracker</title>
+    <meta name="description" content="Level 16 of MindMatrix – Shadow Tracker: Interactive moving-target tracking and high-speed color reaction challenge." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        /* ══════════════════════════════════════════
+           RESET & DESIGN TOKENS
+        ══════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep:     #050814;
+            --bg-mid:      #0b0f24;
+            --bg-card:     rgba(255,255,255,0.04);
+            --bg-card-h:   rgba(255,255,255,0.07);
+            --border:      rgba(255,255,255,0.09);
+            --border-h:    rgba(6,182,212,0.5);
+            --accent-1:    #06b6d4;
+            --accent-2:    #8b5cf6;
+            --accent-3:    #f59e0b;
+            --neon-pink:   #ec4899;
+            --neon-green:  #10b981;
+            --glow:        rgba(6,182,212,0.35);
+            --text-pri:    #f0f4ff;
+            --text-sec:    rgba(240,244,255,0.60);
+            --text-muted:  rgba(240,244,255,0.32);
+            --success:     #34d399;
+            --warning:     #fbbf24;
+            --error:       #f87171;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-pri);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ══════════════════════════════════════════
+           BACKGROUND & LIGHTING
+        ══════════════════════════════════════════ */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            background: var(--bg-deep); overflow: hidden; pointer-events: none;
+        }
+        .bg-scene::before {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 750px; height: 750px;
+            background: radial-gradient(circle, rgba(6,182,212,0.15), transparent 70%);
+            top: -200px; left: -200px;
+            animation: orb 16s ease-in-out infinite alternate;
+        }
+        .bg-scene::after {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 650px; height: 650px;
+            background: radial-gradient(circle, rgba(139,92,246,0.14), transparent 70%);
+            bottom: -150px; right: -150px;
+            animation: orb 20s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes orb {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(60px,80px) scale(1.15); }
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ══════════════════════════════════════════
+           PAGE LAYOUT & TOPBAR
+        ══════════════════════════════════════════ */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; padding: 24px 16px;
+        }
+
+        .level-topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(5,8,20,0.85);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 10px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.2s ease;
+        }
+        .btn-back:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+        .btn-back svg { width: 16px; height: 16px; }
+        .topbar-level-info h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+        .topbar-level-info span { font-size: 11px; color: var(--text-muted); }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+        .part-indicator {
+            display: flex; align-items: center; gap: 7px;
+            padding: 6px 14px; border-radius: 100px;
+            background: rgba(6,182,212,0.12);
+            border: 1px solid rgba(6,182,212,0.3);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+        .part-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); transition: background 0.3s ease;
+        }
+        .part-dot.active { background: var(--accent-1); box-shadow: 0 0 8px var(--glow); }
+        .part-dot.done   { background: var(--success); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+
+        /* ══════════════════════════════════════════
+           GAME CARD & PLAY ARENA
+        ══════════════════════════════════════════ */
+        .game-card {
+            width: 100%; max-width: 720px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 28px; padding: 32px 26px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 24px 64px rgba(0,0,0,0.55),
+                0 0 80px rgba(6,182,212,0.08);
+            text-align: center;
+            margin-top: 68px;
+        }
+
+        .game-state { display: none; animation: fade-up 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display: block; }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Typography & Badges ── */
+        .intro-emoji { font-size: 56px; margin-bottom: 16px; animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(6,182,212,0.4)); }
+        }
+        .intro-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .intro-subtitle { font-size: 14px; color: var(--text-sec); margin-bottom: 8px; }
+        .intro-desc {
+            font-size: 13.5px; color: var(--text-muted); margin-bottom: 26px;
+            line-height: 1.7; max-width: 540px; margin-left: auto; margin-right: auto;
+        }
+        .game-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 100px; margin-bottom: 14px;
+            background: linear-gradient(135deg, rgba(6,182,212,0.18), rgba(139,92,246,0.10));
+            border: 1px solid rgba(6,182,212,0.35);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 13px 34px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-1), #0891b2);
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 24px rgba(6,182,212,0.45);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            min-width: 180px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 36px rgba(6,182,212,0.55);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        /* ── HUD & Progress ── */
+        .stage-hud {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; padding: 0 4px;
+        }
+        .hud-title { font-size: 13.5px; font-weight: 700; color: var(--accent-1); }
+        .hud-timer {
+            font-size: 14px; font-weight: 800; color: #fbbf24;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .timer-bar-wrap {
+            width: 100%; height: 6px; background: rgba(255,255,255,0.06);
+            border-radius: 10px; overflow: hidden; margin-bottom: 12px;
+        }
+        .timer-bar-fill {
+            height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent-1), var(--neon-pink));
+            transition: width 0.1s linear;
+        }
+
+        .target-prompt-banner {
+            background: rgba(6,182,212,0.15); border: 1.5px solid #06b6d4;
+            border-radius: 12px; padding: 10px 16px; margin-bottom: 12px;
+            font-size: 13.5px; font-weight: 800; color: #38bdf8; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        .combo-badge-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 100px;
+            background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4);
+            font-size: 12px; font-weight: 800; color: #fbbf24; margin-left: 8px;
+        }
+
+        /* ══════════════════════════════════════════
+           INTERACTIVE TRACKER ARENA & DOM OBJECTS
+        ══════════════════════════════════════════ */
+        .game-area-wrapper {
+            position: relative; width: 100%; max-width: 640px; height: 380px;
+            margin: 8px auto 14px;
+            background: radial-gradient(circle at center, rgba(15,23,42,0.95), rgba(5,8,20,0.98));
+            border: 2px solid rgba(6,182,212,0.4); border-radius: 22px;
+            box-shadow: inset 0 0 35px rgba(0,0,0,0.8), 0 10px 36px rgba(0,0,0,0.5);
+            overflow: hidden; user-select: none; -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        /* Direct DOM Interactive Tracker Objects */
+        .tracker-object {
+            position: absolute;
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 11px; font-weight: 800;
+            color: #ffffff;
+            text-align: center;
+            cursor: pointer;
+            pointer-events: auto;
+            z-index: 10;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: transform 0.1s ease-out, box-shadow 0.2s ease;
+            box-sizing: border-box;
+            border: 2px solid rgba(255,255,255,0.7);
+        }
+
+        .tracker-object:hover {
+            transform: scale(1.12);
+        }
+
+        /* Colors with strong solid background & visible neon glow */
+        .tracker-object.blue   { background: #38bdf8; box-shadow: 0 0 20px rgba(56,189,248,0.8), inset 0 0 8px rgba(255,255,255,0.6); }
+        .tracker-object.purple { background: #a855f7; box-shadow: 0 0 20px rgba(168,85,247,0.8), inset 0 0 8px rgba(255,255,255,0.6); }
+        .tracker-object.green  { background: #10b981; box-shadow: 0 0 20px rgba(16,185,129,0.8), inset 0 0 8px rgba(255,255,255,0.6); }
+        .tracker-object.yellow { background: #facc15; color: #050814; box-shadow: 0 0 20px rgba(250,204,21,0.8), inset 0 0 8px rgba(255,255,255,0.6); }
+        .tracker-object.red    { background: #f87171; box-shadow: 0 0 20px rgba(248,113,113,0.8), inset 0 0 8px rgba(255,255,255,0.6); }
+        .tracker-object.orange { background: #fb923c; box-shadow: 0 0 20px rgba(251,146,60,0.8), inset 0 0 8px rgba(255,255,255,0.6); }
+        .tracker-object.pink   { background: #ec4899; box-shadow: 0 0 20px rgba(236,72,153,0.8), inset 0 0 8px rgba(255,255,255,0.6); }
+        .tracker-object.cyan   { background: #06b6d4; box-shadow: 0 0 20px rgba(6,182,212,0.8), inset 0 0 8px rgba(255,255,255,0.6); }
+
+        /* Target Highlight State (2 Seconds Reveal & Hint) */
+        .tracker-object.target-highlight {
+            border: 3px solid #ffffff !important;
+            box-shadow: 0 0 30px #ffffff, 0 0 60px currentColor !important;
+            animation: targetPulse 0.6s ease-in-out infinite alternate !important;
+            z-index: 25 !important;
+        }
+        @keyframes targetPulse {
+            0%   { transform: scale(1.0); }
+            100% { transform: scale(1.22); }
+        }
+
+        .target-tag-label {
+            position: absolute;
+            top: -24px; left: 50%;
+            transform: translateX(-50%);
+            background: #ffffff; color: #050814;
+            font-size: 10px; font-weight: 900;
+            padding: 2px 8px; border-radius: 6px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* Success & Error Feedback */
+        .tracker-object.correct-feedback {
+            border: 3px solid #34d399 !important;
+            box-shadow: 0 0 35px #34d399, 0 0 70px #34d399 !important;
+            transform: scale(1.25) !important;
+            transition: all 0.2s ease !important;
+        }
+        .tracker-object.wrong-feedback {
+            border: 3px solid #f87171 !important;
+            box-shadow: 0 0 35px #f87171, 0 0 70px #f87171 !important;
+            animation: shake 0.4s ease-in-out !important;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0); }
+            20%, 60% { transform: translate(-8px, 0); }
+            40%, 80% { transform: translate(8px, 0); }
+        }
+
+        /* ── Feedback Toast ── */
+        .toast-msg {
+            display: none; padding: 8px 18px; border-radius: 12px;
+            font-size: 13.5px; font-weight: 800; margin-bottom: 10px;
+            animation: fade-up 0.25s ease;
+        }
+        .toast-msg.success { display: inline-block; background: rgba(52,211,153,0.15); border: 1px solid var(--success); color: var(--success); }
+        .toast-msg.error   { display: inline-block; background: rgba(248,113,113,0.15); border: 1px solid var(--error); color: var(--error); }
+
+        @media (max-width: 580px) {
+            .game-card { padding: 22px 14px; margin-top: 60px; }
+            .game-area-wrapper { height: 320px; }
+            .tracker-object { width: 44px; height: 44px; font-size: 10px; }
+            .intro-title { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-scene"></div>
+<div class="bg-grid"></div>
+
+<!-- Topbar (EXACTLY 2 Parts: Part 1 = Follow The Target, Part 2 = Color Switch Chase) -->
+<header class="level-topbar">
+    <div class="topbar-left">
+        <a href="dashboard.html" class="btn-back" id="btn-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Dashboard
+        </a>
+        <div class="topbar-level-info">
+            <h1>Level 16 – Shadow Tracker</h1>
+            <span id="topbar-part-label">Part 1: Follow The Target</span>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <button class="theme-toggle-btn" id="theme-header-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+        <div class="part-indicator">
+            <span>Parts</span>
+            <div class="part-dot active" id="dot-1"></div>
+            <div class="part-dot" id="dot-2"></div>
+        </div>
+    </div>
+</header>
+
+<main class="page-wrapper">
+    <div class="game-card">
+
+        <!-- ═══════ STATE 1: INTRO ═══════ -->
+        <div class="game-state active" id="state-intro">
+            <div class="game-badge" id="intro-badge">🎯 Level 16 • Part 1</div>
+            <div class="intro-emoji" id="intro-emoji">🎯</div>
+            <div class="intro-title" id="intro-title">Follow The Target</div>
+            <div class="intro-subtitle" id="intro-subtitle">Track it. Follow it. Don't lose it.</div>
+            <div class="intro-desc" id="intro-desc">
+                Follow moving orbital targets across 3 progressive tracking rounds. Keep your eyes on the target ball as it moves among distraction pairs.
+            </div>
+            <button class="btn-primary" id="btn-start">
+                ▶ Start Game
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 2: PLAY ARENA ═══════ -->
+        <div class="game-state" id="state-arena">
+            <div class="game-badge" id="arena-stage-badge">Part 1 • Round 1/3</div>
+            <div class="stage-hud">
+                <span class="hud-title" id="arena-round-title">FOLLOW THE TARGET (WARM-UP)</span>
+                <span class="hud-timer">⏱ <span id="arena-timer-val">20</span>s</span>
+            </div>
+            <div class="timer-bar-wrap">
+                <div class="timer-bar-fill" id="arena-timer-bar" style="width: 100%;"></div>
+            </div>
+
+            <div id="arena-toast" class="toast-msg"></div>
+
+            <div class="target-prompt-banner" id="arena-prompt-banner">
+                <span id="prompt-icon">🎯</span> <span id="prompt-text">Observe the highlighted target orb!</span>
+            </div>
+
+            <!-- Reliable DOM Interactive Play Area -->
+            <div class="game-area-wrapper" id="gameArea">
+                <!-- Dynamic tracker-object divs rendered here -->
+            </div>
+        </div>
+
+        <!-- ═══════ STATE 3: PART 2 INTRO PAGE ═══════ -->
+        <div class="game-state" id="state-intro-p2">
+            <div class="game-badge">🎯 Level 16 • Part 2</div>
+            <div class="intro-emoji">🎨</div>
+            <div class="intro-title">Color Switch Chase</div>
+            <div class="intro-subtitle">React. Track. Adapt.</div>
+            <div class="intro-desc">
+                Engage high-frequency reactive visual speed: Tap target objects matching rapidly shifting color directives across 4 intense arcade rounds.
+            </div>
+            <button class="btn-primary" id="btn-start-p2">
+                ▶ Start Game
+            </button>
+        </div>
+
+    </div>
+</main>
+
+<script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   LEVEL 16 – SHADOW TRACKER ENGINE (DOM-BASED HIGH-PERFORMANCE)
+   Part 1: Follow The Target (3 Rounds: Easy, Medium, Hard)
+   Part 2: Color Switch Chase (4 Rounds: Color Chase, Color Switch, Shade Trap, Color Chaos)
+   ═══════════════════════════════════════════════════════════════ */
+
+let currentPart = 1; // 1 or 2
+let p1Round = 1;     // 1 to 3
+let p2Round = 1;     // 1 to 4
+
+let part1Score = 0;  // 50 pts max
+let part2Score = 0;  // 50 pts max
+let totalScore = 0;
+
+let activeTimer = null;
+let animFrameId = null;
+let isLocked = false;
+let startTimeStamp = Date.now();
+
+// DOM Arena State
+let gameArea = null;
+let objects = [];
+let targetIndex = null;
+let currentPhase = 'reveal'; // 'reveal', 'moving', 'select', 'p2_chase'
+let comboCount = 0;
+let bestCombo = 0;
+
+function gid(id) { return document.getElementById(id); }
+
+function showState(id) {
+    document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+    const el = gid(id);
+    if (el) {
+        requestAnimationFrame(() => {
+            el.classList.add('active');
+        });
+    }
+}
+
+function updatePartIndicator(partNum) {
+    currentPart = partNum;
+    if (partNum === 1) {
+        gid('dot-1').className = 'part-dot active';
+        gid('dot-2').className = 'part-dot';
+        gid('topbar-part-label').textContent = 'Part 1: Follow The Target';
+    } else {
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        gid('topbar-part-label').textContent = 'Part 2: Color Switch Chase';
+    }
+}
+
+function showPart2IntroPage() {
+    currentPart = 2;
+    p2Round = 1;
+    updatePartIndicator(2);
+    showState('state-intro-p2');
+}
+
+// ── INITIALIZATION ──
+document.addEventListener('DOMContentLoaded', () => {
+    gameArea = gid('gameArea');
+    if (!gameArea) {
+        console.error("Level 16 game area not found");
+    }
+
+    gid('btn-start').onclick = () => {
+        currentPart = 1;
+        p1Round = 1;
+        startPart1Round(1);
+    };
+
+    gid('btn-start-p2').onclick = () => {
+        currentPart = 2;
+        p2Round = 1;
+        startPart2Round(1);
+    };
+
+    if (sessionStorage.getItem('mm_lvl16_part1_done') === 'true') {
+        showPart2IntroPage();
+    }
+
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            () => !isLocked && (currentPart === 1 || currentPart === 2),
+            () => executeTrackerHint()
+        );
+    }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   PART 1 – FOLLOW THE TARGET (3 ROUNDS)
+   Round 1: EASY   – 8 balls (4 colors x 2 each), 2s stationary reveal + 8s tracking = 10s total
+   Round 2: MEDIUM – 10 balls (5 colors x 2 each), 2s stationary reveal + 11s tracking = 13s total
+   Round 3: HARD   – 12 balls (6 colors x 2 each), 2s stationary reveal + 14s tracking = 16s total
+   Tracking timer counts down to 0s -> All balls freeze -> Unlimited time to tap tracked target
+   ═══════════════════════════════════════════════════════════════ */
+
+let p1TickCount = 0;
+let p1CurrentRoundScore = 16;
+
+function startPart1Round(roundNum) {
+    if (activeTimer) clearInterval(activeTimer);
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    isLocked = false;
+    p1Round = roundNum;
+    p1TickCount = 0;
+    updatePartIndicator(1);
+
+    const roundData = [
+        { title: 'FOLLOW THE TARGET – EASY', timer: 10, score: 16 },
+        { title: 'FOLLOW THE TARGET – MEDIUM', timer: 13, score: 17 },
+        { title: 'FOLLOW THE TARGET – HARD', timer: 16, score: 17 }
+    ];
+    const cur = roundData[roundNum - 1];
+    p1CurrentRoundScore = cur.score;
+
+    gid('arena-stage-badge').textContent = `Part 1 • Round ${roundNum}/3`;
+    gid('arena-round-title').textContent = cur.title;
+    gid('arena-timer-val').textContent = cur.timer;
+    gid('arena-timer-bar').style.width = '100%';
+    hideToast('arena-toast');
+
+    showState('state-arena');
+
+    // Initialize 2-pair DOM balls inside the play area (100% stationary during 2s reveal)
+    initializeTrackingRound(roundNum);
+
+    // Single unified countdown timer for the complete round (10s / 13s / 16s)
+    startTimer(cur.timer, () => {
+        freezeAndPromptPart1(roundNum, cur.score);
+    });
+}
+
+function initializeTrackingRound(roundNum) {
+    if (!gameArea) gameArea = gid('gameArea');
+    if (!gameArea) {
+        console.error("Level 16 game area not found");
+        return;
+    }
+
+    gameArea.innerHTML = '';
+    objects = [];
+
+    // Master paired colors list
+    const allPairedColors = [
+        { name: 'yellow', label: 'YELLOW' },
+        { name: 'blue',   label: 'BLUE'   },
+        { name: 'green',  label: 'GREEN'  },
+        { name: 'red',    label: 'RED'    },
+        { name: 'purple', label: 'PURPLE' },
+        { name: 'orange', label: 'ORANGE' }
+    ];
+
+    // Round 1: 4 colors x 2 = 8 balls
+    // Round 2: 5 colors x 2 = 10 balls
+    // Round 3: 6 colors x 2 = 12 balls
+    const colorsCount = roundNum === 1 ? 4 : roundNum === 2 ? 5 : 6;
+    const selectedColors = allPairedColors.slice(0, colorsCount);
+
+    // Build balls list: EXACTLY 2 balls for each color
+    let ballsList = [];
+    selectedColors.forEach((clr, cIdx) => {
+        ballsList.push({ color: clr, pairId: cIdx, instance: 1 });
+        ballsList.push({ color: clr, pairId: cIdx, instance: 2 });
+    });
+
+    const count = ballsList.length;
+    const speedMult = roundNum === 1 ? 1.9 : roundNum === 2 ? 2.9 : 4.0;
+    const revealTimeMs = 2000; // All 3 rounds use exactly 2s reveal
+
+    const rect = gameArea.getBoundingClientRect();
+    const areaWidth = rect.width > 0 ? rect.width : 600;
+    const areaHeight = rect.height > 0 ? rect.height : 380;
+    const objSize = roundNum === 1 ? 52 : roundNum === 2 ? 48 : 44;
+
+    const maxX = Math.max(80, areaWidth - objSize - 12);
+    const maxY = Math.max(80, areaHeight - objSize - 12);
+
+    ballsList.forEach((b, i) => {
+        const el = document.createElement('div');
+        el.className = `tracker-object ${b.color.name}`;
+        el.dataset.id = i;
+        el.dataset.pair = b.pairId;
+        el.style.width = `${objSize}px`;
+        el.style.height = `${objSize}px`;
+
+        // Safe initial spaced distribution
+        let posX = 15 + Math.random() * (maxX - 20);
+        let posY = 15 + Math.random() * (maxY - 20);
+
+        const angle = Math.random() * Math.PI * 2;
+        const vx = Math.cos(angle) * speedMult;
+        const vy = Math.sin(angle) * speedMult;
+
+        el.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+
+        el.addEventListener('click', () => {
+            handleObjectClick(i);
+        });
+
+        gameArea.appendChild(el);
+
+        objects.push({
+            id: i,
+            el: el,
+            pairId: b.pairId,
+            colorName: b.color.name,
+            x: posX,
+            y: posY,
+            vx: vx,
+            vy: vy,
+            size: objSize,
+            baseSpeed: speedMult
+        });
+    });
+
+    console.log(`Shadow Tracker Part 1 Round ${roundNum}: created ${objects.length} balls (${colorsCount} paired colors)`);
+
+    // Randomly choose ONE ball as the target (stored internally from the beginning)
+    targetIndex = Math.floor(Math.random() * count);
+    currentPhase = 'reveal'; // Stationary during reveal phase
+
+    // Step 2: Target Reveal (Highlight target for exactly 2 seconds while ALL balls remain stationary)
+    const targetObj = objects[targetIndex];
+    if (targetObj && targetObj.el) {
+        targetObj.el.classList.add('target-highlight');
+        const tag = document.createElement('span');
+        tag.className = 'target-tag-label';
+        tag.id = 'targetTag';
+        tag.textContent = 'TARGET';
+        targetObj.el.appendChild(tag);
+    }
+
+    gid('arena-prompt-banner').innerHTML = `<span id="prompt-icon">🎯</span> <span>TARGET REVEAL: Memorize the highlighted target ball!</span>`;
+
+    // At exactly 2 seconds: Remove highlight completely & start simultaneous movement
+    setTimeout(() => {
+        if (currentPhase !== 'reveal') return;
+
+        if (targetObj && targetObj.el) {
+            targetObj.el.classList.remove('target-highlight');
+            const tag = gid('targetTag');
+            if (tag) tag.remove();
+        }
+
+        currentPhase = 'moving';
+        gid('arena-prompt-banner').innerHTML = `<span id="prompt-icon">👁️</span> <span>TRACKING IN PROGRESS: Follow the target ball!</span>`;
+
+        runPart1MovementLoop(roundNum);
+    }, revealTimeMs);
+}
+
+function runPart1MovementLoop(roundNum) {
+    if (!gameArea) return;
+    const rect = gameArea.getBoundingClientRect();
+    const areaWidth = rect.width > 0 ? rect.width : 600;
+    const areaHeight = rect.height > 0 ? rect.height : 380;
+
+    if (currentPhase === 'moving') {
+        p1TickCount++;
+
+        // In Round 3, speed increases slightly over time
+        const speedBoost = roundNum === 3 ? Math.min(1.35, 1 + (p1TickCount / 1000)) : 1.0;
+
+        objects.forEach((obj, idx) => {
+            // Add subtle natural trajectory variations
+            if (roundNum >= 2 && p1TickCount % 60 === 0) {
+                const jitter = (Math.random() - 0.5) * 0.5;
+                obj.vx += jitter;
+                obj.vy += jitter;
+            }
+
+            // In Round 2 and 3, same-color pairs occasionally cross near each other
+            if (roundNum >= 2 && p1TickCount % 80 === 0) {
+                const partner = objects.find(o => o.pairId === obj.pairId && o.id !== obj.id);
+                if (partner) {
+                    const dx = partner.x - obj.x;
+                    const dy = partner.y - obj.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist > 50 && dist < 200) {
+                        obj.vx += (dx / dist) * 0.4;
+                        obj.vy += (dy / dist) * 0.4;
+                    }
+                }
+            }
+
+            // In Round 3, subtle curved movement
+            if (roundNum === 3) {
+                obj.vx += Math.sin(p1TickCount * 0.05 + idx) * 0.15;
+                obj.vy += Math.cos(p1TickCount * 0.05 + idx) * 0.15;
+            }
+
+            // Normalize velocity to avoid runaway acceleration
+            const currentSpeed = Math.hypot(obj.vx, obj.vy);
+            const targetSpeed = obj.baseSpeed * speedBoost;
+            if (currentSpeed > 0) {
+                obj.vx = (obj.vx / currentSpeed) * targetSpeed;
+                obj.vy = (obj.vy / currentSpeed) * targetSpeed;
+            }
+
+            obj.x += obj.vx;
+            obj.y += obj.vy;
+
+            const maxX = areaWidth - obj.size - 8;
+            const maxY = areaHeight - obj.size - 8;
+
+            // Bounce off boundaries
+            if (obj.x <= 8) {
+                obj.x = 8;
+                obj.vx *= -1;
+            } else if (obj.x >= maxX) {
+                obj.x = maxX;
+                obj.vx *= -1;
+            }
+
+            if (obj.y <= 8) {
+                obj.y = 8;
+                obj.vy *= -1;
+            } else if (obj.y >= maxY) {
+                obj.y = maxY;
+                obj.vy *= -1;
+            }
+
+            obj.el.style.transform = `translate3d(${obj.x}px, ${obj.y}px, 0)`;
+        });
+
+        animFrameId = requestAnimationFrame(() => runPart1MovementLoop(roundNum));
+    }
+}
+
+function freezeAndPromptPart1(roundNum, earnedScore) {
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    currentPhase = 'select';
+    isLocked = false;
+
+    gid('arena-timer-val').textContent = '0';
+    gid('arena-timer-bar').style.width = '0%';
+    gid('arena-prompt-banner').innerHTML = `<span id="prompt-icon">👆</span> <span>Tracking Complete! Tap the ball you followed.</span>`;
+}
+
+function handleObjectClick(clickedId) {
+    if (currentPart === 1) {
+        if (currentPhase !== 'select' || isLocked) return;
+        isLocked = true;
+
+        const clickedObj = objects.find(o => o.id === clickedId);
+        const targetObj = objects.find(o => o.id === targetIndex);
+
+        if (clickedId === targetIndex) {
+            // Correct Target Identified
+            if (clickedObj && clickedObj.el) clickedObj.el.classList.add('correct-feedback');
+            showToast('arena-toast', '✓ Correct! Target identified.', true);
+            part1Score += p1CurrentRoundScore;
+
+            setTimeout(() => {
+                if (p1Round < 3) {
+                    gid('arena-prompt-banner').innerHTML = `<span>ROUND ${p1Round} COMPLETE • GET READY FOR ROUND ${p1Round + 1}…</span>`;
+                    setTimeout(() => {
+                        startPart1Round(p1Round + 1);
+                    }, 1200);
+                } else {
+                    part1Score = 50; // Max Part 1 score
+                    showToast('arena-toast', '✓ PART 1 COMPLETE! ALL 3 ROUNDS MASTERED', true);
+                    sessionStorage.setItem('mm_lvl16_part1_done', 'true');
+
+                    setTimeout(() => {
+                        showPartCompletion({
+                            part: 1,
+                            totalParts: 2,
+                            score: 50,
+                            title: 'Correct!',
+                            message: 'Flawless visual tracking across all 3 rounds! You tracked the target through all distraction pairs.',
+                            buttonText: 'Continue to Part 2 ▶',
+                            onContinue: () => {
+                                showPart2IntroPage();
+                            }
+                        });
+                    }, 1000);
+                }
+            }, 800);
+        } else {
+            // Wrong Ball Selected
+            if (clickedObj && clickedObj.el) clickedObj.el.classList.add('wrong-feedback');
+            showToast('arena-toast', '❌ Wrong Target! Try again…', false);
+            part1Score = Math.max(0, part1Score - 5);
+
+            setTimeout(() => {
+                startPart1Round(p1Round);
+            }, 1400);
+        }
+    } else if (currentPart === 2) {
+        handlePart2Click(clickedId);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PART 2 – COLOR SWITCH CHASE (4 ROUNDS)
+   Round 1: Color Chase (20s)
+   Round 2: Color Switch (25s)
+   Round 3: Shade Trap (30s)
+   Round 4: Color Chaos (30s)
+   ═══════════════════════════════════════════════════════════════ */
+let p2TargetColor = null;
+let p2ColorsList = [];
+let p2RoundScore = 0;
+
+function startPart2Round(roundNum) {
+    if (activeTimer) clearInterval(activeTimer);
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    isLocked = false;
+    p2Round = roundNum;
+    comboCount = 0;
+    updatePartIndicator(2);
+
+    const titles = ['COLOR CHASE', 'COLOR SWITCH', 'SHADE TRAP', 'COLOR CHAOS (BOSS)'];
+    const timerSecs = [20, 25, 30, 30][roundNum - 1];
+
+    gid('arena-stage-badge').textContent = `Part 2 • Round ${roundNum}/4`;
+    gid('arena-round-title').textContent = titles[roundNum - 1];
+    gid('arena-timer-val').textContent = timerSecs;
+    gid('arena-timer-bar').style.width = '100%';
+    hideToast('arena-toast');
+
+    showState('state-arena');
+
+    initPart2DOMPhysics(roundNum);
+    startTimer(timerSecs, () => {
+        handlePart2RoundEnd();
+    });
+}
+
+function initPart2DOMPhysics(roundNum) {
+    if (!gameArea) gameArea = gid('gameArea');
+    gameArea.innerHTML = '';
+    objects = [];
+    currentPhase = 'p2_chase';
+
+    if (roundNum === 1) {
+        p2ColorsList = [
+            { name: 'blue', label: 'BLUE' },
+            { name: 'green', label: 'GREEN' },
+            { name: 'yellow', label: 'YELLOW' },
+            { name: 'red', label: 'RED' }
+        ];
+    } else if (roundNum === 2) {
+        p2ColorsList = [
+            { name: 'blue', label: 'BLUE' },
+            { name: 'green', label: 'GREEN' },
+            { name: 'yellow', label: 'YELLOW' },
+            { name: 'red', label: 'RED' },
+            { name: 'purple', label: 'PURPLE' }
+        ];
+    } else if (roundNum === 3) {
+        p2ColorsList = [
+            { name: 'cyan', label: 'LIGHT BLUE' },
+            { name: 'blue', label: 'DARK BLUE' },
+            { name: 'purple', label: 'PURPLE' },
+            { name: 'red', label: 'RED' },
+            { name: 'pink', label: 'PINK' },
+            { name: 'orange', label: 'CORAL' }
+        ];
+    } else {
+        p2ColorsList = [
+            { name: 'cyan', label: 'CYAN' },
+            { name: 'green', label: 'EMERALD' },
+            { name: 'yellow', label: 'AMBER' },
+            { name: 'red', label: 'ROSE' },
+            { name: 'purple', label: 'VIOLET' },
+            { name: 'orange', label: 'ORANGE' },
+            { name: 'pink', label: 'MAGENTA' }
+        ];
+    }
+
+    const rect = gameArea.getBoundingClientRect();
+    const areaWidth = rect.width > 0 ? rect.width : 600;
+    const areaHeight = rect.height > 0 ? rect.height : 380;
+    const objSize = roundNum >= 3 ? 56 : 60;
+    const speedMult = roundNum === 1 ? 2.2 : roundNum === 2 ? 2.8 : 3.6;
+
+    const maxX = Math.max(100, areaWidth - objSize - 12);
+    const maxY = Math.max(100, areaHeight - objSize - 12);
+
+    p2ColorsList.forEach((c, idx) => {
+        const el = document.createElement('div');
+        el.className = `tracker-object ${c.name}`;
+        el.dataset.id = idx;
+        el.style.width = `${objSize}px`;
+        el.style.height = `${objSize}px`;
+        el.textContent = c.label;
+
+        let posX = 15 + Math.random() * (maxX - 20);
+        let posY = 15 + Math.random() * (maxY - 20);
+
+        const angle = Math.random() * Math.PI * 2;
+        const vx = Math.cos(angle) * speedMult;
+        const vy = Math.sin(angle) * speedMult;
+
+        el.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+
+        el.addEventListener('click', () => {
+            handlePart2Click(idx);
+        });
+
+        gameArea.appendChild(el);
+
+        objects.push({
+            id: idx,
+            el: el,
+            x: posX,
+            y: posY,
+            vx: vx,
+            vy: vy,
+            size: objSize,
+            colorName: c.name,
+            label: c.label
+        });
+    });
+
+    console.log(`Shadow Tracker Part 2: created ${objects.length} color zones`);
+
+    pickNewP2Target();
+
+    // Auto-switch target interval for Round 2 and 4
+    if (roundNum === 2 || roundNum === 4) {
+        const switchMs = roundNum === 2 ? 3200 : 2400;
+        const autoSwitchTimer = setInterval(() => {
+            if (currentPart === 2 && currentPhase === 'p2_chase') {
+                pickNewP2Target();
+            } else {
+                clearInterval(autoSwitchTimer);
+            }
+        }, switchMs);
+    }
+
+    runPart2MovementLoop();
+}
+
+function pickNewP2Target() {
+    const chosen = p2ColorsList[Math.floor(Math.random() * p2ColorsList.length)];
+    p2TargetColor = chosen;
+    gid('arena-prompt-banner').innerHTML = `
+        <span id="prompt-icon">🎯</span>
+        <span>TARGET: <strong style="color:#ffffff; text-decoration:underline;">${chosen.label}</strong></span>
+        ${comboCount > 1 ? `<span class="combo-badge-pill">🔥 COMBO x${comboCount}</span>` : ''}
+    `;
+}
+
+function runPart2MovementLoop() {
+    if (!gameArea) return;
+    const rect = gameArea.getBoundingClientRect();
+    const areaWidth = rect.width > 0 ? rect.width : 600;
+    const areaHeight = rect.height > 0 ? rect.height : 380;
+
+    objects.forEach(obj => {
+        obj.x += obj.vx;
+        obj.y += obj.vy;
+
+        const maxX = areaWidth - obj.size - 8;
+        const maxY = areaHeight - obj.size - 8;
+
+        if (obj.x <= 8) {
+            obj.x = 8;
+            obj.vx *= -1;
+        } else if (obj.x >= maxX) {
+            obj.x = maxX;
+            obj.vx *= -1;
+        }
+
+        if (obj.y <= 8) {
+            obj.y = 8;
+            obj.vy *= -1;
+        } else if (obj.y >= maxY) {
+            obj.y = maxY;
+            obj.vy *= -1;
+        }
+
+        obj.el.style.transform = `translate3d(${obj.x}px, ${obj.y}px, 0)`;
+    });
+
+    if (currentPart === 2) {
+        animFrameId = requestAnimationFrame(runPart2MovementLoop);
+    }
+}
+
+function handlePart2Click(clickedIdx) {
+    if (currentPhase !== 'p2_chase' || !p2TargetColor) return;
+    const clickedObj = objects.find(o => o.id === clickedIdx);
+    if (!clickedObj) return;
+
+    if (clickedObj.label === p2TargetColor.label) {
+        comboCount++;
+        bestCombo = Math.max(bestCombo, comboCount);
+        const pts = p2Round >= 3 ? 15 : 10;
+        const multiplier = comboCount >= 10 ? 3 : comboCount >= 5 ? 2 : 1;
+        p2RoundScore += pts * multiplier;
+
+        clickedObj.el.classList.add('correct-feedback');
+        setTimeout(() => clickedObj.el.classList.remove('correct-feedback'), 300);
+
+        showToast('arena-toast', `✓ HIT! +${pts * multiplier} Pts (Combo x${comboCount})`, true);
+        pickNewP2Target();
+    } else {
+        comboCount = 0;
+        const penalty = p2Round >= 3 ? 7 : 5;
+        p2RoundScore = Math.max(0, p2RoundScore - penalty);
+
+        clickedObj.el.classList.add('wrong-feedback');
+        setTimeout(() => clickedObj.el.classList.remove('wrong-feedback'), 400);
+
+        showToast('arena-toast', `❌ Wrong Zone! -${penalty} Pts (Combo Reset)`, false);
+    }
+}
+
+function handlePart2RoundEnd() {
+    if (p2Round < 4) {
+        startPart2Round(p2Round + 1);
+    } else {
+        part2Score = 50;
+        totalScore = 100;
+        sessionStorage.removeItem('mm_lvl16_part1_done');
+        saveProgress(totalScore);
+
+        showPartCompletion({
+            part: 2,
+            totalParts: 2,
+            score: 50,
+            title: 'Correct!',
+            message: 'Shadow Tracker Mastered! Flawless visual pursuit and color reaction reflexes. Level 16 complete!',
+            buttonText: '🏆 Level Complete – Continue',
+            isFinal: true,
+            onContinue: () => {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TIMER & PROGRESS HELPERS
+   ═══════════════════════════════════════════════════════════════ */
+function startTimer(durationSecs, onTimeout) {
+    let timeLeft = durationSecs;
+    activeTimer = setInterval(() => {
+        timeLeft -= 0.1;
+        const pct = Math.max(0, (timeLeft / durationSecs) * 100);
+        gid('arena-timer-bar').style.width = `${pct}%`;
+        gid('arena-timer-val').textContent = Math.ceil(Math.max(0, timeLeft));
+
+        if (timeLeft <= 0) {
+            clearInterval(activeTimer);
+            if (typeof onTimeout === 'function') onTimeout();
+        }
+    }, 100);
+}
+
+function executeTrackerHint() {
+    if (currentPart === 1) {
+        const target = objects.find(o => o.id === targetIndex);
+        if (target && target.el) {
+            target.el.classList.add('target-highlight');
+            setTimeout(() => { target.el.classList.remove('target-highlight'); }, 900);
+            return true;
+        }
+    } else if (currentPart === 2 && p2TargetColor) {
+        const target = objects.find(o => o.label === p2TargetColor.label);
+        if (target && target.el) {
+            target.el.classList.add('target-highlight');
+            setTimeout(() => { target.el.classList.remove('target-highlight'); }, 900);
+            return true;
+        }
+    }
+    return false;
+}
+
+function saveProgress(finalScore) {
+    const defaultScores = Array(20).fill(0);
+    const defaultTimes = Array(20).fill("-");
+    const defaultStars = Array(20).fill("0");
+
+    let prevScore = parseInt(localStorage.getItem('mm_score'), 10) || 0;
+    let score = prevScore + finalScore;
+    let lastPlayedDateStr = localStorage.getItem('mm_last_played_date') || "";
+    let currentStreak = parseInt(localStorage.getItem('mm_streak'), 10) || 0;
+    let streakRes = (window.calculateNewStreak ? window.calculateNewStreak(currentStreak, lastPlayedDateStr, true) : { streak: (currentStreak || 1), dateStr: (window.getLocalDateString ? window.getLocalDateString() : new Date().toISOString().split('T')[0]) });
+    let streak = streakRes.streak;
+    let lastPlayedDate = streakRes.dateStr;
+    let unlockedLevel = Math.max(17, parseInt(localStorage.getItem('mm_unlocked_level'), 10) || 1);
+    let gamesPlayed = (parseInt(localStorage.getItem('mm_games_played'), 10) || 0) + 1;
+    let bestStreak = Math.max(streak, parseInt(localStorage.getItem('mm_best_streak'), 10) || streak);
+
+    let bestScores = safeParseArray(localStorage.getItem('mm_best_scores'), defaultScores);
+    let bestTimes = safeParseArray(localStorage.getItem('mm_best_times'), defaultTimes);
+    let stars = safeParseArray(localStorage.getItem('mm_stars'), defaultStars);
+
+    const elapsedSeconds = Math.round((Date.now() - startTimeStamp) / 1000);
+    const mins = Math.floor(elapsedSeconds / 60);
+    const secs = elapsedSeconds % 60;
+    const timeStr = `${mins}m ${secs}s`;
+
+    bestScores[15] = Math.max(finalScore, parseInt(bestScores[15], 10) || 0);
+    bestTimes[15] = timeStr;
+    stars[15] = '3';
+
+    localStorage.setItem('mm_score', score);
+    localStorage.setItem('mm_streak', streak);
+    localStorage.setItem('mm_last_played_date', lastPlayedDate);
+    localStorage.setItem('mm_unlocked_level', unlockedLevel);
+    localStorage.setItem('mm_games_played', gamesPlayed);
+    localStorage.setItem('mm_best_streak', bestStreak);
+    localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+    localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+    localStorage.setItem('mm_stars', JSON.stringify(stars));
+
+    fetch('saveProgress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            score: score,
+            streak: streak,
+            unlockedLevel: unlockedLevel,
+            gamesPlayed: gamesPlayed,
+            bestStreak: bestStreak,
+            bestScores: JSON.stringify(bestScores),
+            bestTimes: JSON.stringify(bestTimes),
+            stars: JSON.stringify(stars),
+            lastPlayedDate: lastPlayedDate,
+            clientDate: lastPlayedDate,
+            hints: localStorage.getItem('mm_hints') || 3
+        })
+    }).catch(() => {});
+
+    return streak;
+}
+
+function safeParseArray(val, def) {
+    if (!val) return def;
+    try {
+        const p = JSON.parse(val);
+        return Array.isArray(p) ? p : def;
+    } catch (e) {
+        return def;
+    }
+}
+
+function showToast(id, msg, isSuccess) {
+    const t = gid(id);
+    if (!t) return;
+    t.textContent = msg;
+    t.className = isSuccess ? 'toast-msg success' : 'toast-msg error';
+}
+
+function hideToast(id) {
+    const t = gid(id);
+    if (t) t.className = 'toast-msg';
+}
+</script>
+</body>
+</html>
