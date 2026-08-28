@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>MindMatrix – Dashboard</title>
     <meta name="description" content="MindMatrix Dashboard – Track your levels, streaks, achievements and settings." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -663,6 +666,18 @@
             margin-bottom: 24px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.25);
             flex-wrap: wrap;
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-hero-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+            pointer-events: none;
         }
         .profile-hero-left {
             display: flex;
@@ -671,14 +686,20 @@
         }
         .profile-hero-avatar-wrap {
             position: relative;
-            width: 84px;
-            height: 84px;
+            width: 86px;
+            height: 86px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
             padding: 3px;
             box-shadow: 0 0 25px rgba(139,92,246,0.50);
             flex-shrink: 0;
             overflow: hidden;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .profile-hero-avatar-wrap:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 32px rgba(139,92,246,0.75);
         }
         .profile-hero-avatar-wrap img {
             width: 100%;
@@ -686,6 +707,27 @@
             border-radius: 50%;
             object-fit: cover;
             display: block;
+        }
+        .avatar-edit-overlay {
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            background: rgba(10, 14, 35, 0.72);
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        .profile-hero-avatar-wrap:hover .avatar-edit-overlay {
+            opacity: 1;
         }
         .profile-hero-info h3 {
             font-size: 20px;
@@ -723,11 +765,11 @@
             color: var(--warning);
         }
         .btn-change-avatar {
-            padding: 10px 20px;
-            border: 1px solid rgba(139,92,246,0.40);
+            padding: 10px 22px;
+            border: 1px solid rgba(139,92,246,0.45);
             border-radius: 12px;
-            background: rgba(139,92,246,0.12);
-            color: var(--accent-1);
+            background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(6,182,212,0.12));
+            color: #fff;
             font-family: 'Outfit', sans-serif;
             font-size: 13px;
             font-weight: 700;
@@ -735,39 +777,113 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 16px rgba(139,92,246,0.20);
         }
         .btn-change-avatar:hover {
-            background: rgba(139,92,246,0.25);
+            background: linear-gradient(135deg, rgba(139,92,246,0.35), rgba(6,182,212,0.25));
             border-color: var(--accent-1);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(139,92,246,0.30);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(139,92,246,0.40);
         }
 
-        .avatar-selector-section {
-            grid-column: 1 / -1;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 28px 24px;
-            margin-top: 10px;
+        /* ═══ AVATAR MODAL OVERLAY & CONTAINER ═══ */
+        .avatar-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(4, 7, 20, 0.82);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s;
         }
-        .avatar-selector-header {
+        .avatar-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .avatar-modal-dialog {
+            background: linear-gradient(160deg, #10163a 0%, #090d22 100%);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 940px;
+            max-height: 88vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.65), 0 0 45px rgba(139,92,246,0.25);
+            transform: scale(0.93) translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+        .avatar-modal-overlay.active .avatar-modal-dialog {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Modal Header */
+        .avatar-modal-header {
+            padding: 22px 26px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 22px;
-            flex-wrap: wrap;
-            gap: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            gap: 16px;
         }
-        .avatar-selector-header h3 {
-            font-size: 18px;
+        .avatar-modal-title-group h3 {
+            font-size: 20px;
             font-weight: 800;
             color: var(--text-pri);
             margin: 0;
             display: flex;
             align-items: center;
             gap: 10px;
+            letter-spacing: -0.3px;
+        }
+        .avatar-modal-title-group p {
+            font-size: 13px;
+            color: var(--text-sec);
+            margin-top: 4px;
+        }
+        .avatar-modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            color: var(--text-sec);
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .avatar-modal-close:hover {
+            background: rgba(239, 68, 68, 0.20);
+            border-color: rgba(239, 68, 68, 0.45);
+            color: #f87171;
+            transform: rotate(90deg);
+        }
+
+        /* Modal Toolbar (Filters) */
+        .avatar-modal-toolbar {
+            padding: 12px 26px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.22);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            flex-wrap: wrap;
+            gap: 12px;
         }
         .avatar-filter-pills {
             display: flex;
@@ -777,9 +893,9 @@
             background: rgba(255,255,255,0.06);
             border: 1px solid var(--border);
             color: var(--text-sec);
-            padding: 6px 14px;
+            padding: 6px 16px;
             border-radius: 100px;
-            font-size: 12px;
+            font-size: 12.5px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -792,23 +908,51 @@
             background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
             border-color: transparent;
             color: #fff;
-            box-shadow: 0 2px 10px rgba(139,92,246,0.35);
+            box-shadow: 0 2px 12px rgba(139,92,246,0.40);
+        }
+        .avatar-modal-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Modal Body & Grid */
+        .avatar-modal-body {
+            padding: 22px 26px;
+            overflow-y: auto;
+            max-height: 52vh;
+            flex: 1;
+        }
+        .avatar-modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        .avatar-modal-body::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.15);
+            border-radius: 4px;
+        }
+        .avatar-modal-body::-webkit-scrollbar-thumb {
+            background: rgba(139,92,246,0.30);
+            border-radius: 4px;
+        }
+        .avatar-modal-body::-webkit-scrollbar-thumb:hover {
+            background: rgba(139,92,246,0.55);
         }
 
         .avatar-selection-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 14px;
         }
-        @media (max-width: 1100px) {
+        @media (max-width: 900px) {
             .avatar-selection-grid {
-                grid-template-columns: repeat(4, 1fr);
+                grid-template-columns: repeat(3, 1fr);
             }
         }
-        @media (max-width: 680px) {
+        @media (max-width: 600px) {
             .avatar-selection-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .avatar-modal-dialog {
+                max-height: 94vh;
             }
         }
 
@@ -816,7 +960,7 @@
             background: rgba(255,255,255,0.03);
             border: 2px solid var(--border);
             border-radius: 16px;
-            padding: 14px 10px;
+            padding: 12px 10px;
             text-align: center;
             cursor: pointer;
             position: relative;
@@ -829,29 +973,29 @@
         .avatar-card:hover {
             transform: translateY(-4px);
             border-color: rgba(139,92,246,0.60);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.30);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
             background: rgba(139,92,246,0.08);
         }
         .avatar-card.selected {
             border-color: #8b5cf6;
-            background: rgba(139,92,246,0.18);
-            box-shadow: 0 0 24px rgba(139,92,246,0.50), 0 0 0 2px #8b5cf6;
-            transform: scale(1.06);
+            background: rgba(139,92,246,0.20);
+            box-shadow: 0 0 24px rgba(139,92,246,0.55), 0 0 0 2px #8b5cf6;
+            transform: scale(1.04);
         }
         .avatar-card-img-wrap {
-            width: 72px;
-            height: 72px;
+            width: 68px;
+            height: 68px;
             border-radius: 50%;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             position: relative;
-            background: rgba(0,0,0,0.20);
+            background: rgba(0,0,0,0.25);
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
             transition: transform 0.2s ease;
             overflow: hidden;
         }
         .avatar-card.selected .avatar-card-img-wrap {
-            transform: scale(1.04);
-            box-shadow: 0 0 16px rgba(139,92,246,0.60);
+            transform: scale(1.06);
+            box-shadow: 0 0 16px rgba(139,92,246,0.70);
         }
         .avatar-card-img-wrap img {
             width: 100%;
@@ -873,8 +1017,8 @@
         }
         .avatar-card-badge {
             position: absolute;
-            top: 8px;
-            left: 8px;
+            top: 7px;
+            left: 7px;
             font-size: 9px;
             font-weight: 800;
             padding: 2px 6px;
@@ -894,14 +1038,14 @@
         }
         .avatar-check {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 22px;
-            height: 22px;
+            top: 7px;
+            right: 7px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             background: #10b981;
             color: #fff;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 900;
             display: none;
             align-items: center;
@@ -917,12 +1061,14 @@
             to   { transform: scale(1); }
         }
 
-        .avatar-action-bar {
+        /* Modal Footer */
+        .avatar-modal-footer {
+            padding: 16px 26px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background: rgba(6, 9, 24, 0.95);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-top: 18px;
-            border-top: 1px solid var(--border);
             flex-wrap: wrap;
             gap: 14px;
         }
@@ -930,14 +1076,16 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            min-width: 200px;
         }
         .avatar-selected-thumb {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             border: 2px solid var(--accent-1);
-            box-shadow: 0 0 10px rgba(139,92,246,0.40);
+            box-shadow: 0 0 12px rgba(139,92,246,0.50);
             object-fit: cover;
+            flex-shrink: 0;
         }
         .avatar-selected-text {
             font-size: 13px;
@@ -946,10 +1094,31 @@
         .avatar-selected-text strong {
             color: var(--text-pri);
         }
-        .avatar-toast-msg {
+        .avatar-modal-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-cancel {
+            padding: 10px 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.06);
+            color: var(--text-sec);
+            font-family: 'Outfit', sans-serif;
             font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-cancel:hover {
+            background: rgba(255,255,255,0.12);
+            color: var(--text-pri);
+        }
+        .avatar-toast-msg {
+            font-size: 12.5px;
             font-weight: 600;
-            padding: 7px 16px;
+            padding: 7px 14px;
             border-radius: 8px;
             display: none;
         }
@@ -1445,8 +1614,12 @@
                 <!-- Profile Summary & Active Avatar Hero Card -->
                 <div class="profile-hero-card" id="profile-hero-card">
                     <div class="profile-hero-left">
-                        <div class="profile-hero-avatar-wrap">
+                        <div class="profile-hero-avatar-wrap" onclick="openAvatarModal()" title="Click to change avatar">
                             <img id="profile-hero-avatar-img" src="images/avatars/female/avatar01.svg" alt="Active Avatar" />
+                            <div class="avatar-edit-overlay">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                <span>Change</span>
+                            </div>
                         </div>
                         <div class="profile-hero-info">
                             <h3 id="profile-hero-username">User</h3>
@@ -1457,50 +1630,33 @@
                             </div>
                         </div>
                     </div>
-                    <button class="btn-change-avatar" onclick="scrollToAvatarPicker()">
+                    <button class="btn-change-avatar" onclick="openAvatarModal()">
                         <span>🎨</span> Change Avatar
                     </button>
                 </div>
 
-                <!-- Choose Your Avatar Card (20 Predefined Avatars) -->
-                <div class="avatar-selector-section" id="avatar-selector-section">
-                    <div class="avatar-selector-header">
-                        <div>
-                            <h3><span>🎭</span> CHOOSE YOUR AVATAR</h3>
-                            <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Select your MindMatrix avatar from the 20 predefined characters</p>
-                        </div>
-                        <div class="avatar-filter-pills">
-                            <button class="avatar-filter-btn active" onclick="filterAvatars('all', this)">All (20)</button>
-                            <button class="avatar-filter-btn" onclick="filterAvatars('female', this)">👩 Female (10)</button>
-                            <button class="avatar-filter-btn" onclick="filterAvatars('male', this)">👨 Male (10)</button>
-                        </div>
-                    </div>
-
-                    <!-- 20 Predefined Avatars Grid -->
-                    <div class="avatar-selection-grid" id="avatar-grid-container">
-                        <!-- Populated dynamically via renderAvatarSelectionGrid() -->
-                    </div>
-
-                    <!-- Selected Avatar Action Bar -->
-                    <div class="avatar-action-bar">
-                        <div class="avatar-selected-info">
-                            <img id="avatar-selected-preview-img" class="avatar-selected-thumb" src="images/avatars/female/avatar01.svg" alt="Selected Preview" />
-                            <div class="avatar-selected-text" id="avatar-selected-name-label">
-                                Selected: <strong>Avatar #1 (Aria)</strong>
-                            </div>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:12px;">
-                            <span id="avatar-toast-msg" class="avatar-toast-msg"></span>
-                            <button class="btn-save" id="btn-save-avatar" onclick="saveSelectedAvatar()">Save Avatar</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-grid" style="margin-top: 24px;">
+                <div class="settings-grid">
 
                     <!-- Profile Card -->
                     <div class="settings-card">
                         <h3><span>👤</span> Edit Profile</h3>
+                        <div class="profile-form-group">
+                            <label>Profile Avatar</label>
+                            <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:4px;">
+                                <div style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="openAvatarModal()" title="Click to change avatar">
+                                    <div id="settings-avatar-thumb-wrap" style="width:40px; height:40px; border-radius:50%; overflow:hidden; border:2px solid var(--accent-1); background:rgba(0,0,0,0.3); flex-shrink:0;">
+                                        <img id="settings-avatar-thumb" src="images/avatars/female/avatar01.svg" alt="Avatar" style="width:100%; height:100%; object-fit:cover;" />
+                                    </div>
+                                    <div>
+                                        <div id="settings-avatar-name" style="font-size:13px; font-weight:700; color:var(--text-pri);">Avatar #1 (Aria)</div>
+                                        <div style="font-size:11px; color:var(--text-muted);">Click button to change avatar</div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-change-avatar" style="padding:6px 14px; font-size:12px;" onclick="openAvatarModal()">
+                                    <span>🎨</span> Change
+                                </button>
+                            </div>
+                        </div>
                         <div class="profile-form-group">
                             <label>Username</label>
                             <input type="text" id="settings-username" placeholder="Your username" />
@@ -1610,6 +1766,54 @@
     </div><!-- /.main -->
 </div><!-- /.shell -->
 
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║        AVATAR SELECTOR MODAL DIALOG       ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="avatar-modal-overlay" id="avatar-modal-overlay" onclick="handleAvatarOverlayClick(event)">
+    <div class="avatar-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="avatar-modal-title">
+        <!-- Modal Header -->
+        <div class="avatar-modal-header">
+            <div class="avatar-modal-title-group">
+                <h3 id="avatar-modal-title"><span>🎭</span> Choose Your Avatar</h3>
+                <p>Select your MindMatrix character from the 20 predefined avatars</p>
+            </div>
+            <button class="avatar-modal-close" onclick="closeAvatarModal()" aria-label="Close modal">✕</button>
+        </div>
+
+        <!-- Filter Tabs & Toolbar -->
+        <div class="avatar-modal-toolbar">
+            <div class="avatar-filter-pills">
+                <button class="avatar-filter-btn active" onclick="filterAvatars('all', this)">All (20)</button>
+                <button class="avatar-filter-btn" onclick="filterAvatars('female', this)">👩 Female (10)</button>
+                <button class="avatar-filter-btn" onclick="filterAvatars('male', this)">👨 Male (10)</button>
+            </div>
+            <div class="avatar-modal-hint">Click avatar to select, or double-click to save instantly</div>
+        </div>
+
+        <!-- Scrollable Avatar Grid -->
+        <div class="avatar-modal-body">
+            <div class="avatar-selection-grid" id="avatar-grid-container">
+                <!-- Dynamically populated via renderAvatarSelectionGrid() -->
+            </div>
+        </div>
+
+        <!-- Modal Footer / Action Bar -->
+        <div class="avatar-modal-footer">
+            <div class="avatar-selected-info">
+                <img id="avatar-selected-preview-img" class="avatar-selected-thumb" src="images/avatars/female/avatar01.svg" alt="Selected Preview" />
+                <div class="avatar-selected-text" id="avatar-selected-name-label">
+                    Selected: <strong>Avatar #1 (Aria)</strong>
+                </div>
+            </div>
+            <div class="avatar-modal-actions">
+                <span id="avatar-toast-msg" class="avatar-toast-msg"></span>
+                <button class="btn-cancel" onclick="closeAvatarModal()">Cancel</button>
+                <button class="btn-save" id="btn-save-avatar" onclick="saveSelectedAvatar()">Save Avatar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 /* ══════════════════════════════════════════
    DATA
@@ -1683,6 +1887,39 @@ function getAvatarPath(avatarId) {
     return found ? found.path : '';
 }
 
+function openAvatarModal() {
+    var modal = document.getElementById('avatar-modal-overlay');
+    if (!modal) return;
+    var currentId = (userState && userState.avatarId) ? userState.avatarId : (selectedAvatarForSave || 1);
+    selectedAvatarForSave = currentId;
+    renderAvatarSelectionGrid();
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAvatarModal() {
+    var modal = document.getElementById('avatar-modal-overlay');
+    if (!modal) return;
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function handleAvatarOverlayClick(event) {
+    if (event.target && event.target.id === 'avatar-modal-overlay') {
+        closeAvatarModal();
+    }
+}
+
+// Global escape key listener to close modal
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        var modal = document.getElementById('avatar-modal-overlay');
+        if (modal && modal.classList.contains('active')) {
+            closeAvatarModal();
+        }
+    }
+});
+
 function updateAvatarUI(avatarId) {
     var id = parseInt(avatarId, 10) || 0;
     if (id < 0 || id > 20) id = 0;
@@ -1717,11 +1954,24 @@ function updateAvatarUI(avatarId) {
     var heroWrap = document.querySelector('.profile-hero-avatar-wrap');
     if (heroWrap) {
         if (av && path) {
-            heroWrap.innerHTML = '<img id="profile-hero-avatar-img" src="' + path + '" alt="' + av.name + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;" />';
+            heroWrap.innerHTML = '<img id="profile-hero-avatar-img" src="' + path + '" alt="' + av.name + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;" />' +
+                '<div class="avatar-edit-overlay"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><span>Change</span></div>';
         } else {
-            heroWrap.innerHTML = '<div id="profile-hero-avatar-img" style="width:100%;height:100%;border-radius:50%;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:38px;">👤</div>';
+            heroWrap.innerHTML = '<div id="profile-hero-avatar-img" style="width:100%;height:100%;border-radius:50%;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:38px;">👤</div>' +
+                '<div class="avatar-edit-overlay"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><span>Change</span></div>';
         }
     }
+
+    // Edit Profile form thumbnail preview
+    var settingsThumb = document.getElementById('settings-avatar-thumb');
+    var settingsName = document.getElementById('settings-avatar-name');
+    if (settingsThumb && av && path) {
+        settingsThumb.src = path;
+    }
+    if (settingsName && av) {
+        settingsName.textContent = 'Avatar #' + av.id + ' (' + av.name + ')';
+    }
+
     var heroName = document.getElementById('profile-hero-username');
     if (heroName) {
         var uName = (document.getElementById('settings-username') && document.getElementById('settings-username').value) || userState.username || 'User';
@@ -1748,7 +1998,7 @@ function renderAvatarSelectionGrid() {
     var container = document.getElementById('avatar-grid-container');
     if (!container) return;
 
-    var currentId = selectedAvatarForSave || (userState && userState.avatarId) || 0;
+    var currentId = selectedAvatarForSave || (userState && userState.avatarId) || 1;
     var filtered = AVATAR_METADATA.filter(function(av) {
         if (currentAvatarFilter === 'female') return av.gender === 'female';
         if (currentAvatarFilter === 'male') return av.gender === 'male';
@@ -1756,9 +2006,9 @@ function renderAvatarSelectionGrid() {
     });
 
     container.innerHTML = filtered.map(function(av) {
-        var isSel = (av.id === currentId && currentId > 0);
+        var isSel = (av.id === currentId);
         return `
-            <div class="avatar-card ${isSel ? 'selected' : ''}" data-avatar-id="${av.id}" onclick="selectAvatarItem(${av.id})">
+            <div class="avatar-card ${isSel ? 'selected' : ''}" data-avatar-id="${av.id}" onclick="selectAvatarItem(${av.id})" ondblclick="selectAvatarItem(${av.id}); saveSelectedAvatar();" title="Click to select, double-click to save">
                 <span class="avatar-card-badge ${av.gender === 'female' ? 'f' : 'm'}">${av.gender === 'female' ? '♀' : '♂'} #${av.id}</span>
                 <div class="avatar-check">✓</div>
                 <div class="avatar-card-img-wrap">
@@ -1815,20 +2065,6 @@ function filterAvatars(type, btn) {
     });
     if (btn) btn.classList.add('active');
     renderAvatarSelectionGrid();
-}
-
-function scrollToAvatarPicker() {
-    switchSection('settings');
-    var picker = document.getElementById('avatar-selector-section');
-    if (picker) {
-        picker.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        picker.style.borderColor = '#8b5cf6';
-        picker.style.boxShadow = '0 0 30px rgba(139,92,246,0.30)';
-        setTimeout(function() {
-            picker.style.borderColor = '';
-            picker.style.boxShadow = '';
-        }, 1500);
-    }
 }
 
 function saveSelectedAvatar() {
@@ -1893,8 +2129,11 @@ function saveSelectedAvatar() {
             if (toast) {
                 toast.textContent = '🎉 Avatar saved successfully!';
                 toast.className = 'avatar-toast-msg success show';
-                setTimeout(function() { toast.classList.remove('show'); }, 4000);
             }
+            setTimeout(function() {
+                closeAvatarModal();
+                if (toast) toast.classList.remove('show');
+            }, 750);
         }
     })
     .catch(function(err) {
@@ -1914,10 +2153,13 @@ function saveSelectedAvatar() {
             updateAvatarUI(newId);
 
             if (toast) {
-                toast.textContent = '🎉 Avatar saved successfully!';
+                toast.textContent = '🎉 Avatar saved!';
                 toast.className = 'avatar-toast-msg success show';
-                setTimeout(function() { toast.classList.remove('show'); }, 4000);
             }
+            setTimeout(function() {
+                closeAvatarModal();
+                if (toast) toast.classList.remove('show');
+            }, 750);
         }
     })
     .finally(function() {
@@ -2172,7 +2414,7 @@ function fetchStateAndInit() {
                 userState.stars = sanitiseStars(safeParseArray(data.stars, DEFAULT_STARS));
 
                 updateAvatarUI(userState.avatarId);
-                renderAvatarSelectionGrid();
+                // Note: avatar grid is populated only when the modal is opened
             }
 
             userState.completedLevels = getCalculatedCompletedLevels(userState);
@@ -2186,7 +2428,7 @@ function fetchStateAndInit() {
                 userState = local;
                 userState.completedLevels = getCalculatedCompletedLevels(userState);
                 updateAvatarUI(userState.avatarId || 0);
-                renderAvatarSelectionGrid();
+                // Note: avatar grid is populated only when the modal is opened
             }
             updateUI();
         });
