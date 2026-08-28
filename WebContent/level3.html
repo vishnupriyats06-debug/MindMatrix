@@ -811,8 +811,15 @@ function showResult(isCorrect) {
             partEl.textContent = 'Part 2/2 ✓';
             actionBtn.textContent = '🏆 Level Complete – Continue';
             secondaryBtn.style.display = 'none';
+            var savePromise = saveProgressToServer();
             actionBtn.onclick = () => {
-                saveProgressAndReturn();
+                actionBtn.disabled = true;
+                actionBtn.textContent = 'Loading Dashboard...';
+                if (savePromise) {
+                    savePromise.finally(() => { window.location.href = 'dashboard.html'; });
+                } else {
+                    window.location.href = 'dashboard.html';
+                }
             };
         }
         
@@ -957,13 +964,7 @@ function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
     return { streak: newStreak, dateStr: todayStr };
 }
 
-function saveProgressAndReturn() {
-    var actionBtn = document.getElementById('result-action-btn');
-    if (actionBtn) {
-        actionBtn.disabled = true;
-        actionBtn.textContent = 'Saving Progress...';
-    }
-
+function saveProgressToServer() {
     var earned = totalScore || 100;
     var u = localStorage.getItem('mm_current_user') || 'default';
 
@@ -994,7 +995,7 @@ function saveProgressAndReturn() {
     saveLocalProgress(localScore, localStreak, localUnlocked, localGames, localBestStreak, curScores, curTimes, curStars, localDate);
 
     // 2. Also sync to DB via getProgress / saveProgress
-    fetch('getProgress?t=' + new Date().getTime())
+    return fetch('getProgress?t=' + new Date().getTime())
         .then(function(r) {
             if (!r.ok) throw new Error('Could not fetch progress');
             return r.json();
@@ -1060,9 +1061,6 @@ function saveProgressAndReturn() {
                     clientDate: localDate
                 })
             }).catch(function() {});
-        })
-        .finally(function() {
-            window.location.href = 'dashboard.html';
         });
 }
 
