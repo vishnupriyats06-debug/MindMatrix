@@ -627,7 +627,7 @@
 
     function allPairsMatched() {
         fetch('level12', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({part:2,correct:true}) }).catch(()=>{});
-        let p = saveProgress();
+        let p = (window.recordLevelCompletion ? window.recordLevelCompletion(12, 140, '30s') : saveProgress());
         showResult(true, 2, `Excellent! You matched all ${totalPairs} symbol pairs!`, p);
         launchConfetti();
     }

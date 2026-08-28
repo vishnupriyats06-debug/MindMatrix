@@ -1255,7 +1255,7 @@ function executeGlobalHint() {
 function showLevel18Completion() {
     gid('dot-2').className = 'part-dot done';
     sessionStorage.removeItem('mm_lvl18_part1_done');
-    saveProgress();
+    if (window.recordLevelCompletion) { window.recordLevelCompletion(18, 100, '60s'); } else { saveProgress(); }
     showPartCompletion({
         part: 2,
         totalParts: 2,

@@ -1037,7 +1037,7 @@ function handlePart2RoundEnd() {
         part2Score = 50;
         totalScore = 100;
         sessionStorage.removeItem('mm_lvl16_part1_done');
-        saveProgress(totalScore);
+        if (window.recordLevelCompletion) { window.recordLevelCompletion(16, totalScore, '60s'); } else { saveProgress(totalScore); }
 
         showPartCompletion({
             part: 2,

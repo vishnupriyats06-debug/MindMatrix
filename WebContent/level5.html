@@ -1084,8 +1084,10 @@
                 desc.textContent  = 'Amazing color memory! Level 6 is now unlocked. Keep going!';
                 partEl.textContent = 'Part 2 / 2 ✓';
                 actionBtn.textContent = 'Next Level ▶';
-                const p = saveProgressToServer();
+                const p = (window.recordLevelCompletion ? window.recordLevelCompletion(5, 100, '60s') : saveProgressToServer());
                 actionBtn.onclick = () => {
+                    actionBtn.disabled = true;
+                    actionBtn.textContent = 'Loading Dashboard...';
                     closeResult();
                     clearConfetti();
                     if (p) { p.finally(() => { window.location.href = 'dashboard.html'; }); }
@@ -1094,6 +1096,7 @@
                 secBtn.style.display = 'block';
                 secBtn.textContent = 'Back to Dashboard';
                 secBtn.onclick = () => {
+                    secBtn.disabled = true;
                     closeResult();
                     clearConfetti();
                     if (p) { p.finally(() => { window.location.href = 'dashboard.html'; }); }

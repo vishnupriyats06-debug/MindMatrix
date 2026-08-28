@@ -623,8 +623,10 @@
                 gid('result-action-btn').onclick = () => { closeResult(); setupPart2Intro(); };
             } else {
                 gid('result-action-btn').textContent = 'Back to Dashboard ▶';
-                let p = saveProgressToServer();
+                let p = (window.recordLevelCompletion ? window.recordLevelCompletion(9, 140, '30s') : saveProgressToServer());
                 gid('result-action-btn').onclick = () => {
+                    gid('result-action-btn').disabled = true;
+                    gid('result-action-btn').textContent = 'Loading Dashboard...';
                     closeResult();
                     if (p) { p.finally(() => { window.location.href = 'dashboard.html'; }); }
                     else { window.location.href = 'dashboard.html'; }

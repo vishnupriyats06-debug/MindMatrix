@@ -747,7 +747,7 @@
                     p2QuestionIdx = 0;
                     p2Section++;
                     if (p2Section > 2) {
-                        let p = saveProgress();
+                        let p = (window.recordLevelCompletion ? window.recordLevelCompletion(17, 190, '60s') : saveProgress());
                         showResult(true, 2, 'Perfect! You successfully solved all mental arithmetic challenges!', p);
                         launchConfetti();
                     } else {

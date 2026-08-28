@@ -781,7 +781,7 @@
                 body: JSON.stringify({ part: 2, correct: true })
             }).catch(() => {});
 
-            let p = saveProgress();
+            let p = (window.recordLevelCompletion ? window.recordLevelCompletion(15, 170, '30s') : saveProgress());
             showResult(true, 2, 'Perfect! You remembered the complete story sequence!', p);
             launchConfetti();
         } else {

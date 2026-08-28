@@ -569,8 +569,10 @@
                 gid('result-desc').textContent = 'Great Memory! All Image Pairs Matched!';
                 gid('result-part').textContent = 'Part 2 / 2 ✓';
                 gid('result-action-btn').textContent = 'Back to Dashboard ▶';
-                let p = saveProgressToServer();
+                let p = (window.recordLevelCompletion ? window.recordLevelCompletion(6, 100, '30s') : saveProgressToServer());
                 gid('result-action-btn').onclick = () => {
+                    gid('result-action-btn').disabled = true;
+                    gid('result-action-btn').textContent = 'Loading Dashboard...';
                     closeResult();
                     if (p) { p.finally(() => { window.location.href = 'dashboard.html'; }); }
                     else { window.location.href = 'dashboard.html'; }

@@ -789,8 +789,10 @@
                 desc.textContent      = 'Level 4 Completed! Amazing memory!';
                 partEl.textContent    = 'Part 2 / 2 ✓';
                 actionBtn.textContent = 'Back to Dashboard ▶';
-                var p = saveProgressToServer();
+                var p = (window.recordLevelCompletion ? window.recordLevelCompletion(4, 100, '5s') : saveProgressToServer());
                 actionBtn.onclick = function() {
+                    actionBtn.disabled = true;
+                    actionBtn.textContent = 'Loading Dashboard...';
                     closeResult();
                     if (p) { p.finally(function() { window.location.href = 'dashboard.html'; }); }
                     else { window.location.href = 'dashboard.html'; }

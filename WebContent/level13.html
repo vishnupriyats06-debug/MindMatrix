@@ -1124,7 +1124,7 @@ function executeGlobalHint() {
    ═══════════════════════════════════════════════════════════════ */
 function showLevel13Completion() {
     gid('dot-2').className = 'part-dot done';
-    saveProgress();
+    if (window.recordLevelCompletion) { window.recordLevelCompletion(13, 100, '30s'); } else { saveProgress(); }
     showPartCompletion({
         part: 2,
         totalParts: 2,

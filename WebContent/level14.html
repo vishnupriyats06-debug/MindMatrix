@@ -759,7 +759,7 @@
             if (part === 1) {
                 showResult(true, 1, 'Excellent! You remembered and transformed the sequence correctly!');
             } else {
-                let p = saveProgress();
+                let p = (window.recordLevelCompletion ? window.recordLevelCompletion(14, 160, '30s') : saveProgress());
                 showResult(true, 2, 'Perfect! You remembered the sequence and applied the rule correctly!', p);
                 launchConfetti();
             }

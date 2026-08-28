@@ -675,7 +675,7 @@
                 gid('result-action-btn').onclick = () => { closeResult(); setupPart2Intro(); };
             } else {
                 gid('result-action-btn').textContent = 'View Results ▶';
-                let p = saveProgress();
+                let p = (window.recordLevelCompletion ? window.recordLevelCompletion(11, 140, '30s') : saveProgress());
                 gid('result-action-btn').onclick = () => {
                     closeResult();
                     showCompletion(p);
