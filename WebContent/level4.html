@@ -695,6 +695,7 @@
 
     function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
         try {
+            var u = localStorage.getItem('mm_current_user') || 'default';
             localStorage.setItem('mm_score', score);
             localStorage.setItem('mm_streak', streak);
             localStorage.setItem('mm_unlocked_level', unlockedLevel);
@@ -704,6 +705,17 @@
             localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
             localStorage.setItem('mm_stars', JSON.stringify(stars));
             if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+
+            // Per-user keys
+            localStorage.setItem('mm_' + u + '_score', score);
+            localStorage.setItem('mm_' + u + '_streak', streak);
+            localStorage.setItem('mm_' + u + '_unlocked_level', unlockedLevel);
+            localStorage.setItem('mm_' + u + '_games_played', gamesPlayed);
+            localStorage.setItem('mm_' + u + '_best_streak', bestStreak);
+            localStorage.setItem('mm_' + u + '_best_scores', JSON.stringify(bestScores));
+            localStorage.setItem('mm_' + u + '_best_times', JSON.stringify(bestTimes));
+            localStorage.setItem('mm_' + u + '_stars', JSON.stringify(stars));
+            if (lastPlayedDate) localStorage.setItem('mm_' + u + '_last_played_date', lastPlayedDate);
         } catch(e) {}
     }
 

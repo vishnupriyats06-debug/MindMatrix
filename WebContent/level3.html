@@ -908,6 +908,7 @@ function safeParseArray(dataVal, defaultArray) {
 
 function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate) {
     try {
+        var u = localStorage.getItem('mm_current_user') || 'default';
         localStorage.setItem('mm_score', score);
         localStorage.setItem('mm_streak', streak);
         localStorage.setItem('mm_unlocked_level', unlockedLevel);
@@ -917,6 +918,17 @@ function saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak
         localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
         localStorage.setItem('mm_stars', JSON.stringify(stars));
         if (lastPlayedDate) localStorage.setItem('mm_last_played_date', lastPlayedDate);
+
+        // Per-user keys for dashboard loader
+        localStorage.setItem('mm_' + u + '_score', score);
+        localStorage.setItem('mm_' + u + '_streak', streak);
+        localStorage.setItem('mm_' + u + '_unlocked_level', unlockedLevel);
+        localStorage.setItem('mm_' + u + '_games_played', gamesPlayed);
+        localStorage.setItem('mm_' + u + '_best_streak', bestStreak);
+        localStorage.setItem('mm_' + u + '_best_scores', JSON.stringify(bestScores));
+        localStorage.setItem('mm_' + u + '_best_times', JSON.stringify(bestTimes));
+        localStorage.setItem('mm_' + u + '_stars', JSON.stringify(stars));
+        if (lastPlayedDate) localStorage.setItem('mm_' + u + '_last_played_date', lastPlayedDate);
     } catch(e) {}
 }
 
@@ -946,66 +958,110 @@ function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
 }
 
 function saveProgressAndReturn() {
+    var actionBtn = document.getElementById('result-action-btn');
+    if (actionBtn) {
+        actionBtn.disabled = true;
+        actionBtn.textContent = 'Saving Progress...';
+    }
+
     var earned = totalScore || 100;
+    var u = localStorage.getItem('mm_current_user') || 'default';
+
+    // 1. Instantly read local state as immediate fallback
+    var curScore = parseInt(localStorage.getItem('mm_' + u + '_score') || localStorage.getItem('mm_score') || '0', 10);
+    var curUnlocked = parseInt(localStorage.getItem('mm_' + u + '_unlocked_level') || localStorage.getItem('mm_unlocked_level') || '1', 10);
+    var curGames = parseInt(localStorage.getItem('mm_' + u + '_games_played') || localStorage.getItem('mm_games_played') || '0', 10);
+    var curStreak = parseInt(localStorage.getItem('mm_' + u + '_streak') || localStorage.getItem('mm_streak') || '0', 10);
+    var curBestStreak = parseInt(localStorage.getItem('mm_' + u + '_best_streak') || localStorage.getItem('mm_best_streak') || '0', 10);
+    var curScores = safeParseArray(localStorage.getItem('mm_' + u + '_best_scores') || localStorage.getItem('mm_best_scores'), Array(20).fill(0));
+    var curTimes = safeParseArray(localStorage.getItem('mm_' + u + '_best_times') || localStorage.getItem('mm_best_times'), Array(20).fill('-'));
+    var curStars = safeParseArray(localStorage.getItem('mm_' + u + '_stars') || localStorage.getItem('mm_stars'), Array(20).fill('0'));
+    var curLastDate = localStorage.getItem('mm_' + u + '_last_played_date') || localStorage.getItem('mm_last_played_date') || '';
+
+    var localScore = curScore + earned;
+    var localUnlocked = Math.max(curUnlocked, 4);
+    var localGames = curGames + 1;
+    var streakRes = calculateNewStreak(curStreak, curLastDate, true);
+    var localStreak = streakRes.streak;
+    var localDate = streakRes.dateStr;
+    var localBestStreak = Math.max(curBestStreak, localStreak);
+
+    if (earned > (parseInt(curScores[2], 10) || 0)) curScores[2] = earned;
+    curStars[2] = '3';
+    curTimes[2] = '10s';
+
+    // Save locally immediately to guarantee Level 4 is unlocked on dashboard!
+    saveLocalProgress(localScore, localStreak, localUnlocked, localGames, localBestStreak, curScores, curTimes, curStars, localDate);
+
+    // 2. Also sync to DB via getProgress / saveProgress
     fetch('getProgress?t=' + new Date().getTime())
         .then(function(r) {
             if (!r.ok) throw new Error('Could not fetch progress');
             return r.json();
         })
         .then(function(data) {
-            var currentScore = parseInt(data.score, 10) || 0;
-            var currentUnlocked = parseInt(data.unlockedLevel, 10) || 1;
-            var currentGames = parseInt(data.gamesPlayed, 10) || 0;
-            var currentStreak = parseInt(data.streak, 10) || 0;
-            var currentBestStreak = parseInt(data.bestStreak, 10) || 0;
+            var dbScore = parseInt(data.score, 10) || 0;
+            var dbUnlocked = parseInt(data.unlockedLevel, 10) || 1;
+            var dbGames = parseInt(data.gamesPlayed, 10) || 0;
+            var dbStreak = parseInt(data.streak, 10) || 0;
+            var dbBestStreak = parseInt(data.bestStreak, 10) || 0;
 
-            var score = currentScore + earned;
-            var unlockedLevel = Math.max(currentUnlocked, 4);
-            var gamesPlayed = currentGames + 1;
+            var finalScore = dbScore + earned;
+            var finalUnlocked = Math.max(dbUnlocked, 4);
+            var finalGames = dbGames + 1;
 
-            var streakResult = calculateNewStreak(currentStreak, data.lastPlayedDate || "", true);
-            var streak = streakResult.streak;
-            var lastPlayedDate = streakResult.dateStr;
-            var bestStreak = Math.max(currentBestStreak, streak);
+            var sResult = calculateNewStreak(dbStreak, data.lastPlayedDate || "", true);
+            var finalStreak = sResult.streak;
+            var finalDate = sResult.dateStr;
+            var finalBestStreak = Math.max(dbBestStreak, finalStreak);
 
-            var defaultScores = Array(20).fill(0);
-            var defaultTimes  = Array(20).fill("-");
-            var defaultStars  = Array(20).fill("0");
+            var bestScores = safeParseArray(data.bestScores, Array(20).fill(0));
+            var bestTimes  = safeParseArray(data.bestTimes, Array(20).fill("-"));
+            var stars      = safeParseArray(data.stars, Array(20).fill("0"));
 
-            var bestScores = safeParseArray(data.bestScores, defaultScores);
-            var bestTimes  = safeParseArray(data.bestTimes, defaultTimes);
-            var stars      = safeParseArray(data.stars, defaultStars);
-
-            if (earned > (parseInt(bestScores[2], 10) || 0)) {
-                bestScores[2] = earned;
-            }
+            if (earned > (parseInt(bestScores[2], 10) || 0)) bestScores[2] = earned;
             stars[2] = "3";
             bestTimes[2] = "10s";
 
-            // Instant Local Storage Persistence
-            saveLocalProgress(score, streak, unlockedLevel, gamesPlayed, bestStreak, bestScores, bestTimes, stars, lastPlayedDate);
+            saveLocalProgress(finalScore, finalStreak, finalUnlocked, finalGames, finalBestStreak, bestScores, bestTimes, stars, finalDate);
 
             return fetch('saveProgress', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({
-                    score: score,
-                    streak: streak,
-                    unlockedLevel: unlockedLevel,
-                    gamesPlayed: gamesPlayed,
-                    bestStreak: bestStreak,
+                    score: finalScore,
+                    streak: finalStreak,
+                    unlockedLevel: finalUnlocked,
+                    gamesPlayed: finalGames,
+                    bestStreak: finalBestStreak,
                     bestScores: JSON.stringify(bestScores),
                     bestTimes: JSON.stringify(bestTimes),
                     stars: JSON.stringify(stars),
-                    lastPlayedDate: lastPlayedDate
+                    lastPlayedDate: finalDate,
+                    clientDate: finalDate
                 })
             });
         })
-        .then(function(saveResp) {
-            window.location.href = 'dashboard.html';
-        })
         .catch(function(err) {
-            console.error('[Level3] Error saving progress:', err);
+            console.warn('[Level3] Server sync fallback:', err);
+            return fetch('saveProgress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    score: localScore,
+                    streak: localStreak,
+                    unlockedLevel: localUnlocked,
+                    gamesPlayed: localGames,
+                    bestStreak: localBestStreak,
+                    bestScores: JSON.stringify(curScores),
+                    bestTimes: JSON.stringify(curTimes),
+                    stars: JSON.stringify(curStars),
+                    lastPlayedDate: localDate,
+                    clientDate: localDate
+                })
+            }).catch(function() {});
+        })
+        .finally(function() {
             window.location.href = 'dashboard.html';
         });
 }

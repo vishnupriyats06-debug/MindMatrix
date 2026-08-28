@@ -2733,6 +2733,19 @@ function fetchStateAndInit() {
                 userState.bestTimes = sanitiseTimes(safeParseArray(data.bestTimes, DEFAULT_TIMES));
                 userState.stars = sanitiseStars(safeParseArray(data.stars, DEFAULT_STARS));
 
+                // Self-healing: Ensure unlockedLevel matches completed levels from stars & scores
+                if (Array.isArray(userState.stars)) {
+                    for (var k = 0; k < 20; k++) {
+                        var st = String(userState.stars[k] || '');
+                        var sc = parseInt(userState.bestScores && userState.bestScores[k], 10) || 0;
+                        if (st === '3' || st === '***' || st === '★★★' || st === '1' || st === '2' || sc > 0) {
+                            if (userState.unlockedLevel < k + 2) {
+                                userState.unlockedLevel = Math.min(20, k + 2);
+                            }
+                        }
+                    }
+                }
+
                 updateAvatarUI(userState.avatarId);
                 // Note: avatar grid is populated only when the modal is opened
             }
@@ -2746,9 +2759,19 @@ function fetchStateAndInit() {
             var local = loadLocalState();
             if (local) {
                 userState = local;
+                if (Array.isArray(userState.stars)) {
+                    for (var k = 0; k < 20; k++) {
+                        var st = String(userState.stars[k] || '');
+                        var sc = parseInt(userState.bestScores && userState.bestScores[k], 10) || 0;
+                        if (st === '3' || st === '***' || st === '★★★' || st === '1' || st === '2' || sc > 0) {
+                            if (userState.unlockedLevel < k + 2) {
+                                userState.unlockedLevel = Math.min(20, k + 2);
+                            }
+                        }
+                    }
+                }
                 userState.completedLevels = getCalculatedCompletedLevels(userState);
                 updateAvatarUI(userState.avatarId || 0);
-                // Note: avatar grid is populated only when the modal is opened
             }
             updateUI();
         });
