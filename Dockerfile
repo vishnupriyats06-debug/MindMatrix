@@ -11,10 +11,11 @@ COPY src /app/src
 RUN mkdir -p /usr/local/tomcat/webapps/ROOT/WEB-INF/classes && \
     javac -encoding UTF-8 -cp "/usr/local/tomcat/lib/*:/usr/local/tomcat/webapps/ROOT/WEB-INF/lib/*" -d /usr/local/tomcat/webapps/ROOT/WEB-INF/classes $(find /app/src -name "*.java")
 
-# Create startup script for dynamic PORT binding on Render
+# Create startup script for dynamic PORT binding on Render & disable shutdown port
 RUN echo '#!/bin/sh' > /usr/local/bin/docker-entrypoint.sh && \
     echo 'PORT=${PORT:-8080}' >> /usr/local/bin/docker-entrypoint.sh && \
     echo 'sed -i "s/port=\"8080\"/port=\"$PORT\"/g" /usr/local/tomcat/conf/server.xml' >> /usr/local/bin/docker-entrypoint.sh && \
+    echo 'sed -i "s/port=\"8005\"/port=\"-1\"/g" /usr/local/tomcat/conf/server.xml' >> /usr/local/bin/docker-entrypoint.sh && \
     echo 'echo "Starting Tomcat on port $PORT..."' >> /usr/local/bin/docker-entrypoint.sh && \
     echo 'exec catalina.sh run' >> /usr/local/bin/docker-entrypoint.sh && \
     chmod +x /usr/local/bin/docker-entrypoint.sh
