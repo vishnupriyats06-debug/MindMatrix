@@ -1258,23 +1258,340 @@
         }
 
         /* ══════════════════════════════════════════
-           RESPONSIVE
+           RESPONSIVE SYSTEM (Mobile, Tablet, Desktop)
         ══════════════════════════════════════════ */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 95;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .sidebar-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .hamburger {
+            display: none;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 10px;
+            cursor: pointer;
+            color: var(--text-pri);
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            flex-shrink: 0;
+        }
+        .hamburger:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: var(--accent-1);
+        }
+        .hamburger svg { width: 20px; height: 20px; display: block; }
+
         @media (max-width: 900px) {
             :root { --sidebar-w: 0px; }
-            .sidebar { transform: translateX(-240px); width: 240px; }
-            .sidebar.open { transform: translateX(0); }
+            .sidebar {
+                transform: translateX(-100%);
+                width: 270px;
+                z-index: 100;
+                box-shadow: 0 0 40px rgba(0,0,0,0.8);
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
             .main { margin-left: 0; }
-            .settings-grid { grid-template-columns: 1fr; }
-            .streak-stats { grid-template-columns: 1fr 1fr; }
             .hamburger { display: flex !important; }
+            .topbar {
+                padding: 0 18px;
+                height: 64px;
+            }
+            .topbar-left h1 {
+                font-size: 17px;
+            }
+            .topbar-left span {
+                font-size: 11.5px;
+                max-width: 200px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .content {
+                padding: 20px 16px;
+            }
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+            .streak-stats {
+                grid-template-columns: 1fr 1fr;
+            }
         }
-        .hamburger {
-            display: none; background: none; border: 1px solid var(--border);
-            border-radius: 8px; padding: 6px 8px; cursor: pointer; color: var(--text-sec);
-            align-items: center; justify-content: center;
+
+        @media (max-width: 640px) {
+            .topbar {
+                padding: 0 12px;
+                height: 56px;
+                gap: 8px;
+            }
+            .topbar > div:first-child {
+                gap: 8px !important;
+                min-width: 0;
+                flex: 1 1 auto;
+                overflow: hidden;
+            }
+            .topbar-left {
+                min-width: 0;
+                overflow: hidden;
+            }
+            .topbar-left h1 {
+                font-size: 15px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-bottom: 0;
+            }
+            .topbar-left span {
+                display: none !important; /* Hide long subtitle on phones so it doesn't collide with header items */
+            }
+            .topbar-right {
+                gap: 6px;
+                flex-shrink: 0;
+            }
+            .streak-pill {
+                padding: 4px 8px;
+                font-size: 11.5px;
+                gap: 3px;
+            }
+            .streak-pill-text {
+                display: none; /* Shows flame + count only on compact phones */
+            }
+            .theme-toggle-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 13px;
+                border-radius: 8px;
+            }
+            .profile-avatar {
+                width: 34px;
+                height: 34px;
+                font-size: 13px;
+            }
+
+            .content {
+                padding: 14px 10px;
+            }
+
+            .section-header {
+                margin-bottom: 16px;
+            }
+            .section-header h2 {
+                font-size: 20px;
+            }
+            .section-header p {
+                font-size: 12.5px;
+            }
+
+            .quote-banner {
+                padding: 12px 14px;
+                gap: 10px;
+                margin-bottom: 16px;
+                border-radius: 12px;
+            }
+            .quote-banner .q-icon { font-size: 20px; }
+            .quote-banner blockquote { font-size: 12.5px; line-height: 1.5; }
+            .quote-banner cite { font-size: 11px; margin-top: 2px; }
+
+            /* Stats 5-card grid on mobile */
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-bottom: 18px;
+            }
+            .stats-row .stat-card:last-child:nth-child(odd) {
+                grid-column: span 2;
+            }
+            .stat-card {
+                padding: 14px 10px;
+                border-radius: 14px;
+            }
+            .stat-icon { font-size: 20px; margin-bottom: 4px; }
+            .stat-value { font-size: 22px; margin-bottom: 2px; }
+            .stat-label { font-size: 9.5px; letter-spacing: 0.5px; }
+
+            /* Cognitive Progress section on mobile */
+            .cognitive-section {
+                padding: 16px 14px;
+                border-radius: 16px;
+                margin-bottom: 20px;
+            }
+            .cognitive-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                margin-bottom: 14px;
+            }
+            .cognitive-overall-badge {
+                width: 100%;
+                justify-content: space-between;
+                padding: 8px 12px;
+            }
+            .cognitive-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .cognitive-card {
+                padding: 12px 14px;
+            }
+
+            /* Levels grid on mobile */
+            .levels-grid {
+                grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+                gap: 8px;
+            }
+            .level-card {
+                border-radius: 14px;
+            }
+            .level-num { font-size: 18px; }
+            .level-name { font-size: 8px; }
+            .level-badge { top: 5px; right: 5px; font-size: 11px; }
+
+            /* Streaks page on mobile */
+            .streak-hero {
+                padding: 22px 12px;
+                border-radius: 16px;
+            }
+            .streak-hero .streak-flame { font-size: 40px; }
+            .streak-hero h2 { font-size: 32px; }
+            .streak-stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .streak-stat {
+                padding: 14px;
+                border-radius: 14px;
+            }
+            .week-tracker-card {
+                padding: 14px 8px !important;
+            }
+            .week-days-row {
+                gap: 4px !important;
+            }
+            .week-day-pill {
+                padding: 6px 4px !important;
+                min-width: 34px !important;
+                font-size: 10.5px !important;
+            }
+
+            /* Achievements grid on mobile */
+            .achievements-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .achievement-card {
+                padding: 14px;
+                border-radius: 14px;
+            }
+
+            /* Profile Hero card on mobile */
+            .profile-hero-card {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 16px 14px;
+                gap: 14px;
+                border-radius: 16px;
+            }
+            .profile-hero-left {
+                width: 100%;
+                gap: 12px;
+            }
+            .profile-hero-avatar-wrap {
+                width: 64px;
+                height: 64px;
+            }
+            .profile-hero-info h3 {
+                font-size: 16px;
+            }
+            .btn-change-avatar {
+                width: 100%;
+                justify-content: center;
+                padding: 10px 16px;
+            }
+
+            /* Settings cards on mobile */
+            .settings-card {
+                padding: 16px 14px;
+                border-radius: 16px;
+            }
+            .theme-selector-group {
+                grid-template-columns: 1fr;
+            }
+            .setting-row {
+                padding: 10px 0;
+            }
+
+            /* Avatar Modal on mobile */
+            .avatar-modal-overlay {
+                padding: 8px;
+            }
+            .avatar-modal-dialog {
+                max-height: 94vh;
+                border-radius: 18px;
+            }
+            .avatar-modal-header {
+                padding: 12px 14px;
+            }
+            .avatar-modal-title-group h3 {
+                font-size: 15px;
+            }
+            .avatar-modal-toolbar {
+                padding: 8px 12px;
+            }
+            .avatar-filter-btn {
+                padding: 4px 10px;
+                font-size: 11px;
+            }
+            .avatar-modal-body {
+                padding: 12px;
+            }
+            .avatar-selection-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .avatar-card {
+                padding: 10px 6px;
+            }
+            .avatar-card-img-wrap {
+                width: 52px;
+                height: 52px;
+            }
+            .avatar-modal-footer {
+                padding: 10px 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .avatar-selected-info {
+                justify-content: center;
+                text-align: center;
+            }
+            .avatar-modal-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .avatar-modal-actions .btn-save,
+            .avatar-modal-actions .btn-cancel {
+                flex: 1;
+                text-align: center;
+                justify-content: center;
+            }
         }
-        .hamburger svg { width: 18px; height: 18px; }
     </style>
 </head>
 <body>
@@ -1332,6 +1649,9 @@
 <!-- Main Shell -->
 <div class="shell">
 
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
     <!-- ── SIDEBAR ── -->
     <aside class="sidebar" id="sidebar">
         <a href="dashboard.html" class="sidebar-logo">
@@ -1383,7 +1703,7 @@
             <div class="topbar-right">
                 <!-- Streak pill -->
                 <div class="streak-pill">
-                    🔥 <span id="topbar-streak">0</span> day streak
+                    🔥 <span id="topbar-streak">0</span> <span class="streak-pill-text">day streak</span>
                 </div>
                 <!-- Theme Toggle Button -->
                 <button class="theme-toggle-btn" id="theme-header-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
@@ -3350,8 +3670,42 @@ function hookExportData() {
    MOBILE HAMBURGER AND MENU
    ══════════════════════════════════════════ */
 function hookHamburger() {
-    document.getElementById('hamburger').addEventListener('click', () => {
-        document.getElementById('sidebar').classList.toggle('open');
+    var hamburger = document.getElementById('hamburger');
+    var sidebar = document.getElementById('sidebar');
+    var backdrop = document.getElementById('sidebar-backdrop');
+    if (!hamburger || !sidebar) return;
+
+    function toggleNav(open) {
+        if (open === undefined) {
+            var isOpen = sidebar.classList.toggle('open');
+            if (backdrop) backdrop.classList.toggle('active', isOpen);
+        } else if (open) {
+            sidebar.classList.add('open');
+            if (backdrop) backdrop.classList.add('active');
+        } else {
+            sidebar.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('active');
+        }
+    }
+
+    hamburger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleNav();
+    });
+
+    if (backdrop) {
+        backdrop.addEventListener('click', function() {
+            toggleNav(false);
+        });
+    }
+
+    // Auto-close sidebar on mobile after clicking any nav item
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(item) {
+        item.addEventListener('click', function() {
+            if (window.innerWidth <= 900) {
+                toggleNav(false);
+            }
+        });
     });
 }
 </script>
