@@ -96,8 +96,8 @@
             .btn-hint {
                 display: inline-flex;
                 align-items: center;
-                gap: 6px;
-                padding: 6px 14px;
+                gap: 5px;
+                padding: 6px 12px;
                 border-radius: 100px;
                 background: rgba(245, 158, 11, 0.12);
                 border: 1px solid rgba(245, 158, 11, 0.25);
@@ -107,12 +107,22 @@
                 color: #f59e0b;
                 cursor: pointer;
                 transition: all 0.2s ease;
-                margin-right: 12px;
+                white-space: nowrap;
+                flex-shrink: 0;
+                user-select: none;
+                margin-right: 0;
             }
             .btn-hint:hover {
                 background: rgba(245, 158, 11, 0.22);
                 border-color: rgba(245, 158, 11, 0.45);
                 box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+            }
+            @media (max-width: 600px) {
+                .btn-hint {
+                    padding: 4px 8px;
+                    font-size: 11px;
+                    gap: 3px;
+                }
             }
 
             /* Hint Overlay & Modal */

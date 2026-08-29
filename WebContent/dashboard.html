@@ -1197,6 +1197,156 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
+        /* Dedicated Cognitive Hero Card */
+        .cognitive-hero-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            flex-wrap: wrap;
+            position: relative;
+            overflow: hidden;
+        }
+        .cognitive-hero-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .cog-hero-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .cog-hero-icon {
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(6,182,212,0.15));
+            border: 1px solid rgba(139,92,246,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 18px rgba(139,92,246,0.25);
+        }
+        .cog-hero-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-pri);
+            margin-bottom: 4px;
+        }
+        .cog-hero-desc {
+            font-size: 13px;
+            color: var(--text-sec);
+            max-width: 440px;
+            line-height: 1.4;
+        }
+        .cog-hero-badge {
+            background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(6,182,212,0.15));
+            border: 1px solid rgba(139,92,246,0.45);
+            border-radius: 16px;
+            padding: 12px 24px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(139,92,246,0.2);
+        }
+        .cog-hero-val {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+        .cog-hero-lbl {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* Cognitive Summary Banner for Main Dashboard */
+        .cognitive-summary-banner {
+            background: linear-gradient(135deg, rgba(139,92,246,0.09), rgba(6,182,212,0.06));
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            gap: 16px;
+        }
+        .cognitive-summary-banner:hover {
+            background: linear-gradient(135deg, rgba(139,92,246,0.16), rgba(6,182,212,0.12));
+            border-color: rgba(139,92,246,0.50);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        }
+        .cog-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .cog-banner-icon {
+            font-size: 24px;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: rgba(139,92,246,0.15);
+            border: 1px solid rgba(139,92,246,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .cog-banner-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-pri);
+            margin-bottom: 2px;
+        }
+        .cog-banner-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .cog-banner-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+        .cog-banner-score {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent-1);
+        }
+        .cog-banner-badge {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-sec);
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+        }
+
         .cognitive-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1664,6 +1814,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                 Levels
             </button>
+            <button class="nav-item" data-section="cognitive" aria-label="Cognitive Progress">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04z"/></svg>
+                Cognitive
+            </button>
             <button class="nav-item" data-section="streaks" aria-label="Streaks">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                 Streaks
@@ -1721,6 +1875,10 @@
                         <button class="dd-item" onclick="switchSection('settings')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                             My Profile
+                        </button>
+                        <button class="dd-item" onclick="switchSection('cognitive')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04z"/></svg>
+                            Cognitive Progress
                         </button>
                         <button class="dd-item" onclick="switchSection('achievements')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
@@ -1780,84 +1938,25 @@
                         <div class="stat-value" id="stat-ach">0</div>
                         <div class="stat-label">Achievements</div>
                     </div>
+                    <div class="stat-card" onclick="switchSection('cognitive')" style="cursor:pointer;" title="View Cognitive Analytics">
+                        <div class="stat-icon">🧠</div>
+                        <div class="stat-value" id="stat-cog-score">0%</div>
+                        <div class="stat-label">Cognitive Score</div>
+                    </div>
                 </div>
 
-                <!-- ╔══════════════════════════════════════════╗ -->
-                <!-- ║  🧠 COGNITIVE PROGRESS SECTION (MODULAR)  ║ -->
-                <!-- ╚══════════════════════════════════════════╝ -->
-                <div class="cognitive-section" id="cognitive-progress-section">
-                    <div class="cognitive-header">
-                        <div class="cognitive-title-group">
-                            <h3><span>🧠</span> Cognitive Progress</h3>
-                            <p>Track how your cognitive skills are developing through your completed challenges.</p>
-                        </div>
-                        <div class="cognitive-overall-badge">
-                            <div class="cognitive-overall-label">Overall Cognitive Score:</div>
-                            <div class="cognitive-overall-val" id="cog-overall-val">0%</div>
+                <!-- Sleek Cognitive Summary Banner (Compact, non-intrusive) -->
+                <div class="cognitive-summary-banner" onclick="switchSection('cognitive')" role="button" tabindex="0" title="Click to view full Cognitive Breakdown">
+                    <div class="cog-banner-left">
+                        <div class="cog-banner-icon">🧠</div>
+                        <div>
+                            <div class="cog-banner-title">Overall Cognitive Level</div>
+                            <div class="cog-banner-sub">Tap here to view your Speed, Flexibility, Memory & Focus breakdown</div>
                         </div>
                     </div>
-
-                    <!-- 5 Skill Progress Cards -->
-                    <div class="cognitive-grid" id="cognitive-grid">
-                        <!-- 🧠 Memory -->
-                        <div class="cognitive-card" id="cog-card-memory">
-                            <div class="cognitive-card-top">
-                                <div class="cognitive-card-name"><span>🧠</span> Memory</div>
-                                <div class="cognitive-card-percent" id="cog-pct-memory">0%</div>
-                            </div>
-                            <div class="cognitive-bar-track">
-                                <div class="cognitive-bar-fill" id="cog-bar-memory" style="width: 0%;"></div>
-                            </div>
-                            <div class="cognitive-card-desc" id="cog-desc-memory">Pattern recall & working memory capacity</div>
-                        </div>
-
-                        <!-- ⚡ Speed -->
-                        <div class="cognitive-card" id="cog-card-speed">
-                            <div class="cognitive-card-top">
-                                <div class="cognitive-card-name"><span>⚡</span> Speed</div>
-                                <div class="cognitive-card-percent" id="cog-pct-speed">0%</div>
-                            </div>
-                            <div class="cognitive-bar-track">
-                                <div class="cognitive-bar-fill" id="cog-bar-speed" style="width: 0%;"></div>
-                            </div>
-                            <div class="cognitive-card-desc" id="cog-desc-speed">Visual reaction time & rapid information processing</div>
-                        </div>
-
-                        <!-- 🎯 Focus -->
-                        <div class="cognitive-card" id="cog-card-focus">
-                            <div class="cognitive-card-top">
-                                <div class="cognitive-card-name"><span>🎯</span> Focus</div>
-                                <div class="cognitive-card-percent" id="cog-pct-focus">0%</div>
-                            </div>
-                            <div class="cognitive-bar-track">
-                                <div class="cognitive-bar-fill" id="cog-bar-focus" style="width: 0%;"></div>
-                            </div>
-                            <div class="cognitive-card-desc" id="cog-desc-focus">Selective attention & distraction inhibition</div>
-                        </div>
-
-                        <!-- 🔄 Flexibility -->
-                        <div class="cognitive-card" id="cog-card-flexibility">
-                            <div class="cognitive-card-top">
-                                <div class="cognitive-card-name"><span>🔄</span> Flexibility</div>
-                                <div class="cognitive-card-percent" id="cog-pct-flexibility">0%</div>
-                            </div>
-                            <div class="cognitive-bar-track">
-                                <div class="cognitive-bar-fill" id="cog-bar-flexibility" style="width: 0%;"></div>
-                            </div>
-                            <div class="cognitive-card-desc" id="cog-desc-flexibility">Cognitive switching & rule adaptation</div>
-                        </div>
-
-                        <!-- 🧩 Problem Solving -->
-                        <div class="cognitive-card" id="cog-card-problem-solving">
-                            <div class="cognitive-card-top">
-                                <div class="cognitive-card-name"><span>🧩</span> Problem Solving</div>
-                                <div class="cognitive-card-percent" id="cog-pct-problem-solving">0%</div>
-                            </div>
-                            <div class="cognitive-bar-track">
-                                <div class="cognitive-bar-fill" id="cog-bar-problem-solving" style="width: 0%;"></div>
-                            </div>
-                            <div class="cognitive-card-desc" id="cog-desc-problem-solving">Logical deduction & sequence reconstruction</div>
-                        </div>
+                    <div class="cog-banner-right">
+                        <div class="cog-banner-score" id="cog-banner-overall-val">0%</div>
+                        <div class="cog-banner-badge">Details ➔</div>
                     </div>
                 </div>
 
@@ -1869,6 +1968,94 @@
                 <!-- Levels grid -->
                 <div class="levels-grid" id="levels-grid" role="list" aria-label="Game levels"></div>
 
+            </section>
+
+            <!-- ╔══════════════════════════╗ -->
+            <!-- ║  🧠 COGNITIVE SECTION    ║ -->
+            <!-- ╚══════════════════════════╝ -->
+            <section class="section" id="section-cognitive">
+                <div class="section-header">
+                    <h2>🧠 Cognitive Progress</h2>
+                    <p>Track how your memory, speed, focus, flexibility, and problem-solving skills develop</p>
+                </div>
+
+                <!-- Cognitive Hero Summary Card -->
+                <div class="cognitive-hero-card">
+                    <div class="cog-hero-left">
+                        <div class="cog-hero-icon">🧠</div>
+                        <div>
+                            <div class="cog-hero-title">Overall Cognitive Ability</div>
+                            <div class="cog-hero-desc">Weighted intelligence score calculated across all 20 brain training challenges</div>
+                        </div>
+                    </div>
+                    <div class="cog-hero-badge">
+                        <div class="cog-hero-val" id="cog-overall-val">0%</div>
+                        <div class="cog-hero-lbl">Overall Index</div>
+                    </div>
+                </div>
+
+                <!-- 5 Skill Progress Cards -->
+                <div class="cognitive-grid" id="cognitive-grid">
+                    <!-- 🧠 Memory -->
+                    <div class="cognitive-card" id="cog-card-memory">
+                        <div class="cognitive-card-top">
+                            <div class="cognitive-card-name"><span>🧠</span> Memory</div>
+                            <div class="cognitive-card-percent" id="cog-pct-memory">0%</div>
+                        </div>
+                        <div class="cognitive-bar-track">
+                            <div class="cognitive-bar-fill" id="cog-bar-memory" style="width: 0%;"></div>
+                        </div>
+                        <div class="cognitive-card-desc" id="cog-desc-memory">Pattern recall & working memory capacity</div>
+                    </div>
+
+                    <!-- ⚡ Speed -->
+                    <div class="cognitive-card" id="cog-card-speed">
+                        <div class="cognitive-card-top">
+                            <div class="cognitive-card-name"><span>⚡</span> Speed</div>
+                            <div class="cognitive-card-percent" id="cog-pct-speed">0%</div>
+                        </div>
+                        <div class="cognitive-bar-track">
+                            <div class="cognitive-bar-fill" id="cog-bar-speed" style="width: 0%;"></div>
+                        </div>
+                        <div class="cognitive-card-desc" id="cog-desc-speed">Visual reaction time & rapid information processing</div>
+                    </div>
+
+                    <!-- 🎯 Focus -->
+                    <div class="cognitive-card" id="cog-card-focus">
+                        <div class="cognitive-card-top">
+                            <div class="cognitive-card-name"><span>🎯</span> Focus</div>
+                            <div class="cognitive-card-percent" id="cog-pct-focus">0%</div>
+                        </div>
+                        <div class="cognitive-bar-track">
+                            <div class="cognitive-bar-fill" id="cog-bar-focus" style="width: 0%;"></div>
+                        </div>
+                        <div class="cognitive-card-desc" id="cog-desc-focus">Selective attention & distraction inhibition</div>
+                    </div>
+
+                    <!-- 🔄 Flexibility -->
+                    <div class="cognitive-card" id="cog-card-flexibility">
+                        <div class="cognitive-card-top">
+                            <div class="cognitive-card-name"><span>🔄</span> Flexibility</div>
+                            <div class="cognitive-card-percent" id="cog-pct-flexibility">0%</div>
+                        </div>
+                        <div class="cognitive-bar-track">
+                            <div class="cognitive-bar-fill" id="cog-bar-flexibility" style="width: 0%;"></div>
+                        </div>
+                        <div class="cognitive-card-desc" id="cog-desc-flexibility">Cognitive switching & rule adaptation</div>
+                    </div>
+
+                    <!-- 🧩 Problem Solving -->
+                    <div class="cognitive-card" id="cog-card-problem-solving">
+                        <div class="cognitive-card-top">
+                            <div class="cognitive-card-name"><span>🧩</span> Problem Solving</div>
+                            <div class="cognitive-card-percent" id="cog-pct-problem-solving">0%</div>
+                        </div>
+                        <div class="cognitive-bar-track">
+                            <div class="cognitive-bar-fill" id="cog-bar-problem-solving" style="width: 0%;"></div>
+                        </div>
+                        <div class="cognitive-card-desc" id="cog-desc-problem-solving">Logical deduction & sequence reconstruction</div>
+                    </div>
+                </div>
             </section>
 
             <!-- ╔═══════════════════╗ -->
@@ -1934,12 +2121,8 @@
                 <!-- Profile Summary & Active Avatar Hero Card -->
                 <div class="profile-hero-card" id="profile-hero-card">
                     <div class="profile-hero-left">
-                        <div class="profile-hero-avatar-wrap" onclick="openAvatarModal()" title="Click to change avatar">
+                        <div class="profile-hero-avatar-wrap" style="cursor:default;">
                             <img id="profile-hero-avatar-img" src="images/avatars/female/avatar01.svg" alt="Active Avatar" />
-                            <div class="avatar-edit-overlay">
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                                <span>Change</span>
-                            </div>
                         </div>
                         <div class="profile-hero-info">
                             <h3 id="profile-hero-username">User</h3>
@@ -1950,9 +2133,6 @@
                             </div>
                         </div>
                     </div>
-                    <button class="btn-change-avatar" onclick="openAvatarModal()">
-                        <span>🎨</span> Change Avatar
-                    </button>
                 </div>
 
                 <div class="settings-grid">
@@ -3262,16 +3442,21 @@ function updateCognitiveProgress() {
     var overallPct = Math.round(totalSum / skillCount);
     var overallEl = document.getElementById('cog-overall-val');
     if (overallEl) overallEl.textContent = overallPct + '%';
+    var statCogEl = document.getElementById('stat-cog-score');
+    if (statCogEl) statCogEl.textContent = overallPct + '%';
+    var bannerCogEl = document.getElementById('cog-banner-overall-val');
+    if (bannerCogEl) bannerCogEl.textContent = overallPct + '%';
 }
 
 /* ══════════════════════════════════════════
    NAVIGATION & TABS
    ══════════════════════════════════════════ */
 const sectionMeta = {
-    levels:       { title:'Game Levels',       sub:'Unlock progressive levels • Challenge your brain' },
-    streaks:      { title:'Daily Streaks',      sub:'Build a daily streak by playing levels'           },
-    achievements: { title:'Achievements',       sub:'Track your unlocked memory achievements'          },
-    settings:     { title:'Settings',           sub:'Manage your profile and preferences'          },
+    levels:       { title:'Game Levels',        sub:'Unlock progressive levels • Challenge your brain' },
+    cognitive:    { title:'Cognitive Progress', sub:'Detailed breakdown of your cognitive skills & performance' },
+    streaks:      { title:'Daily Streaks',       sub:'Build a daily streak by playing levels'           },
+    achievements: { title:'Achievements',        sub:'Track your unlocked memory achievements'          },
+    settings:     { title:'Settings',            sub:'Manage your profile and preferences'              },
 };
 
 function switchSection(name) {
