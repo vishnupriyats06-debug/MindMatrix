@@ -378,18 +378,32 @@ html[data-theme="light"] .level-topbar {
 
     /* Dashboard Mobile Levels Grid */
     .levels-grid {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
-        gap: 10px !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
     }
     .level-card {
-        padding: 14px 10px !important;
+        padding: 10px 4px 8px 4px !important;
         border-radius: 14px !important;
+        min-height: 118px !important;
+    }
+    .level-badge {
+        font-size: 11px !important;
+        top: 6px !important;
+        right: 6px !important;
+    }
+    .level-emoji {
+        font-size: 19px !important;
     }
     .level-num {
-        font-size: 26px !important;
+        font-size: 20px !important;
     }
     .level-name {
-        font-size: 11.5px !important;
+        font-size: 8px !important;
+        letter-spacing: 0.3px !important;
+    }
+    .level-subtitle {
+        font-size: 9.5px !important;
+        line-height: 1.15 !important;
     }
 }
 
