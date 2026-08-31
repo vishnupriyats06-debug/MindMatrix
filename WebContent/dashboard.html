@@ -2799,6 +2799,20 @@ function saveLocalState(state) {
         localStorage.setItem('mm_' + u + '_stars', JSON.stringify(state.stars));
         if (state.lastPlayedDate) localStorage.setItem('mm_' + u + '_last_played_date', state.lastPlayedDate);
         if (state.activityDates) localStorage.setItem('mm_' + u + '_activity_dates', JSON.stringify(state.activityDates));
+
+        // Sync generic keys for level pages
+        localStorage.setItem('mm_score', state.score);
+        localStorage.setItem('mm_streak', state.streak);
+        localStorage.setItem('mm_unlocked_level', state.unlockedLevel);
+        localStorage.setItem('mm_games_played', state.gamesPlayed);
+        localStorage.setItem('mm_best_streak', state.bestStreak);
+        if (state.hints !== undefined) localStorage.setItem('mm_hints', state.hints);
+        localStorage.setItem('mm_avatar_id', (state.avatarId !== undefined ? state.avatarId : 0));
+        localStorage.setItem('mm_best_scores', JSON.stringify(state.bestScores));
+        localStorage.setItem('mm_best_times', JSON.stringify(state.bestTimes));
+        localStorage.setItem('mm_stars', JSON.stringify(state.stars));
+        if (state.lastPlayedDate) localStorage.setItem('mm_last_played_date', state.lastPlayedDate);
+        if (state.activityDates) localStorage.setItem('mm_activity_dates', JSON.stringify(state.activityDates));
     } catch(e) {}
 }
 
@@ -2806,23 +2820,23 @@ function loadLocalState() {
     try {
         var u = localStorage.getItem('mm_current_user');
         if (!u) return null;
-        var scoreStr = localStorage.getItem('mm_' + u + '_score');
-        var unlockedLevelStr = localStorage.getItem('mm_' + u + '_unlocked_level');
+        var scoreStr = localStorage.getItem('mm_' + u + '_score') || localStorage.getItem('mm_score');
+        var unlockedLevelStr = localStorage.getItem('mm_' + u + '_unlocked_level') || localStorage.getItem('mm_unlocked_level');
         if (scoreStr === null && unlockedLevelStr === null) return null;
 
         var score = parseInt(scoreStr, 10) || 0;
         var unlockedLevel = parseInt(unlockedLevelStr, 10) || 1;
-        var streak = parseInt(localStorage.getItem('mm_' + u + '_streak'), 10) || 0;
-        var gamesPlayed = parseInt(localStorage.getItem('mm_' + u + '_games_played'), 10) || 0;
-        var bestStreak = parseInt(localStorage.getItem('mm_' + u + '_best_streak'), 10) || 0;
-        var hints = parseInt(localStorage.getItem('mm_' + u + '_hints') || '3', 10);
-        var avatarId = parseInt(localStorage.getItem('mm_' + u + '_avatar_id') || '0', 10);
-        var lastPlayedDate = localStorage.getItem('mm_' + u + '_last_played_date') || "";
-        var activityDates = safeParseArray(localStorage.getItem('mm_' + u + '_activity_dates'), []);
+        var streak = parseInt(localStorage.getItem('mm_' + u + '_streak') || localStorage.getItem('mm_streak'), 10) || 0;
+        var gamesPlayed = parseInt(localStorage.getItem('mm_' + u + '_games_played') || localStorage.getItem('mm_games_played'), 10) || 0;
+        var bestStreak = parseInt(localStorage.getItem('mm_' + u + '_best_streak') || localStorage.getItem('mm_best_streak'), 10) || 0;
+        var hints = parseInt(localStorage.getItem('mm_' + u + '_hints') || localStorage.getItem('mm_hints') || '3', 10);
+        var avatarId = parseInt(localStorage.getItem('mm_' + u + '_avatar_id') || localStorage.getItem('mm_avatar_id') || '0', 10);
+        var lastPlayedDate = localStorage.getItem('mm_' + u + '_last_played_date') || localStorage.getItem('mm_last_played_date') || "";
+        var activityDates = safeParseArray(localStorage.getItem('mm_' + u + '_activity_dates') || localStorage.getItem('mm_activity_dates'), []);
 
-        var bestScores = safeParseArray(localStorage.getItem('mm_' + u + '_best_scores'), Array(20).fill(0));
-        var bestTimes = sanitiseTimes(safeParseArray(localStorage.getItem('mm_' + u + '_best_times'), DEFAULT_TIMES));
-        var stars = sanitiseStars(safeParseArray(localStorage.getItem('mm_' + u + '_stars'), DEFAULT_STARS));
+        var bestScores = safeParseArray(localStorage.getItem('mm_' + u + '_best_scores') || localStorage.getItem('mm_best_scores'), Array(20).fill(0));
+        var bestTimes = sanitiseTimes(safeParseArray(localStorage.getItem('mm_' + u + '_best_times') || localStorage.getItem('mm_best_times'), DEFAULT_TIMES));
+        var stars = sanitiseStars(safeParseArray(localStorage.getItem('mm_' + u + '_stars') || localStorage.getItem('mm_stars'), DEFAULT_STARS));
 
         return {
             username: u,
@@ -2944,7 +2958,6 @@ function fetchStateAndInit() {
                 }
 
                 updateAvatarUI(userState.avatarId);
-                // Note: avatar grid is populated only when the modal is opened
             }
 
             userState.completedLevels = getCalculatedCompletedLevels(userState);
@@ -3017,7 +3030,22 @@ function saveWinState() {
         })
     })
     .then(response => {
-        if (!response.ok) console.error('Failed to sync progress (win) with database');
+        if (response.ok) return response.json();
+    })
+    .then(data => {
+        if (data && data.status === 'success') {
+            userState.score = data.score;
+            userState.unlockedLevel = data.unlockedLevel;
+            userState.gamesPlayed = data.gamesPlayed;
+            userState.streak = data.streak;
+            userState.bestStreak = data.bestStreak;
+            userState.bestScores = safeParseArray(data.bestScores, userState.bestScores);
+            userState.bestTimes = sanitiseTimes(safeParseArray(data.bestTimes, userState.bestTimes));
+            userState.stars = sanitiseStars(safeParseArray(data.stars, userState.stars));
+            userState.completedLevels = getCalculatedCompletedLevels(userState);
+            saveLocalState(userState);
+            updateUI();
+        }
     })
     .catch(err => console.error('Error syncing progress (win):', err));
 }
@@ -3139,6 +3167,14 @@ function buildWeekTracker() {
    INIT & EVENT BINDINGS
    ══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
+    // Instant 0ms render from cache
+    var local = loadLocalState();
+    if (local) {
+        userState = Object.assign(userState, local);
+        userState.completedLevels = getCalculatedCompletedLevels(userState);
+        updateUI();
+    }
+
     fetchStateAndInit();
     rotateQuote();
     setInterval(rotateQuote, 8000);

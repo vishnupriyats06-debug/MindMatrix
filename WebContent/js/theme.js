@@ -198,6 +198,24 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
                     lastPlayedDate: finalDate,
                     clientDate: finalDate
                 })
+            })
+            .then(function(res) {
+                if (res.ok) return res.json();
+            })
+            .then(function(mergedData) {
+                if (mergedData && mergedData.status === 'success') {
+                    writeLocal(
+                        mergedData.score,
+                        mergedData.streak,
+                        mergedData.unlockedLevel,
+                        mergedData.gamesPlayed,
+                        mergedData.bestStreak,
+                        mergedData.bestScores,
+                        mergedData.bestTimes,
+                        mergedData.stars,
+                        finalDate
+                    );
+                }
             });
         })
         .catch(function(err) {
@@ -217,6 +235,25 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
                     lastPlayedDate: localDate,
                     clientDate: localDate
                 })
-            }).catch(function() {});
+            })
+            .then(function(res) {
+                if (res && res.ok) return res.json();
+            })
+            .then(function(mergedData) {
+                if (mergedData && mergedData.status === 'success') {
+                    writeLocal(
+                        mergedData.score,
+                        mergedData.streak,
+                        mergedData.unlockedLevel,
+                        mergedData.gamesPlayed,
+                        mergedData.bestStreak,
+                        mergedData.bestScores,
+                        mergedData.bestTimes,
+                        mergedData.stars,
+                        localDate
+                    );
+                }
+            })
+            .catch(function() {});
         });
 };

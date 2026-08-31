@@ -309,10 +309,58 @@
             })
             .then(function(data) {
                 if (data && !data.error) {
-                    if (data.username) localStorage.setItem('mm_username', data.username);
-                    if (data.unlockedLevel) localStorage.setItem('mm_unlocked_level', data.unlockedLevel);
-                    if (data.score !== undefined) localStorage.setItem('mm_score', data.score);
-                    if (data.avatarId !== undefined) localStorage.setItem('mm_avatar_id', data.avatarId);
+                    var u = data.username || localStorage.getItem('mm_current_user') || 'default';
+                    localStorage.setItem('mm_current_user', u);
+                    localStorage.setItem('mm_username', u);
+                    
+                    if (data.unlockedLevel !== undefined) {
+                        localStorage.setItem('mm_unlocked_level', data.unlockedLevel);
+                        localStorage.setItem('mm_' + u + '_unlocked_level', data.unlockedLevel);
+                    }
+                    if (data.score !== undefined) {
+                        localStorage.setItem('mm_score', data.score);
+                        localStorage.setItem('mm_' + u + '_score', data.score);
+                    }
+                    if (data.avatarId !== undefined) {
+                        localStorage.setItem('mm_avatar_id', data.avatarId);
+                        localStorage.setItem('mm_' + u + '_avatar_id', data.avatarId);
+                    }
+                    if (data.streak !== undefined) {
+                        localStorage.setItem('mm_streak', data.streak);
+                        localStorage.setItem('mm_' + u + '_streak', data.streak);
+                    }
+                    if (data.gamesPlayed !== undefined) {
+                        localStorage.setItem('mm_games_played', data.gamesPlayed);
+                        localStorage.setItem('mm_' + u + '_games_played', data.gamesPlayed);
+                    }
+                    if (data.bestStreak !== undefined) {
+                        localStorage.setItem('mm_best_streak', data.bestStreak);
+                        localStorage.setItem('mm_' + u + '_best_streak', data.bestStreak);
+                    }
+                    if (data.lastPlayedDate) {
+                        localStorage.setItem('mm_last_played_date', data.lastPlayedDate);
+                        localStorage.setItem('mm_' + u + '_last_played_date', data.lastPlayedDate);
+                    }
+                    if (data.bestScores) {
+                        var scStr = typeof data.bestScores === 'string' ? data.bestScores : JSON.stringify(data.bestScores);
+                        localStorage.setItem('mm_best_scores', scStr);
+                        localStorage.setItem('mm_' + u + '_best_scores', scStr);
+                    }
+                    if (data.bestTimes) {
+                        var tmStr = typeof data.bestTimes === 'string' ? data.bestTimes : JSON.stringify(data.bestTimes);
+                        localStorage.setItem('mm_best_times', tmStr);
+                        localStorage.setItem('mm_' + u + '_best_times', tmStr);
+                    }
+                    if (data.stars) {
+                        var stStr = typeof data.stars === 'string' ? data.stars : JSON.stringify(data.stars);
+                        localStorage.setItem('mm_stars', stStr);
+                        localStorage.setItem('mm_' + u + '_stars', stStr);
+                    }
+                    if (data.activityDates) {
+                        var adStr = typeof data.activityDates === 'string' ? data.activityDates : JSON.stringify(data.activityDates);
+                        localStorage.setItem('mm_activity_dates', adStr);
+                        localStorage.setItem('mm_' + u + '_activity_dates', adStr);
+                    }
                 }
             })
             .catch(function() {
