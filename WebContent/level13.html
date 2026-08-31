@@ -232,10 +232,11 @@
             border-radius: 20px; padding: 18px; margin: 12px auto 18px;
             display: grid; gap: 12px;
             position: relative; transition: all 0.25s ease;
+            box-sizing: border-box;
         }
-        .scene-grid-r1 { grid-template-columns: repeat(3, 1fr); }
-        .scene-grid-r2 { grid-template-columns: repeat(4, 1fr); }
-        .scene-grid-r3 { grid-template-columns: repeat(5, 1fr); }
+        .scene-grid-r1 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .scene-grid-r2 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .scene-grid-r3 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 
         .scene-slot {
             aspect-ratio: 1; border-radius: 14px;
@@ -243,15 +244,30 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-size: 30px; position: relative; transition: all 0.25s ease;
             user-select: none;
+            min-width: 0;
+            overflow: hidden;
+            box-sizing: border-box;
+            padding: 4px;
         }
         .scene-slot.hint-glow {
             border-color: #f59e0b !important;
             box-shadow: 0 0 16px rgba(245,158,11,0.6);
             background: rgba(245,158,11,0.15) !important;
         }
+        .scene-slot .slot-emoji {
+            font-size: clamp(18px, 5.5vw, 30px);
+            line-height: 1;
+            display: inline-block;
+        }
         .scene-slot .obj-label {
-            font-size: 10.5px; font-weight: 700; color: var(--text-muted);
-            margin-top: 4px; text-transform: uppercase; letter-spacing: 0.4px;
+            font-size: clamp(7.5px, 2.2vw, 10.5px); font-weight: 700; color: var(--text-muted);
+            margin-top: 4px; text-transform: uppercase; letter-spacing: 0.2px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: block;
+            text-align: center;
         }
 
         .scene-hidden-curtain {
@@ -265,12 +281,14 @@
         .detective-choices-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
             max-width: 520px; margin: 14px auto 0;
+            width: 100%; box-sizing: border-box;
         }
         .det-choice-btn {
             background: var(--bg-card); border: 2px solid var(--border);
             border-radius: 14px; padding: 12px 14px; text-align: left;
             cursor: pointer; transition: all 0.2s ease;
             display: flex; align-items: center; gap: 10px; user-select: none;
+            box-sizing: border-box; min-width: 0;
         }
         .det-choice-btn:hover {
             border-color: rgba(139,92,246,0.6); background: rgba(139,92,246,0.08);
@@ -290,8 +308,9 @@
             background: rgba(255,255,255,0.06); border: 1px solid var(--border);
             font-size: 12px; font-weight: 800; color: #a78bfa;
             display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
         }
-        .det-choice-text { font-size: 13px; font-weight: 600; color: #f1f5f9; line-height: 1.3; }
+        .det-choice-text { font-size: 13px; font-weight: 600; color: #f1f5f9; line-height: 1.3; word-break: break-word; }
 
         /* ══════════════════════════════════════════
            PART 2: GRAVITY FLIP ARENA
@@ -308,6 +327,7 @@
             display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 1fr);
             gap: 6px; background: rgba(0,0,0,0.4); border: 2px solid var(--border);
             border-radius: 18px; padding: 8px; position: relative;
+            box-sizing: border-box; max-width: 100%;
         }
         .arena-cell {
             border-radius: 8px; background: rgba(255,255,255,0.025);
@@ -338,7 +358,7 @@
 
         .target-options-grid {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-            max-width: 420px; margin: 0 auto;
+            max-width: 420px; margin: 0 auto; width: 100%; box-sizing: border-box;
         }
         .target-btn {
             background: var(--bg-card); border: 2px solid var(--border);
@@ -376,11 +396,17 @@
 
         canvas#confetti-canvas { position: fixed; inset: 0; z-index: 250; pointer-events: none; }
 
-        @media (max-width: 540px) {
-            .game-card { padding: 28px 18px; margin-top: 64px; }
-            .detective-choices-grid { grid-template-columns: 1fr; }
-            .gravity-arena { width: 280px; height: 280px; }
-            .target-options-grid { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 600px) {
+            .page-wrapper { padding: 60px 8px 20px !important; }
+            .game-card { padding: 20px 10px !important; margin-top: 6px !important; border-radius: 18px !important; }
+            .scene-container { padding: 8px 6px !important; gap: 6px !important; border-radius: 14px !important; min-height: 160px !important; }
+            .scene-slot { border-radius: 8px !important; padding: 4px 2px !important; }
+            .scene-slot .slot-emoji { font-size: 20px !important; }
+            .scene-slot .obj-label { font-size: 7.5px !important; letter-spacing: 0 !important; }
+            .detective-choices-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+            .det-choice-btn { padding: 10px 12px !important; }
+            .gravity-arena { width: 100% !important; max-width: 270px !important; height: auto !important; aspect-ratio: 1 !important; }
+            .target-options-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
         }
     </style>
 </head>

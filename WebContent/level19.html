@@ -448,6 +448,22 @@
         .btn-verify-action:hover {
             transform: translateY(-2px); box-shadow: 0 6px 24px rgba(16,185,129,0.55);
         }
+
+        @media (max-width: 600px) {
+            .page-wrapper { padding: 60px 8px 20px !important; }
+            .game-card { padding: 20px 10px !important; border-radius: 18px !important; margin-top: 6px !important; }
+            .grid-4x4-wrap { max-width: 280px !important; gap: 6px !important; padding: 8px !important; }
+            .grid-cell { font-size: 18px !important; border-radius: 8px !important; }
+            .p2-recon-area { min-height: 220px !important; padding: 8px !important; }
+            .recon-stage-canvas { max-width: 100% !important; height: 160px !important; }
+            .char-recon-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+            .obj-change-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
+            .timeline-slot-row { gap: 4px !important; }
+            .tl-slot { width: 66px !important; height: 50px !important; font-size: 8.5px !important; }
+            .fusion-table { font-size: 9.5px !important; }
+            .fusion-table th, .fusion-table td { padding: 2px !important; }
+            .fusion-select { font-size: 9px !important; padding: 3px 2px !important; }
+        }
     </style>
 </head>
 <body>
@@ -1012,26 +1028,51 @@ function renderObsRound1(ctx, w, h, t) {
 
 /* ── Observation Scene 2: What Changed (Initial State) ── */
 function renderObsRound2(ctx, w, h, t) {
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 12px Outfit';
-    ctx.fillText('INITIAL ARRANGEMENT (Memorize Positions & States)', w / 2 - 140, 30);
+    if (t < 7.5) {
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 13px Outfit';
+        ctx.textAlign = 'center';
+        ctx.fillText('INITIAL ARRANGEMENT (Memorize Positions & States)', w / 2, 30);
 
-    const items = [
-        { icon: '📘', label: 'Book (Blue)', x: 140, y: 120 },
-        { icon: '☕', label: 'Mug (Upright)', x: 260, y: 120 },
-        { icon: '🔑', label: 'Key (Gold)', x: 380, y: 120 },
-        { icon: '📱', label: 'Pad (Center)', x: 500, y: 120 },
-        { icon: '🖊️', label: 'Pen (Left)', x: 200, y: 190 },
-        { icon: '🧪', label: 'Flask (Emerald)', x: 320, y: 190 },
-        { icon: '⏱️', label: 'Watch (Right)', x: 440, y: 190 }
-    ];
+        const items = [
+            { icon: '📘', label: 'Book (Blue)', x: 140, y: 120 },
+            { icon: '☕', label: 'Mug (Upright)', x: 260, y: 120 },
+            { icon: '🔑', label: 'Key (Center-Left)', x: 380, y: 120 },
+            { icon: '📱', label: 'Pad (Center)', x: 500, y: 120 },
+            { icon: '🖊️', label: 'Pen (Left)', x: 200, y: 190 },
+            { icon: '🧪', label: 'Flask (Emerald)', x: 320, y: 190 },
+            { icon: '⏱️', label: 'Watch (Right)', x: 440, y: 190 }
+        ];
 
-    items.forEach(it => {
-        ctx.font = '28px Outfit';
-        ctx.fillText(it.icon, it.x, it.y);
-        ctx.font = '10px Outfit';
-        ctx.fillText(it.label, it.x - 16, it.y + 20);
-    });
+        items.forEach(it => {
+            ctx.font = '28px Outfit';
+            ctx.fillText(it.icon, it.x, it.y);
+            ctx.font = '10px Outfit';
+            ctx.fillText(it.label, it.x, it.y + 20);
+        });
+    } else {
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 13px Outfit';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ MODIFIED ARRANGEMENT (Spot the 3 Changes!)', w / 2, 30);
+
+        const items = [
+            { icon: '📘', label: 'Book (Blue)', x: 140, y: 120 },
+            { icon: '☕', label: 'Mug (Tilted)', x: 260, y: 120 },
+            { icon: '🔑', label: 'Key (Moved Far Right)', x: 450, y: 120 },
+            { icon: '📱', label: 'Pad (Center)', x: 500, y: 120 },
+            { icon: '🖊️', label: 'Pen (Left)', x: 200, y: 190 },
+            { icon: '🧪', label: 'Flask (Crimson Red)', x: 320, y: 190 },
+            { icon: '⏱️', label: 'Watch (Right)', x: 380, y: 190 }
+        ];
+
+        items.forEach(it => {
+            ctx.font = '28px Outfit';
+            ctx.fillText(it.icon, it.x, it.y);
+            ctx.font = '10px Outfit';
+            ctx.fillText(it.label, it.x, it.y + 20);
+        });
+    }
 }
 
 /* ── Observation Scene 3: Event Sequence ── */
@@ -1149,11 +1190,11 @@ function setupReconstructionUI(roundNum) {
 
         const changedItems = [
             { id: 0, icon: '📘', label: 'Book' },
-            { id: 1, icon: '☕', label: 'Mug (Rotated 90°)' },
-            { id: 2, icon: '🔑', label: 'Key (Shifted Pos)' },
+            { id: 1, icon: '☕', label: 'Mug' },
+            { id: 2, icon: '🔑', label: 'Key' },
             { id: 3, icon: '📱', label: 'Pad' },
             { id: 4, icon: '🖊️', label: 'Pen' },
-            { id: 5, icon: '🧪', label: 'Flask (Color Shift)' },
+            { id: 5, icon: '🧪', label: 'Flask' },
             { id: 6, icon: '⏱️', label: 'Watch' }
         ];
 
@@ -1162,7 +1203,7 @@ function setupReconstructionUI(roundNum) {
             html += `
                 <div class="obj-tile" id="obj-tile-${it.id}" onclick="toggleMarkObject(${it.id})">
                     <span style="font-size:26px;">${it.icon}</span>
-                    <span style="font-size:10px; font-weight:700;">${it.label}</span>
+                    <span style="font-size:11px; font-weight:700;">${it.label}</span>
                 </div>
             `;
         });
@@ -1173,14 +1214,14 @@ function setupReconstructionUI(roundNum) {
         p2RoundData = {
             slots: new Array(8).fill(null),
             events: [
-                { id: 1, label: '1. 🚪 Door Opens' },
-                { id: 2, label: '2. 🚶 Enters' },
-                { id: 3, label: '3. 🎒 Picks Bag' },
-                { id: 4, label: '4. 📚 Places Doc' },
-                { id: 5, label: '5. 💡 Light Dims' },
-                { id: 6, label: '6. 🪑 Sits Chair' },
-                { id: 7, label: '7. 🚶 Exits' },
-                { id: 8, label: '8. 🔒 Door Locks' }
+                { id: 1, label: '🚪 Facility Door Opens' },
+                { id: 2, label: '🚶 Agent Enters Chamber' },
+                { id: 3, label: '🎒 Picks up Briefcase' },
+                { id: 4, label: '📚 Places Document on Table' },
+                { id: 5, label: '💡 Ambient Light Dims' },
+                { id: 6, label: '🪑 Sits at Terminal Chair' },
+                { id: 7, label: '🚶 Stands & Exits Chamber' },
+                { id: 8, label: '🔒 Security Door Locks' }
             ]
         };
 
