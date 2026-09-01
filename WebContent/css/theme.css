@@ -556,10 +556,14 @@ html[data-theme="light"] .level-topbar {
     .game-area-wrapper { height: 280px !important; max-width: 100% !important; }
     .tracker-object { width: 38px !important; height: 38px !important; font-size: 9px !important; }
 
-    /* Level 17 Relationship Reconstruction */
+    /* Level 17 Relationship Reconstruction & Memory Calculation */
     .rel-row { flex-direction: column !important; gap: 6px !important; }
     .rel-arrow { transform: rotate(90deg) !important; margin: 2px 0 !important; }
     .recon-row { flex-direction: column !important; align-items: stretch !important; }
+    .assoc-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 6px !important; margin: 16px auto !important; max-width: 100% !important; }
+    .assoc-card { padding: 10px 4px !important; border-radius: 12px !important; gap: 4px !important; }
+    .assoc-sym { font-size: clamp(20px, 5.5vw, 30px) !important; }
+    .assoc-val { font-size: clamp(16px, 4.5vw, 22px) !important; }
 
     /* Level 18 Advanced Memory Master */
     .grid-memo { gap: 3px !important; padding: 4px !important; }

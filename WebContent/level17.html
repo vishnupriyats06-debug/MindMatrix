@@ -170,10 +170,11 @@
         /* ── Part 2 Associations Display (Memo) ── */
         .assoc-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            grid-template-columns: repeat(5, 1fr);
             gap: 14px;
             margin: 24px auto;
             max-width: 640px;
+            width: 100%;
         }
         .assoc-card {
             background: rgba(255,255,255,0.03);
@@ -302,11 +303,15 @@
         canvas#confetti-canvas { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
 
         @media(max-width: 650px) {
-            .game-card { padding: 24px 14px; }
+            .game-card { padding: 24px 12px; }
             .rel-row { flex-direction: column; gap: 6px; }
             .rel-arrow { transform: rotate(90deg); margin: 2px 0; }
             .recon-row { flex-direction: column; align-items: stretch; }
             .calc-expr-display { font-size: 28px; }
+            .assoc-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 16px auto; }
+            .assoc-card { padding: 10px 4px; border-radius: 12px; gap: 4px; }
+            .assoc-sym { font-size: 24px; }
+            .assoc-val { font-size: 18px; }
         }
     </style>
 </head>
