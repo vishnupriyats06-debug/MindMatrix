@@ -403,7 +403,7 @@
             <div class="intro-title">Color Switch Chase</div>
             <div class="intro-subtitle">React. Track. Adapt.</div>
             <div class="intro-desc">
-                Engage high-frequency reactive visual speed: Tap target objects matching rapidly shifting color directives across 4 intense arcade rounds.
+                Engage high-frequency reactive visual speed: Tap target objects matching rapidly shifting color directives across 3 intense arcade rounds.
             </div>
             <button class="btn-primary" id="btn-start-p2">
                 ▶ Start Game
@@ -419,7 +419,7 @@
 /* ═══════════════════════════════════════════════════════════════
    LEVEL 16 – SHADOW TRACKER ENGINE (DOM-BASED HIGH-PERFORMANCE)
    Part 1: Follow The Target (3 Rounds: Easy, Medium, Hard)
-   Part 2: Color Switch Chase (4 Rounds: Color Chase, Color Switch, Shade Trap, Color Chaos)
+   Part 2: Color Switch Chase (3 Rounds: Color Chase, Color Switch, Shade Trap)
    ═══════════════════════════════════════════════════════════════ */
 
 let currentPart = 1; // 1 or 2
@@ -813,11 +813,10 @@ function handleObjectClick(clickedId) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PART 2 – COLOR SWITCH CHASE (4 ROUNDS)
+   PART 2 – COLOR SWITCH CHASE (3 ROUNDS)
    Round 1: Color Chase (20s)
    Round 2: Color Switch (25s)
    Round 3: Shade Trap (30s)
-   Round 4: Color Chaos (30s)
    ═══════════════════════════════════════════════════════════════ */
 let p2TargetColor = null;
 let p2ColorsList = [];
@@ -831,10 +830,10 @@ function startPart2Round(roundNum) {
     comboCount = 0;
     updatePartIndicator(2);
 
-    const titles = ['COLOR CHASE', 'COLOR SWITCH', 'SHADE TRAP', 'COLOR CHAOS (BOSS)'];
-    const timerSecs = [20, 25, 30, 30][roundNum - 1];
+    const titles = ['COLOR CHASE', 'COLOR SWITCH', 'SHADE TRAP'];
+    const timerSecs = [20, 25, 30][roundNum - 1];
 
-    gid('arena-stage-badge').textContent = `Part 2 • Round ${roundNum}/4`;
+    gid('arena-stage-badge').textContent = `Part 2 • Round ${roundNum}/3`;
     gid('arena-round-title').textContent = titles[roundNum - 1];
     gid('arena-timer-val').textContent = timerSecs;
     gid('arena-timer-bar').style.width = '100%';
@@ -869,7 +868,7 @@ function initPart2DOMPhysics(roundNum) {
             { name: 'red', label: 'RED' },
             { name: 'purple', label: 'PURPLE' }
         ];
-    } else if (roundNum === 3) {
+    } else {
         p2ColorsList = [
             { name: 'cyan', label: 'LIGHT BLUE' },
             { name: 'blue', label: 'DARK BLUE' },
@@ -877,16 +876,6 @@ function initPart2DOMPhysics(roundNum) {
             { name: 'red', label: 'RED' },
             { name: 'pink', label: 'PINK' },
             { name: 'orange', label: 'CORAL' }
-        ];
-    } else {
-        p2ColorsList = [
-            { name: 'cyan', label: 'CYAN' },
-            { name: 'green', label: 'EMERALD' },
-            { name: 'yellow', label: 'AMBER' },
-            { name: 'red', label: 'ROSE' },
-            { name: 'purple', label: 'VIOLET' },
-            { name: 'orange', label: 'ORANGE' },
-            { name: 'pink', label: 'MAGENTA' }
         ];
     }
 
@@ -939,9 +928,9 @@ function initPart2DOMPhysics(roundNum) {
 
     pickNewP2Target();
 
-    // Auto-switch target interval for Round 2 and 4
-    if (roundNum === 2 || roundNum === 4) {
-        const switchMs = roundNum === 2 ? 3200 : 2400;
+    // Auto-switch target interval for Round 2
+    if (roundNum === 2) {
+        const switchMs = 3200;
         const autoSwitchTimer = setInterval(() => {
             if (currentPart === 2 && currentPhase === 'p2_chase') {
                 pickNewP2Target();
@@ -1031,7 +1020,7 @@ function handlePart2Click(clickedIdx) {
 }
 
 function handlePart2RoundEnd() {
-    if (p2Round < 4) {
+    if (p2Round < 3) {
         startPart2Round(p2Round + 1);
     } else {
         part2Score = 50;

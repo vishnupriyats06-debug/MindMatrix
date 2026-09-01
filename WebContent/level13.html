@@ -1206,6 +1206,7 @@ function saveProgress() {
 
     fetch('saveProgress', {
         method: 'POST',
+        keepalive: true,
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
             score: score,

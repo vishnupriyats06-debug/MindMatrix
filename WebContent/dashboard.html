@@ -2923,26 +2923,55 @@ function fetchStateAndInit() {
                 document.getElementById('settings-username').value      = name;
                 document.getElementById('settings-email').value         = email;
 
-                // Initialize userState directly from Database (source of truth)
-                userState.score = parseInt(data.score, 10) || 0;
-                userState.streak = parseInt(data.streak, 10) || 0;
-                userState.unlockedLevel = parseInt(data.unlockedLevel, 10) || 1;
-                userState.gamesPlayed = parseInt(data.gamesPlayed, 10) || 0;
-                userState.bestStreak = parseInt(data.bestStreak, 10) || 0;
-                userState.lastPlayedDate = data.lastPlayedDate || "";
-                userState.activityDates = Array.isArray(data.activityDates) ? data.activityDates : [];
+                // Smart merge between DB and LocalStorage to prevent losing client-side recorded progress
+                var local = loadLocalState();
 
-                var avatarId = parseInt(data.avatarId, 10) || 0;
+                var dbScore = parseInt(data.score, 10) || 0;
+                var dbUnlocked = parseInt(data.unlockedLevel, 10) || 1;
+                var dbGames = parseInt(data.gamesPlayed, 10) || 0;
+                var dbBestStreak = parseInt(data.bestStreak, 10) || 0;
+
+                var localUnlocked = (local && local.unlockedLevel) ? local.unlockedLevel : 1;
+                var localScore = (local && local.score) ? local.score : 0;
+                var localGames = (local && local.gamesPlayed) ? local.gamesPlayed : 0;
+                var localBestStreak = (local && local.bestStreak) ? local.bestStreak : 0;
+
+                userState.score = Math.max(dbScore, localScore);
+                userState.streak = parseInt(data.streak, 10) || (local ? local.streak : 0);
+                userState.unlockedLevel = Math.max(dbUnlocked, localUnlocked);
+                userState.gamesPlayed = Math.max(dbGames, localGames);
+                userState.bestStreak = Math.max(dbBestStreak, localBestStreak);
+                userState.lastPlayedDate = data.lastPlayedDate || (local ? local.lastPlayedDate : "");
+                userState.activityDates = Array.isArray(data.activityDates) && data.activityDates.length > 0 ? data.activityDates : (local ? local.activityDates : []);
+
+                var avatarId = parseInt(data.avatarId, 10) || (local ? local.avatarId : 0);
                 userState.avatarId = (avatarId >= 1 && avatarId <= 20) ? avatarId : 0;
 
                 if (data.hints !== undefined) {
                     userState.hints = parseInt(data.hints, 10);
+                } else if (local && local.hints !== undefined) {
+                    userState.hints = local.hints;
                 } else {
                     userState.hints = 3;
                 }
-                userState.bestScores = safeParseArray(data.bestScores, Array(20).fill(0));
-                userState.bestTimes = sanitiseTimes(safeParseArray(data.bestTimes, DEFAULT_TIMES));
-                userState.stars = sanitiseStars(safeParseArray(data.stars, DEFAULT_STARS));
+
+                var dbScores = safeParseArray(data.bestScores, Array(20).fill(0));
+                var dbTimes = sanitiseTimes(safeParseArray(data.bestTimes, DEFAULT_TIMES));
+                var dbStars = sanitiseStars(safeParseArray(data.stars, DEFAULT_STARS));
+
+                var locScores = (local && Array.isArray(local.bestScores)) ? local.bestScores : Array(20).fill(0);
+                var locTimes = (local && Array.isArray(local.bestTimes)) ? local.bestTimes : DEFAULT_TIMES;
+                var locStars = (local && Array.isArray(local.stars)) ? local.stars : DEFAULT_STARS;
+
+                userState.bestScores = Array(20);
+                userState.bestTimes = Array(20);
+                userState.stars = Array(20);
+
+                for (var m = 0; m < 20; m++) {
+                    userState.bestScores[m] = Math.max(parseInt(dbScores[m], 10) || 0, parseInt(locScores[m], 10) || 0);
+                    userState.stars[m] = (dbStars[m] && dbStars[m] !== '0') ? dbStars[m] : locStars[m];
+                    userState.bestTimes[m] = (dbTimes[m] && dbTimes[m] !== '-') ? dbTimes[m] : locTimes[m];
+                }
 
                 // Self-healing: Ensure unlockedLevel matches completed levels from stars & scores
                 if (Array.isArray(userState.stars)) {
@@ -2958,6 +2987,11 @@ function fetchStateAndInit() {
                 }
 
                 updateAvatarUI(userState.avatarId);
+
+                // Auto-sync back to MySQL server if local storage had unsaved progress
+                if (userState.unlockedLevel > dbUnlocked || userState.score > dbScore) {
+                    saveWinState();
+                }
             }
 
             userState.completedLevels = getCalculatedCompletedLevels(userState);
@@ -3015,6 +3049,7 @@ function saveWinState() {
     // Database AJAX POST sync — includes unlockedLevel (win path only)
     fetch('saveProgress', {
         method: 'POST',
+        keepalive: true,
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
             score: userState.score,

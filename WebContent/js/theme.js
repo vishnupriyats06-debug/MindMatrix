@@ -185,6 +185,7 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
 
             return fetch('saveProgress', {
                 method: 'POST',
+                keepalive: true,
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({
                     score: finalScore,
@@ -222,6 +223,7 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
             console.warn('[ProgressEngine] Server sync fallback:', err);
             return fetch('saveProgress', {
                 method: 'POST',
+                keepalive: true,
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({
                     score: localScore,
