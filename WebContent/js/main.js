@@ -10,7 +10,9 @@
 function showUrlError() {
     const params = new URLSearchParams(window.location.search);
     const msg    = params.get('error');
+    const succ   = params.get('success');
     if (msg) showAlert(decodeURIComponent(msg), 'error');
+    else if (succ) showAlert(decodeURIComponent(succ), 'success');
 
     // Clean URL (no reload)
     const cleanUrl = window.location.pathname;
