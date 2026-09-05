@@ -2191,13 +2191,6 @@
                                 </div>
                                 <span style="font-size:16px; opacity:0.7;">✉️</span>
                             </div>
-                            <div class="setting-row" style="padding: 10px 14px; background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.25); border-radius: 12px;">
-                                <div>
-                                    <div class="setting-label" style="font-size:12px; color:var(--accent-1); font-weight:700;">Password Security</div>
-                                    <div class="setting-value" style="font-size:12px; color:var(--text-sec); margin-top:2px;">Reset password anytime via Sign In using <b>Forgot Password</b>.</div>
-                                </div>
-                                <span style="font-size:16px;">🔑</span>
-                            </div>
                         </div>
                     </div>
 
@@ -3152,9 +3145,9 @@ function updateUI() {
     document.getElementById('stats-levels-completed').textContent = userState.completedLevels + " / 20";
 
     const infoUserEl = document.getElementById('settings-info-username');
-    if (infoUserEl) infoUserEl.textContent = userState.username || 'User';
+    if (infoUserEl) infoUserEl.textContent = userState.username || '-';
     const infoEmailEl = document.getElementById('settings-info-email');
-    if (infoEmailEl) infoEmailEl.textContent = userState.email || 'user@mindmatrix.com';
+    if (infoEmailEl) infoEmailEl.textContent = userState.email || '-';
 
     buildLevels();
     buildWeekTracker();

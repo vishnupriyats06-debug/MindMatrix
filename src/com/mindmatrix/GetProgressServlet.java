@@ -76,12 +76,17 @@ public class GetProgressServlet extends HttpServlet {
         try (Connection conn = DBConnection.getConnection()) {
             streakInfo = StreakDAO.computeStreak(conn, userId, activityDate);
 
-            // Fetch avatar_id from users table
-            String userSql = "SELECT avatar_id FROM users WHERE id = ?";
+            // Fetch username, email, and avatar_id from users table
+            String userSql = "SELECT username, email, avatar_id FROM users WHERE id = ?";
             try (PreparedStatement userStmt = conn.prepareStatement(userSql)) {
                 userStmt.setInt(1, userId);
                 try (ResultSet uRs = userStmt.executeQuery()) {
                     if (uRs.next()) {
+                        String dbUsername = uRs.getString("username");
+                        String dbEmail    = uRs.getString("email");
+                        if (dbUsername != null && !dbUsername.isEmpty()) username = dbUsername;
+                        if (dbEmail != null && !dbEmail.isEmpty()) email = dbEmail;
+
                         int dbAvatar = uRs.getInt("avatar_id");
                         if (!uRs.wasNull() && dbAvatar >= 1 && dbAvatar <= 20) {
                             avatarId = dbAvatar;
@@ -91,6 +96,8 @@ public class GetProgressServlet extends HttpServlet {
                     }
                 }
             }
+            session.setAttribute("username", username);
+            session.setAttribute("email", email);
             session.setAttribute("avatarId", avatarId);
 
             String sql = "SELECT * FROM user_progress WHERE user_id = ?";
