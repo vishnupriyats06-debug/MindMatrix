@@ -2916,10 +2916,14 @@ function fetchStateAndInit() {
                 userState.email = email;
                 localStorage.setItem('mm_current_user', name);
 
-                document.getElementById('dd-name').textContent          = name;
-                document.getElementById('dd-email').textContent         = email;
-                document.getElementById('settings-username').value      = name;
-                document.getElementById('settings-email').value         = email;
+                var ddNameEl = document.getElementById('dd-name');
+                if (ddNameEl) ddNameEl.textContent = name;
+                var ddEmailEl = document.getElementById('dd-email');
+                if (ddEmailEl) ddEmailEl.textContent = email;
+                var infoUserEl = document.getElementById('settings-info-username');
+                if (infoUserEl) infoUserEl.textContent = name;
+                var infoEmailEl = document.getElementById('settings-info-email');
+                if (infoEmailEl) infoEmailEl.textContent = email;
 
                 // Smart merge between DB and LocalStorage to prevent losing client-side recorded progress
                 var local = loadLocalState();
@@ -3137,6 +3141,10 @@ function updateUI() {
     document.getElementById('stats-best-streak').textContent = displayBestStreak + (displayBestStreak === 1 ? " day" : " days");
     document.getElementById('stats-levels-completed').textContent = userState.completedLevels + " / 20";
 
+    const ddNameEl = document.getElementById('dd-name');
+    if (ddNameEl) ddNameEl.textContent = userState.username || 'User';
+    const ddEmailEl = document.getElementById('dd-email');
+    if (ddEmailEl) ddEmailEl.textContent = userState.email || '';
     const infoUserEl = document.getElementById('settings-info-username');
     if (infoUserEl) infoUserEl.textContent = userState.username || '-';
     const infoEmailEl = document.getElementById('settings-info-email');
