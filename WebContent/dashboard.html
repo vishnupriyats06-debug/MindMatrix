@@ -2182,10 +2182,6 @@
                             <label>Email</label>
                             <input type="email" id="settings-email" placeholder="your@email.com" />
                         </div>
-                        <div class="profile-form-group">
-                            <label>New Password</label>
-                            <input type="password" id="settings-password" placeholder="Leave blank to keep current" />
-                        </div>
                         <button class="btn-save">Save Changes</button>
                     </div>
 
@@ -3869,7 +3865,6 @@ function hookEditProfile() {
         e.preventDefault();
         const username = document.getElementById('settings-username').value.trim();
         const email = document.getElementById('settings-email').value.trim();
-        const password = document.getElementById('settings-password').value.trim();
 
         if (!username || !email) {
             alert('Username and Email are required.');
@@ -3886,8 +3881,7 @@ function hookEditProfile() {
             },
             body: new URLSearchParams({
                 username: username,
-                email: email,
-                password: password
+                email: email
             })
         })
         .then(response => {
@@ -3905,7 +3899,6 @@ function hookEditProfile() {
             userState.username = data.username;
             userState.email = data.email;
             updateAvatarUI(userState.avatarId || 1);
-            document.getElementById('settings-password').value = '';
         })
         .catch(err => {
             alert('Failed to update profile: ' + err.message);
