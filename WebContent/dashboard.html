@@ -2156,10 +2156,10 @@
 
                     <!-- Profile Card -->
                     <div class="settings-card">
-                        <h3><span>👤</span> Edit Profile</h3>
+                        <h3><span>👤</span> Profile & Account</h3>
                         <div class="profile-form-group">
                             <label>Profile Avatar</label>
-                            <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:4px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:12px;">
                                 <div style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="openAvatarModal()" title="Click to change avatar">
                                     <div id="settings-avatar-thumb-wrap" style="width:40px; height:40px; border-radius:50%; overflow:hidden; border:2px solid var(--accent-1); background:rgba(0,0,0,0.3); flex-shrink:0;">
                                         <img id="settings-avatar-thumb" src="images/avatars/female/avatar01.svg" alt="Avatar" style="width:100%; height:100%; object-fit:cover;" />
@@ -2172,6 +2172,31 @@
                                 <button type="button" class="btn-change-avatar" style="padding:6px 14px; font-size:12px;" onclick="openAvatarModal()">
                                     <span>🎨</span> Change
                                 </button>
+                            </div>
+                        </div>
+
+                        <!-- Account Details (Read-only badges) -->
+                        <div class="account-info-group" style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+                            <div class="setting-row" style="padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px;">
+                                <div>
+                                    <div class="setting-label" style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;">Username</div>
+                                    <div class="setting-value" id="settings-info-username" style="font-weight:600; color:var(--text-pri); font-size:14px; margin-top:2px;">-</div>
+                                </div>
+                                <span style="font-size:16px; opacity:0.7;">👤</span>
+                            </div>
+                            <div class="setting-row" style="padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px;">
+                                <div>
+                                    <div class="setting-label" style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;">Email Address</div>
+                                    <div class="setting-value" id="settings-info-email" style="font-weight:600; color:var(--text-pri); font-size:14px; margin-top:2px;">-</div>
+                                </div>
+                                <span style="font-size:16px; opacity:0.7;">✉️</span>
+                            </div>
+                            <div class="setting-row" style="padding: 10px 14px; background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.25); border-radius: 12px;">
+                                <div>
+                                    <div class="setting-label" style="font-size:12px; color:var(--accent-1); font-weight:700;">Password Security</div>
+                                    <div class="setting-value" style="font-size:12px; color:var(--text-sec); margin-top:2px;">Reset password anytime via Sign In using <b>Forgot Password</b>.</div>
+                                </div>
+                                <span style="font-size:16px;">🔑</span>
                             </div>
                         </div>
                     </div>
@@ -3125,6 +3150,11 @@ function updateUI() {
     document.getElementById('stats-total-score').textContent = userState.score.toLocaleString();
     document.getElementById('stats-best-streak').textContent = displayBestStreak + (displayBestStreak === 1 ? " day" : " days");
     document.getElementById('stats-levels-completed').textContent = userState.completedLevels + " / 20";
+
+    const infoUserEl = document.getElementById('settings-info-username');
+    if (infoUserEl) infoUserEl.textContent = userState.username || 'User';
+    const infoEmailEl = document.getElementById('settings-info-email');
+    if (infoEmailEl) infoEmailEl.textContent = userState.email || 'user@mindmatrix.com';
 
     buildLevels();
     buildWeekTracker();
