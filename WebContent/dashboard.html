@@ -1890,8 +1890,8 @@
                         <div class="dd-header">
                             <div class="dd-avatar-large" id="dd-avatar">U</div>
                             <div class="dd-info">
-                                <div class="dd-name" id="dd-name">User</div>
-                                <div class="dd-email" id="dd-email">user@email.com</div>
+                                <div class="dd-name" id="dd-name">-</div>
+                                <div class="dd-email" id="dd-email">-</div>
                             </div>
                         </div>
                         <button class="dd-item" onclick="switchSection('settings')">
@@ -2792,6 +2792,7 @@ function saveLocalState(state) {
         localStorage.setItem('mm_' + u + '_best_streak', state.bestStreak);
         if (state.hints !== undefined) localStorage.setItem('mm_' + u + '_hints', state.hints);
         localStorage.setItem('mm_' + u + '_avatar_id', (state.avatarId !== undefined ? state.avatarId : 0));
+        if (state.email) localStorage.setItem('mm_' + u + '_email', state.email);
         localStorage.setItem('mm_' + u + '_best_scores', JSON.stringify(state.bestScores));
         localStorage.setItem('mm_' + u + '_best_times', JSON.stringify(state.bestTimes));
         localStorage.setItem('mm_' + u + '_stars', JSON.stringify(state.stars));
@@ -2836,8 +2837,11 @@ function loadLocalState() {
         var bestTimes = sanitiseTimes(safeParseArray(localStorage.getItem('mm_' + u + '_best_times') || localStorage.getItem('mm_best_times'), DEFAULT_TIMES));
         var stars = sanitiseStars(safeParseArray(localStorage.getItem('mm_' + u + '_stars') || localStorage.getItem('mm_stars'), DEFAULT_STARS));
 
+        var email = localStorage.getItem('mm_' + u + '_email') || '';
+
         return {
             username: u,
+            email: email,
             score: score,
             unlockedLevel: unlockedLevel,
             streak: streak,
@@ -3142,9 +3146,9 @@ function updateUI() {
     document.getElementById('stats-levels-completed').textContent = userState.completedLevels + " / 20";
 
     const ddNameEl = document.getElementById('dd-name');
-    if (ddNameEl) ddNameEl.textContent = userState.username || 'User';
+    if (ddNameEl) ddNameEl.textContent = userState.username || '-';
     const ddEmailEl = document.getElementById('dd-email');
-    if (ddEmailEl) ddEmailEl.textContent = userState.email || '';
+    if (ddEmailEl) ddEmailEl.textContent = userState.email || '-';
     const infoUserEl = document.getElementById('settings-info-username');
     if (infoUserEl) infoUserEl.textContent = userState.username || '-';
     const infoEmailEl = document.getElementById('settings-info-email');
