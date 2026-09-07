@@ -1,15 +1,22 @@
 package com.mindmatrix;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * DBConnection – Utility class that creates and returns a MySQL connection
- * and handles database schema migrations and data initialization.
+ * DBConnection – Lightweight pooled connection manager for MySQL database.
+ * Executes database initialization once on application boot and reuses open connections
+ * to minimize TCP handshake latency.
  */
 public class DBConnection {
 
@@ -18,15 +25,42 @@ public class DBConnection {
     private static final String DB_USER = getEnvOrDefault("MM_DB_USER", "root");
     private static final String DB_PASS = getEnvOrDefault("MM_DB_PASS", "");
 
+    private static final int MAX_POOL_SIZE = 15;
+    private static final BlockingQueue<Connection> pool = new LinkedBlockingQueue<>(MAX_POOL_SIZE);
+
+    private static volatile boolean migrated = false;
+
+    static {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            System.err.println("MySQL JDBC Driver not found: " + e.getMessage());
+        }
+    }
+
     private static String getEnvOrDefault(String key, String defaultVal) {
         String val = System.getenv(key);
         return (val != null && !val.isEmpty()) ? val : defaultVal;
     }
 
-    private static boolean migrated = false;
+    /**
+     * One-time database schema migration executed on server boot by AppInitializer.
+     */
+    public static synchronized void initDatabase() {
+        if (migrated) return;
+        try (Connection conn = createPhysicalConnection()) {
+            runMigration(conn);
+            migrated = true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Connection createPhysicalConnection() throws SQLException {
+        return DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
+    }
 
     private static synchronized void runMigration(Connection conn) {
-        if (migrated) return;
         try (Statement stmt = conn.createStatement()) {
             // 1. Ensure last_played_date exists in user_progress
             java.sql.DatabaseMetaData meta = conn.getMetaData();
@@ -88,24 +122,71 @@ public class DBConnection {
                     }
                 }
             }
-
-            migrated = true;
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * Returns a new Connection to the mindmatrix MySQL database.
+     * Returns a pooled Connection to the mindmatrix MySQL database.
      */
     public static Connection getConnection() throws SQLException {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("MySQL JDBC Driver not found. Add mysql-connector-j.jar to WEB-INF/lib.", e);
+        if (!migrated) {
+            initDatabase();
         }
-        Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
-        runMigration(conn);
-        return conn;
+
+        Connection physicalConn = pool.poll();
+        if (physicalConn != null) {
+            try {
+                if (!physicalConn.isClosed() && physicalConn.isValid(1)) {
+                    return wrapConnection(physicalConn);
+                } else {
+                    try { physicalConn.close(); } catch (Exception ignored) {}
+                }
+            } catch (Exception e) {
+                try { physicalConn.close(); } catch (Exception ignored) {}
+            }
+        }
+
+        return wrapConnection(createPhysicalConnection());
+    }
+
+    /**
+     * Wraps physical connection so that conn.close() returns it to the pool queue.
+     */
+    private static Connection wrapConnection(final Connection physicalConn) {
+        return (Connection) Proxy.newProxyInstance(
+            DBConnection.class.getClassLoader(),
+            new Class<?>[]{ Connection.class },
+            new InvocationHandler() {
+                private boolean closed = false;
+
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    String name = method.getName();
+                    if ("close".equals(name)) {
+                        if (!closed) {
+                            closed = true;
+                            if (!physicalConn.isClosed() && pool.offer(physicalConn)) {
+                                return null;
+                            }
+                            physicalConn.close();
+                        }
+                        return null;
+                    }
+                    if ("isClosed".equals(name)) {
+                        return closed || physicalConn.isClosed();
+                    }
+                    if (closed) {
+                        throw new SQLException("Connection is closed.");
+                    }
+                    try {
+                        return method.invoke(physicalConn, args);
+                    } catch (InvocationTargetException e) {
+                        throw e.getCause();
+                    }
+                }
+            }
+        );
     }
 }
