@@ -76,6 +76,17 @@ public class GetProgressServlet extends HttpServlet {
         try (Connection conn = DBConnection.getConnection()) {
             streakInfo = StreakDAO.computeStreak(conn, userId, activityDate);
 
+            // Automatically sync computed current streak & best streak to database
+            if (streakInfo != null) {
+                String syncStreakSql = "UPDATE user_progress SET streak = ?, best_streak = GREATEST(COALESCE(best_streak, 0), ?) WHERE user_id = ?";
+                try (PreparedStatement sStmt = conn.prepareStatement(syncStreakSql)) {
+                    sStmt.setInt(1, streakInfo.currentStreak);
+                    sStmt.setInt(2, streakInfo.longestStreak);
+                    sStmt.setInt(3, userId);
+                    sStmt.executeUpdate();
+                }
+            }
+
             // Fetch username, email, and avatar_id from users table
             String userSql = "SELECT username, email, avatar_id FROM users WHERE id = ?";
             try (PreparedStatement userStmt = conn.prepareStatement(userSql)) {

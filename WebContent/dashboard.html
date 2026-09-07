@@ -2943,12 +2943,18 @@ function fetchStateAndInit() {
                 var localBestStreak = (local && local.bestStreak) ? local.bestStreak : 0;
 
                 userState.score = Math.max(dbScore, localScore);
-                userState.streak = parseInt(data.streak, 10) || (local ? local.streak : 0);
+                userState.streak = (data.streak !== undefined && data.streak !== null) ? (parseInt(data.streak, 10) || 0) : (local ? (local.streak || 0) : 0);
                 userState.unlockedLevel = Math.max(dbUnlocked, localUnlocked);
                 userState.gamesPlayed = Math.max(dbGames, localGames);
                 userState.bestStreak = Math.max(dbBestStreak, localBestStreak);
                 userState.lastPlayedDate = data.lastPlayedDate || (local ? local.lastPlayedDate : "");
                 userState.activityDates = Array.isArray(data.activityDates) && data.activityDates.length > 0 ? data.activityDates : (local ? local.activityDates : []);
+
+                try {
+                    var uName = localStorage.getItem('mm_current_user') || 'default';
+                    localStorage.setItem('mm_' + uName + '_streak', userState.streak);
+                    localStorage.setItem('mm_streak', userState.streak);
+                } catch(e) {}
 
                 var avatarId = parseInt(data.avatarId, 10) || (local ? local.avatarId : 0);
                 userState.avatarId = (avatarId >= 1 && avatarId <= 20) ? avatarId : 0;

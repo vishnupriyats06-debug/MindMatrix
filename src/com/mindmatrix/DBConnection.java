@@ -91,33 +91,19 @@ public class DBConnection {
             stmt.executeUpdate("DELETE FROM user_activity_dates WHERE activity_date > CURRENT_DATE()");
             stmt.executeUpdate("UPDATE user_progress SET last_played_date = CURRENT_DATE() WHERE last_played_date > CURRENT_DATE()");
 
-            // 5. Ensure activity records for active users include August 22 and August 23, and recalculate streak
+            // 5. Recalculate streak for active users based on genuine activity dates
             String findUsersSql = "SELECT user_id FROM user_progress WHERE games_played > 0 OR unlocked_level > 1";
             try (Statement uStmt = conn.createStatement();
                  ResultSet uRs = uStmt.executeQuery(findUsersSql)) {
                 while (uRs.next()) {
                     int uid = uRs.getInt("user_id");
-                    String[] requiredDates = {
-                        "2026-08-14", "2026-08-15", "2026-08-16",
-                        "2026-08-17", "2026-08-18", "2026-08-19",
-                        "2026-08-22", "2026-08-23"
-                    };
-                    for (String d : requiredDates) {
-                        String ins = "INSERT IGNORE INTO user_activity_dates (user_id, activity_date) VALUES (?, ?)";
-                        try (PreparedStatement pIns = conn.prepareStatement(ins)) {
-                            pIns.setInt(1, uid);
-                            pIns.setDate(2, java.sql.Date.valueOf(d));
-                            pIns.executeUpdate();
-                        }
-                    }
-                    // Recalculate streak dynamically using StreakDAO
+                    // Recalculate streak dynamically using StreakDAO based on actual activity dates
                     StreakDAO.StreakInfo sInfo = StreakDAO.computeStreak(conn, uid);
-                    String upSql = "UPDATE user_progress SET streak = ?, best_streak = GREATEST(COALESCE(best_streak, 0), ?), last_played_date = ? WHERE user_id = ?";
+                    String upSql = "UPDATE user_progress SET streak = ?, best_streak = GREATEST(COALESCE(best_streak, 0), ?) WHERE user_id = ?";
                     try (PreparedStatement pUp = conn.prepareStatement(upSql)) {
                         pUp.setInt(1, sInfo.currentStreak);
                         pUp.setInt(2, sInfo.longestStreak);
-                        pUp.setDate(3, sInfo.lastActivityDate != null ? java.sql.Date.valueOf(sInfo.lastActivityDate) : java.sql.Date.valueOf(java.time.LocalDate.now()));
-                        pUp.setInt(4, uid);
+                        pUp.setInt(3, uid);
                         pUp.executeUpdate();
                     }
                 }
