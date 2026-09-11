@@ -520,7 +520,7 @@
         const form = document.getElementById('register-form');
         const btn  = document.getElementById('register-btn');
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             const username = document.getElementById('username').value.trim();
             const email    = document.getElementById('email').value.trim();
             const password = pwInput.value.trim();
@@ -545,6 +545,30 @@
                 showAlert('Password must be at least 6 characters.', 'error');
                 return;
             }
+
+            // Offline mode: running as bundled file:// APK — save credentials locally
+            if (window.location.protocol === 'file:') {
+                e.preventDefault();
+                // Check if username already taken
+                const accounts = JSON.parse(localStorage.getItem('mm_accounts') || '{}');
+                if (accounts[username.toLowerCase()]) {
+                    showAlert('Username already taken. Please choose another.', 'error');
+                    return;
+                }
+                // Hash the password simply using SubtleCrypto
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password + 'mm_salt_2024');
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                // Store account
+                accounts[username.toLowerCase()] = { username, email, passwordHash: hashHex };
+                localStorage.setItem('mm_accounts', JSON.stringify(accounts));
+                showAlert('Account created! Redirecting to login...', 'success');
+                setTimeout(() => { window.location.href = 'login.html?success=' + encodeURIComponent('Account created! Please log in.'); }, 1500);
+                return;
+            }
+
             setButtonLoading(btn, true);
         });
 

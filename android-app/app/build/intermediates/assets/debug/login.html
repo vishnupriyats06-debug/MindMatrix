@@ -399,7 +399,7 @@
         /* Form validation */
         const form = document.getElementById('login-form');
         const btn  = document.getElementById('login-btn');
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             hideAlert();
@@ -409,10 +409,27 @@
                 return;
             }
 
-            // Offline mode: running as bundled file:// APK — bypass server login
+            // Offline mode: validate credentials against locally stored accounts
             if (window.location.protocol === 'file:') {
                 e.preventDefault();
-                localStorage.setItem('mm_current_user', username);
+                const accounts = JSON.parse(localStorage.getItem('mm_accounts') || '{}');
+                const account = accounts[username.toLowerCase()];
+                if (!account) {
+                    showAlert('Account not found. Please register first.', 'error');
+                    return;
+                }
+                // Hash the entered password and compare
+                const encoder = new TextEncoder();
+                const data = encoder.encode(password + 'mm_salt_2024');
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                if (hashHex !== account.passwordHash) {
+                    showAlert('Incorrect password. Please try again.', 'error');
+                    return;
+                }
+                // Valid credentials — log in
+                localStorage.setItem('mm_current_user', account.username);
                 localStorage.setItem('mm_offline_mode', '1');
                 window.location.href = 'dashboard.html';
                 return;
