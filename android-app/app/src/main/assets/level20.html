@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MindMatrix – Level 20: Memory Detective &amp; Ultimate Brain Gauntlet</title>
+    <meta name="description" content="Level 20 – Memory Detective & Ultimate Brain Gauntlet: The grand finale MindMatrix challenge." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="js/theme.js"></script>
+    <link rel="stylesheet" href="css/theme.css" />
+    <style>
+        /* ══════════════════════════════════════════
+           RESET & DESIGN TOKENS (Level 1/2 Standard)
+        ══════════════════════════════════════════ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep:     #050814;
+            --bg-mid:      #0b0f24;
+            --bg-card:     rgba(255,255,255,0.04);
+            --bg-card-h:   rgba(255,255,255,0.07);
+            --border:      rgba(255,255,255,0.09);
+            --border-h:    rgba(245,158,11,0.5);
+            --accent-1:    #f59e0b;
+            --accent-2:    #06b6d4;
+            --accent-3:    #8b5cf6;
+            --neon-pink:   #ec4899;
+            --neon-green:  #10b981;
+            --glow:        rgba(245,158,11,0.35);
+            --text-pri:    #f0f4ff;
+            --text-sec:    rgba(240,244,255,0.60);
+            --text-muted:  rgba(240,244,255,0.32);
+            --success:     #34d399;
+            --warning:     #fbbf24;
+            --error:       #f87171;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-pri);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ══════════════════════════════════════════
+           BACKGROUND & LIGHTING
+        ══════════════════════════════════════════ */
+        .bg-scene {
+            position: fixed; inset: 0; z-index: 0;
+            background: var(--bg-deep); overflow: hidden; pointer-events: none;
+        }
+        .bg-scene::before {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 750px; height: 750px;
+            background: radial-gradient(circle, rgba(245,158,11,0.16), transparent 70%);
+            top: -200px; left: -200px;
+            animation: orb 16s ease-in-out infinite alternate;
+        }
+        .bg-scene::after {
+            content: ''; position: absolute; border-radius: 50%;
+            width: 650px; height: 650px;
+            background: radial-gradient(circle, rgba(6,182,212,0.13), transparent 70%);
+            bottom: -150px; right: -150px;
+            animation: orb 20s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes orb {
+            0%   { transform: translate(0,0) scale(1); }
+            100% { transform: translate(60px,80px) scale(1.15); }
+        }
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        /* ══════════════════════════════════════════
+           PAGE LAYOUT & TOPBAR
+        ══════════════════════════════════════════ */
+        .page-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; padding: 24px 16px;
+        }
+
+        .level-topbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+            background: rgba(5,8,20,0.85);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px; height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .btn-back {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px; border-radius: 10px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.2s ease;
+        }
+        .btn-back:hover { background: var(--bg-card-h); color: var(--text-pri); border-color: var(--border-h); }
+        .btn-back svg { width: 16px; height: 16px; }
+        .topbar-level-info h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+        .topbar-level-info span { font-size: 11px; color: var(--text-muted); }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+        .part-indicator {
+            display: flex; align-items: center; gap: 7px;
+            padding: 6px 14px; border-radius: 100px;
+            background: rgba(245,158,11,0.12);
+            border: 1px solid rgba(245,158,11,0.3);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+        .part-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); transition: background 0.3s ease;
+        }
+        .part-dot.active { background: var(--accent-1); box-shadow: 0 0 8px var(--glow); }
+        .part-dot.done   { background: var(--success); box-shadow: 0 0 8px rgba(52,211,153,0.4); }
+
+        /* ══════════════════════════════════════════
+           GAME CARD
+        ══════════════════════════════════════════ */
+        .game-card {
+            width: 100%; max-width: 680px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 28px; padding: 32px 28px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04),
+                0 24px 64px rgba(0,0,0,0.55),
+                0 0 80px rgba(245,158,11,0.08);
+            text-align: center;
+            margin-top: 68px;
+        }
+
+        .game-state { display: none; animation: fade-up 0.35s cubic-bezier(0.22,1,0.36,1) both; }
+        .game-state.active { display: block; }
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Typography & Badges ── */
+        .intro-emoji { font-size: 56px; margin-bottom: 16px; animation: pulse-glow 2s ease-in-out infinite; }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+            50% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(245,158,11,0.4)); }
+        }
+        .intro-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .intro-subtitle { font-size: 14px; color: var(--text-sec); margin-bottom: 8px; }
+        .intro-desc {
+            font-size: 13px; color: var(--text-muted); margin-bottom: 26px;
+            line-height: 1.7; max-width: 520px; margin-left: auto; margin-right: auto;
+        }
+        .game-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px; border-radius: 100px; margin-bottom: 14px;
+            background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(6,182,212,0.10));
+            border: 1px solid rgba(245,158,11,0.35);
+            font-size: 12px; font-weight: 600; color: var(--accent-1);
+        }
+        .game-badge.gauntlet {
+            background: linear-gradient(135deg, rgba(236,72,153,0.2), rgba(139,92,246,0.2));
+            border-color: rgba(236,72,153,0.4); color: #f472b6;
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 13px 34px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-1), #d97706);
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 24px rgba(245,158,11,0.45);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            min-width: 180px;
+        }
+        .btn-primary.gauntlet-btn {
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            box-shadow: 0 4px 24px rgba(236,72,153,0.45);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 36px rgba(245,158,11,0.55);
+        }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-secondary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; border-radius: 12px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-sec); font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background: var(--bg-card-h); color: var(--text-pri);
+            border-color: var(--border-h);
+        }
+        .btn-row { display: flex; justify-content: center; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+
+        /* ── HUD & Progress ── */
+        .stage-hud {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px; padding: 0 4px;
+        }
+        .hud-title { font-size: 13.5px; font-weight: 700; color: var(--accent-2); }
+        .hud-timer {
+            font-size: 14px; font-weight: 800; color: #fbbf24;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .timer-bar-wrap {
+            width: 100%; height: 6px; background: rgba(255,255,255,0.06);
+            border-radius: 10px; overflow: hidden; margin-bottom: 14px;
+        }
+        .timer-bar-fill {
+            height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+            transition: width 0.1s linear;
+        }
+        .input-instruction {
+            font-size: 13.5px; color: var(--text-sec); margin-bottom: 12px; line-height: 1.4;
+        }
+
+        /* ══════════════════════════════════════════
+           PART 1: VISUAL INVESTIGATION ENVIRONMENT
+        ══════════════════════════════════════════ */
+        .investigation-stage {
+            width: 100%; max-width: 620px; min-height: 300px;
+            background: radial-gradient(circle at center, rgba(15, 23, 42, 0.95), rgba(5, 8, 20, 0.98));
+            border: 1.5px solid rgba(245, 158, 11, 0.35);
+            border-radius: 20px; padding: 16px; margin: 10px auto 14px;
+            position: relative; overflow: hidden;
+            box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6), 0 8px 32px rgba(0,0,0,0.4);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .stage-header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; margin-bottom: 10px;
+        }
+        .stage-scene-tag {
+            font-size: 11px; font-weight: 800; color: var(--accent-1);
+            text-transform: uppercase; letter-spacing: 0.8px; display: flex; align-items: center; gap: 6px;
+        }
+        .stage-wall-clock {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(0,0,0,0.45); border: 1px solid rgba(251,191,36,0.3);
+            border-radius: 100px; padding: 4px 10px; font-size: 12px; font-weight: 800; color: #fbbf24;
+        }
+        .room-floor-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            flex: 1; align-content: center;
+        }
+        .room-zone-card {
+            background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px; padding: 12px 14px; position: relative; text-align: left;
+            transition: all 0.2s ease;
+        }
+        .zone-badge-pill {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800;
+            background: rgba(6,182,212,0.14); border: 1px solid rgba(6,182,212,0.3);
+            color: #38bdf8; margin-bottom: 8px; text-transform: uppercase;
+        }
+        .zone-avatar-row {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+        }
+        .avatar-icon-bubble {
+            font-size: 22px; width: 34px; height: 34px; border-radius: 50%;
+            background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
+            border: 1.5px solid var(--border); flex-shrink: 0;
+        }
+        .avatar-clothing-tag { font-size: 12px; font-weight: 700; color: var(--text-pri); }
+        .zone-items-cluster { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+        .visual-item-chip {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 3px 8px; font-size: 11px; font-weight: 600; color: var(--text-sec);
+        }
+        .visual-item-chip strong { color: var(--text-pri); }
+
+        /* ══════════════════════════════════════════
+           QUESTIONS & CHOICES (Standard Grid)
+        ══════════════════════════════════════════ */
+        .q-prompt-card {
+            background: rgba(255,255,255,0.03); border: 1.5px solid rgba(245,158,11,0.3);
+            border-radius: 18px; padding: 18px 16px; margin: 10px auto 14px; max-width: 620px;
+        }
+        .q-prompt-card.gauntlet-card {
+            border-color: rgba(236,72,153,0.4);
+            background: radial-gradient(circle at top, rgba(236,72,153,0.08), rgba(0,0,0,0.3));
+        }
+        .q-type-badge {
+            font-size: 10.5px; font-weight: 800; color: var(--accent-2);
+            text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px;
+        }
+        .q-main-text { font-size: 16px; font-weight: 800; color: var(--text-pri); line-height: 1.4; }
+
+        .choices-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            max-width: 620px; margin: 0 auto;
+        }
+        .choice-btn {
+            background: var(--bg-card); border: 1.5px solid var(--border);
+            border-radius: 12px; padding: 12px 14px; font-size: 14px; font-weight: 700;
+            color: var(--text-pri); cursor: pointer; transition: all 0.18s ease;
+            text-align: left; display: flex; align-items: center; gap: 8px;
+        }
+        .choice-btn:hover {
+            border-color: var(--accent-1); background: rgba(245,158,11,0.15);
+            transform: scale(1.02);
+        }
+        .choice-btn.correct {
+            border-color: var(--success) !important; background: rgba(52,211,153,0.2) !important;
+            color: var(--success); box-shadow: 0 0 14px rgba(52,211,153,0.4);
+        }
+        .choice-btn.wrong {
+            border-color: var(--error) !important; background: rgba(248,113,113,0.2) !important;
+            color: var(--error); box-shadow: 0 0 14px rgba(248,113,113,0.4);
+        }
+
+        /* ══════════════════════════════════════════
+           PART 2: GAUNTLET MINI-GAMES STYLING
+        ══════════════════════════════════════════ */
+        /* Mini-Game 1: Pattern Breaker */
+        .pattern-sequence-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; margin: 16px auto; padding: 12px;
+            background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px; max-width: 580px; flex-wrap: wrap;
+        }
+        .pattern-item-chip {
+            padding: 10px 14px; border-radius: 12px;
+            background: rgba(139,92,246,0.15); border: 1.5px solid rgba(139,92,246,0.35);
+            font-size: 20px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 4px;
+        }
+        .pattern-item-chip.mystery-target {
+            background: rgba(245,158,11,0.2); border-color: #f59e0b; color: #fbbf24;
+            animation: pulse-glow 1.5s infinite;
+        }
+
+        /* Mini-Game 2: Distraction Filter Interactive Field */
+        .distraction-field {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            max-width: 520px; margin: 14px auto; padding: 14px;
+            background: rgba(0,0,0,0.4); border: 1.5px solid rgba(236,72,153,0.3);
+            border-radius: 18px; min-height: 220px;
+        }
+        .target-symbol-btn {
+            background: var(--bg-card); border: 2px solid var(--border);
+            border-radius: 12px; padding: 14px 8px; font-size: 24px;
+            cursor: pointer; transition: all 0.2s ease; user-select: none;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .target-symbol-btn:hover {
+            transform: scale(1.08); border-color: #ec4899; background: rgba(236,72,153,0.15);
+        }
+        .target-symbol-btn.clicked-correct {
+            border-color: var(--success) !important; background: rgba(52,211,153,0.25) !important;
+            transform: scale(0.92); opacity: 0.5; pointer-events: none;
+        }
+        .target-symbol-btn.clicked-wrong {
+            border-color: var(--error) !important; background: rgba(248,113,113,0.3) !important;
+        }
+
+        /* Mini-Game 3: Memory Switch Display */
+        .switch-items-grid {
+            display: flex; justify-content: center; gap: 12px;
+            margin: 16px auto; flex-wrap: wrap; max-width: 560px;
+        }
+        .switch-token {
+            padding: 12px 16px; border-radius: 14px;
+            background: rgba(6,182,212,0.15); border: 1.5px solid rgba(6,182,212,0.4);
+            font-size: 22px; font-weight: 800; color: #38bdf8;
+            transition: all 0.3s;
+        }
+
+        /* Mini-Game 4: Rule Stack Display */
+        .rules-list-box {
+            display: flex; flex-direction: column; gap: 8px;
+            margin: 14px auto; max-width: 580px; text-align: left;
+        }
+        .rule-step-item {
+            background: rgba(255,255,255,0.03); border-left: 3px solid var(--neon-pink);
+            border-radius: 8px; padding: 10px 14px; font-size: 13.5px;
+            font-weight: 600; color: var(--text-sec);
+        }
+
+        /* Mini-Game 5: Logic Lock Matrix */
+        .logic-clues-box {
+            background: rgba(139,92,246,0.08); border: 1.5px dashed rgba(139,92,246,0.4);
+            border-radius: 16px; padding: 14px 16px; margin: 12px auto; text-align: left;
+            font-size: 13px; line-height: 1.6; color: var(--text-sec); max-width: 600px;
+        }
+
+        /* ── Transitions & Feedback ── */
+        .toast-msg {
+            display: none; padding: 10px 20px; border-radius: 12px;
+            font-size: 13.5px; font-weight: 800; margin-bottom: 12px;
+            animation: fade-up 0.25s ease;
+        }
+        .toast-msg.success { display: inline-block; background: rgba(52,211,153,0.15); border: 1px solid var(--success); color: var(--success); }
+        .toast-msg.error   { display: inline-block; background: rgba(248,113,113,0.15); border: 1px solid var(--error); color: var(--error); }
+
+        /* ══════════════════════════════════════════
+           GRAND FINALE MODAL POPUP
+        ══════════════════════════════════════════ */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 300;
+            background: rgba(5, 8, 20, 0.88);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            padding: 20px;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .finale-popup-card {
+            background: linear-gradient(145deg, rgba(20, 24, 48, 0.96), rgba(11, 15, 36, 0.98));
+            border: 2px solid rgba(245, 158, 11, 0.5);
+            border-radius: 32px; padding: 36px 30px;
+            max-width: 500px; width: 100%; text-align: center;
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.08),
+                0 32px 80px rgba(0, 0, 0, 0.7),
+                0 0 100px rgba(245, 158, 11, 0.25);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative; overflow: hidden;
+        }
+        .modal-overlay.open .finale-popup-card { transform: scale(1) translateY(0); }
+        .finale-popup-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at top, rgba(245, 158, 11, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+        .popup-emoji { font-size: 48px; margin-bottom: 8px; animation: pulse-glow 2s infinite ease-in-out; }
+        .popup-title {
+            font-size: 24px; font-weight: 900; color: #fbbf24;
+            letter-spacing: -0.5px; margin-bottom: 4px; text-transform: uppercase;
+        }
+        .popup-main-msg { font-size: 19px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+        .popup-sub-msg {
+            font-size: 13px; color: var(--text-sec); line-height: 1.5;
+            margin-bottom: 18px; max-width: 420px; margin-left: auto; margin-right: auto;
+        }
+        .achievement-badge-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(139, 92, 246, 0.18));
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            border-radius: 14px; padding: 12px 16px; margin-bottom: 18px;
+            display: flex; align-items: center; gap: 12px; text-align: left;
+        }
+        .ach-badge-icon { font-size: 28px; filter: drop-shadow(0 0 12px rgba(245,158,11,0.5)); }
+        .ach-badge-title { font-size: 14px; font-weight: 800; color: #fbbf24; letter-spacing: 0.5px; }
+        .ach-badge-desc { font-size: 11.5px; color: var(--text-sec); line-height: 1.3; }
+        .popup-stats-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+            margin-bottom: 20px;
+        }
+        .popup-stat-item {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
+            border-radius: 12px; padding: 10px 12px;
+            display: flex; align-items: center; gap: 8px; text-align: left;
+        }
+        .popup-stat-icon { font-size: 20px; }
+        .popup-stat-data { display: flex; flex-direction: column; }
+        .popup-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .popup-stat-value { font-size: 15px; font-weight: 800; color: var(--text-pri); }
+        .btn-dashboard-popup {
+            width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 24px; border: none; border-radius: 14px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff; font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 800;
+            cursor: pointer; box-shadow: 0 6px 28px rgba(245, 158, 11, 0.45);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-dashboard-popup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 36px rgba(245, 158, 11, 0.6);
+        }
+
+        canvas#confetti-canvas { position: fixed; inset: 0; z-index: 250; pointer-events: none; }
+
+        @media (max-width: 580px) {
+            .game-card { padding: 24px 14px; margin-top: 60px; }
+            .room-floor-grid { grid-template-columns: 1fr; }
+            .choices-grid { grid-template-columns: 1fr; }
+            .distraction-field { grid-template-columns: repeat(3, 1fr); }
+            .intro-title { font-size: 24px; }
+            .finale-popup-card { padding: 26px 16px; border-radius: 20px; }
+            .popup-stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-scene"></div>
+<div class="bg-grid"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- Topbar (EXACTLY 2 Parts: Part 1 = Investigation Memory, Part 2 = Ultimate Brain Gauntlet) -->
+<header class="level-topbar">
+    <div class="topbar-left">
+        <a href="dashboard.html" class="btn-back" id="btn-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            Dashboard
+        </a>
+        <div class="topbar-level-info">
+            <h1>Level 20 – Memory Detective</h1>
+            <span id="topbar-part-label">Part 1: Investigation Memory</span>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <button class="theme-toggle-btn" id="theme-header-toggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+        <div class="part-indicator">
+            <span>Parts</span>
+            <div class="part-dot active" id="dot-1"></div>
+            <div class="part-dot" id="dot-2"></div>
+        </div>
+    </div>
+</header>
+
+<main class="page-wrapper">
+    <div class="game-card">
+
+        <!-- ═══════ STATE 1: INTRO ═══════ -->
+        <div class="game-state active" id="state-intro">
+            <div class="game-badge">👑 Level 20 • Grand Finale</div>
+            <div class="intro-emoji">🔍</div>
+            <div class="intro-title">MEMORY DETECTIVE</div>
+            <div class="intro-subtitle">Part 1: Investigation Memory &amp; Part 2: Ultimate Brain Gauntlet</div>
+            <div class="intro-desc">
+                The ultimate final trial of MindMatrix: Master visual spatial observation in Part 1, then enter the 15-round Ultimate Brain Gauntlet across 5 unique cognitive mini-games.
+            </div>
+            <button class="btn-primary" id="btn-start">
+                ▶ Begin Part 1: Investigation Memory
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 2: PART 1 – VISUAL OBSERVATION SCENE (15s) ═══════ -->
+        <div class="game-state" id="state-p1-memo">
+            <div class="game-badge">👁️ Part 1 • Crime Scene Observation</div>
+            <div class="stage-hud">
+                <span class="hud-title">INVESTIGATION SCENE</span>
+                <span class="hud-timer">⏱ <span id="p1-memo-timer-val">15</span>s</span>
+            </div>
+            <div class="timer-bar-wrap">
+                <div class="timer-bar-fill" id="p1-memo-timer-bar" style="width: 100%;"></div>
+            </div>
+            <p class="input-instruction">Study the visual crime scene: characters, clothing colors, objects, locations, and time!</p>
+
+            <div class="investigation-stage">
+                <div class="stage-header-bar">
+                    <div class="stage-scene-tag" id="p1-location-tag">🏛️ Crime Scene • Downtown Café</div>
+                    <div class="stage-wall-clock" id="p1-clock-badge">⏰ 06:30 PM</div>
+                </div>
+
+                <div class="room-floor-grid" id="p1-room-floor-grid">
+                    <!-- Dynamically rendered visual room zones -->
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn-primary" id="btn-p1-ready">I'm Ready for Recall ▶</button>
+            </div>
+        </div>
+
+        <!-- ═══════ STATE 3: PART 1 – QUESTIONS RECALL (15s/q) ═══════ -->
+        <div class="game-state" id="state-p1-questions">
+            <div class="game-badge">🕵️ Part 1 • Evidence Interrogation</div>
+            <div class="stage-hud">
+                <span class="hud-title" id="p1-q-progress">Question 1 / 6</span>
+                <span class="hud-timer">⏱ <span id="p1-q-timer-val">15</span>s</span>
+            </div>
+            <div class="timer-bar-wrap">
+                <div class="timer-bar-fill" id="p1-q-timer-bar" style="width: 100%;"></div>
+            </div>
+
+            <div id="p1-q-toast" class="toast-msg"></div>
+
+            <div class="q-prompt-card">
+                <div class="q-type-badge" id="p1-q-type">VISUAL EVIDENCE</div>
+                <div class="q-main-text" id="p1-q-text">What color shirt was the woman wearing?</div>
+            </div>
+
+            <div class="choices-grid" id="p1-choices-grid"></div>
+        </div>
+
+        <!-- ═══════ STATE 4: PART 1 COMPLETE ═══════ -->
+        <div class="game-state" id="state-p1-complete">
+            <div class="intro-emoji">🎉</div>
+            <div class="intro-title" style="color: #34d399;">PART 1 COMPLETE!</div>
+            <div class="intro-subtitle">Investigation Memory Certified (+40 Points)</div>
+            <div class="intro-desc">
+                Brilliant observation! You passed the investigation memory trial. Prepare to enter the 5-game <strong>Ultimate Brain Gauntlet</strong>.
+            </div>
+            <button class="btn-primary gauntlet-btn" id="btn-start-part2">
+                ⚡ Enter Ultimate Brain Gauntlet (Part 2) ▶
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 4B: PART 2 INTRO PAGE ═══════ -->
+        <div class="game-state" id="state-intro-p2">
+            <div class="game-badge gauntlet">⚡ Level 20 • Part 2</div>
+            <div class="intro-emoji">👑</div>
+            <div class="intro-title">Ultimate Brain Gauntlet</div>
+            <div class="intro-subtitle">5 Mini-Games • 15 Rounds • Grand Finale</div>
+            <div class="intro-desc">
+                The ultimate final trial of MindMatrix! Conquer 15 intense rounds across 5 unique cognitive mini-games: Pattern Breaker, Dual N-Back, Interference Matrix, Speed Calculus, and Cognitive Synthesis.
+            </div>
+            <button class="btn-primary gauntlet-btn" id="btn-start-p2" onclick="startGauntletPart2()">
+                ▶ Start Game
+            </button>
+        </div>
+
+        <!-- ═══════ STATE 5: PART 2 – GAUNTLET PLAY AREA ═══════ -->
+        <div class="game-state" id="state-gauntlet-play">
+            <div class="game-badge gauntlet" id="gauntlet-stage-badge">⚡ MINI-GAME 1/5 • PATTERN BREAKER</div>
+            <div class="stage-hud">
+                <span class="hud-title" id="gauntlet-round-title">ROUND 1/3 (EASY)</span>
+                <span class="hud-timer">⏱ <span id="gauntlet-timer-val">15</span>s</span>
+            </div>
+            <div class="timer-bar-wrap">
+                <div class="timer-bar-fill" id="gauntlet-timer-bar" style="width: 100%;"></div>
+            </div>
+
+            <div id="gauntlet-toast" class="toast-msg"></div>
+
+            <!-- Dynamic Gauntlet Game Content Area -->
+            <div id="gauntlet-game-canvas"></div>
+        </div>
+
+        <!-- ═══════ STATE 6: GAUNTLET MINI-GAME INTERSTITIAL ═══════ -->
+        <div class="game-state" id="state-gauntlet-transition">
+            <div class="intro-emoji" id="trans-emoji">⚡</div>
+            <div class="intro-title" id="trans-title" style="color: #38bdf8;">PATTERN BREAKER COMPLETE!</div>
+            <div class="intro-subtitle" id="trans-sub">Advancing to Next Gauntlet Trial…</div>
+            <div class="intro-desc" id="trans-desc">Prepare your cognitive focus.</div>
+            <div class="btn-row">
+                <button class="btn-primary gauntlet-btn" id="btn-next-minigame">Next Challenge ▶</button>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ═══════ GRAND FINALE CONGRATULATIONS POPUP MODAL ═══════ -->
+<div class="modal-overlay" id="finale-modal-overlay">
+    <div class="finale-popup-card">
+        <div class="popup-emoji">🏆</div>
+        <div class="popup-title">CONGRATULATIONS!</div>
+        <div class="popup-main-msg">You did it!</div>
+        <div class="popup-sub-msg">
+            You have conquered all 20 levels of MindMatrix and mastered the Ultimate Brain Gauntlet!
+        </div>
+
+        <div class="achievement-badge-card">
+            <div class="ach-badge-icon">👑</div>
+            <div>
+                <div class="ach-badge-title">ULTIMATE BRAIN MASTER</div>
+                <div class="ach-badge-desc">You completed the entire MindMatrix Memory Challenge!</div>
+            </div>
+        </div>
+
+        <div class="popup-stats-grid">
+            <div class="popup-stat-item">
+                <div class="popup-stat-icon">🎯</div>
+                <div class="popup-stat-data">
+                    <span class="popup-stat-label">Final Score</span>
+                    <span class="popup-stat-value" id="popup-score">100 Points</span>
+                </div>
+            </div>
+            <div class="popup-stat-item">
+                <div class="popup-stat-icon">🔥</div>
+                <div class="popup-stat-data">
+                    <span class="popup-stat-label">Streak</span>
+                    <span class="popup-stat-value" id="popup-streak">-- Days</span>
+                </div>
+            </div>
+            <div class="popup-stat-item">
+                <div class="popup-stat-icon">🧠</div>
+                <div class="popup-stat-data">
+                    <span class="popup-stat-label">Part 1 / Part 2</span>
+                    <span class="popup-stat-value" id="popup-parts-breakdown">40 / 60 Pts</span>
+                </div>
+            </div>
+            <div class="popup-stat-item">
+                <div class="popup-stat-icon">📊</div>
+                <div class="popup-stat-data">
+                    <span class="popup-stat-label">Accuracy</span>
+                    <span class="popup-stat-value" id="popup-accuracy">100%</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-dashboard-popup" id="btn-popup-dashboard" onclick="onPopupGoToDashboard()">
+            🏠 Go to Dashboard
+        </button>
+    </div>
+</div>
+
+<script src="js/hint.js?v=3.0"></script>
+<script src="js/completionModal.js?v=1.0"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   LEVEL 20 – MASTER ENGINE
+   PART 1: Investigation Memory (15s observation + 6 recall questions)
+   PART 2: Ultimate Brain Gauntlet (5 Mini-Games x 3 Rounds = 15 Rounds)
+   ═══════════════════════════════════════════════════════════════ */
+
+let currentPart = 1; // 1 or 2
+let part1Score = 0;  // out of 40
+let part2Score = 0;  // out of 60
+let totalScore = 0;
+
+let activeTimer = null;
+let isLocked = false;
+let startTimeStamp = Date.now();
+let hintsUsedInGauntlet = false;
+
+// ── Part 1 Runtime State ──
+let p1Scenario = null;
+let p1Questions = [];
+let p1QuestionIdx = 0;
+
+// ── Part 2 Gauntlet Runtime State ──
+let gauntletGameIdx = 1; // 1 to 5
+let gauntletRound = 1;   // 1 to 3
+let gauntletCurrentPuzzle = null;
+
+function gid(id) { return document.getElementById(id); }
+
+function showState(id) {
+    document.querySelectorAll('.game-state').forEach(s => s.classList.remove('active'));
+    const el = gid(id);
+    if (el) el.classList.add('active');
+}
+
+function updatePartIndicator(partNum) {
+    currentPart = partNum;
+    if (partNum === 1) {
+        gid('dot-1').className = 'part-dot active';
+        gid('dot-2').className = 'part-dot';
+        gid('topbar-part-label').textContent = 'Part 1: Investigation Memory';
+    } else {
+        gid('dot-1').className = 'part-dot done';
+        gid('dot-2').className = 'part-dot active';
+        gid('topbar-part-label').textContent = 'Part 2: Ultimate Brain Gauntlet';
+    }
+}
+
+function showPart2IntroPage() {
+    currentPart = 2;
+    updatePartIndicator(2);
+    showState('state-intro-p2');
+}
+
+function startGauntletPart2() {
+    currentPart = 2;
+    gauntletGameIdx = 1;
+    gauntletRound = 1;
+    startGauntletMiniGame(1, 1);
+}
+
+// ── INITIALIZATION ──
+document.addEventListener('DOMContentLoaded', () => {
+    gid('btn-start').onclick = () => {
+        currentPart = 1;
+        startPart1();
+    };
+
+    gid('btn-p1-ready').onclick = finishPart1Observation;
+
+    gid('btn-start-part2').onclick = () => {
+        showPart2IntroPage();
+    };
+
+    const btnStartP2 = gid('btn-start-p2');
+    if (btnStartP2) {
+        btnStartP2.onclick = () => {
+            currentPart = 2;
+            gauntletGameIdx = 1;
+            gauntletRound = 1;
+            startGauntletMiniGame(1, 1);
+        };
+    }
+
+    gid('btn-next-minigame').onclick = () => {
+        gauntletGameIdx += 1;
+        gauntletRound = 1;
+        startGauntletMiniGame(gauntletGameIdx, 1);
+    };
+
+    if (sessionStorage.getItem('mm_lvl20_part1_done') === 'true') {
+        showPart2IntroPage();
+    }
+
+    if (typeof initHintSystem === 'function') {
+        initHintSystem(
+            () => !isLocked && (currentPart === 1 || currentPart === 2),
+            () => executeMasterHint()
+        );
+    }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   PART 1 – INVESTIGATION MEMORY (15s Observation + 6 Questions)
+   ═══════════════════════════════════════════════════════════════ */
+const SHIRT_COLORS = ['Blue', 'Red', 'Black', 'Green', 'Yellow', 'White', 'Purple', 'Grey'];
+const BAG_COLORS = ['Red', 'Brown', 'Black', 'Navy Blue', 'Emerald', 'Golden'];
+const NOTEBOOK_COLORS = ['Green', 'Blue', 'Black', 'Crimson', 'Orange'];
+const CUP_COLORS = ['Yellow', 'White', 'Blue', 'Red', 'Ceramic'];
+const WITNESS_ITEMS = ['Newspaper', 'Menu', 'Water Glass', 'Folder', 'Envelope'];
+
+function startPart1() {
+    if (activeTimer) clearInterval(activeTimer);
+    isLocked = false;
+    part1Score = 0;
+    updatePartIndicator(1);
+
+    // Procedurally generate rich investigation scenario
+    const randChoice = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    const wShirt = randChoice(SHIRT_COLORS);
+    const mJacket = randChoice(SHIRT_COLORS.filter(c => c !== wShirt));
+    const bagColor = randChoice(BAG_COLORS);
+    const nbColor = randChoice(NOTEBOOK_COLORS);
+    const cupColor = randChoice(CUP_COLORS);
+    const wItem = randChoice(WITNESS_ITEMS);
+
+    const wTable = randInt(2, 5);
+    let mTable = randInt(6, 9);
+    while (mTable === wTable) mTable = randInt(6, 9);
+
+    const clockHour = randInt(5, 9);
+    const clockMin = (Math.random() > 0.5) ? '30' : '45';
+    const clockStr = `${clockHour}:${clockMin} PM`;
+
+    const keyNum = randInt(1, 9);
+
+    p1Scenario = {
+        wShirt, mJacket, bagColor, nbColor, cupColor, wItem,
+        wTable, mTable, clockHour, clockMin, clockStr, keyNum,
+        zones: [
+            {
+                name: `Table ${wTable}`,
+                avatar: '👩',
+                avatarDesc: `Woman in ${wShirt} Shirt`,
+                items: [
+                    { icon: '👜', label: `${bagColor} Handbag` },
+                    { icon: '📗', label: `${nbColor} Notebook` },
+                    { icon: '☕', label: `${cupColor} Cup` }
+                ]
+            },
+            {
+                name: `Table ${mTable}`,
+                avatar: '👨',
+                avatarDesc: `Man in ${mJacket} Jacket`,
+                items: [
+                    { icon: '🔑', label: `Master Key #${keyNum}` },
+                    { icon: '💼', label: 'Briefcase' }
+                ]
+            },
+            {
+                name: 'Entrance Zone',
+                avatar: '🪴',
+                avatarDesc: 'Potted Plant',
+                items: [
+                    { icon: '🚪', label: 'Glass Door' },
+                    { icon: '📌', label: 'Bulletin Board' }
+                ]
+            },
+            {
+                name: 'Service Counter',
+                avatar: '🤵',
+                avatarDesc: 'Waiter in White Shirt',
+                items: [
+                    { icon: '📰', label: `Holding ${wItem}` },
+                    { icon: '🔔', label: 'Service Bell' }
+                ]
+            }
+        ]
+    };
+
+    // Render Part 1 Scene
+    gid('p1-clock-badge').textContent = `⏰ ${clockStr}`;
+    const floor = gid('p1-room-floor-grid');
+    floor.innerHTML = '';
+
+    p1Scenario.zones.forEach((z, idx) => {
+        const card = document.createElement('div');
+        card.className = 'room-zone-card';
+        card.id = `p1-zone-${idx}`;
+
+        let itemsHtml = '';
+        z.items.forEach(it => {
+            itemsHtml += `<span class="visual-item-chip">${it.icon} <strong>${it.label}</strong></span>`;
+        });
+
+        card.innerHTML = `
+            <div class="zone-badge-pill">${z.name}</div>
+            <div class="zone-avatar-row">
+                <div class="avatar-icon-bubble">${z.avatar}</div>
+                <div class="avatar-clothing-tag">${z.avatarDesc}</div>
+            </div>
+            <div class="zone-items-cluster">
+                ${itemsHtml}
+            </div>
+        `;
+        floor.appendChild(card);
+    });
+
+    gid('p1-memo-timer-val').textContent = 15;
+    gid('p1-memo-timer-bar').style.width = '100%';
+    showState('state-p1-memo');
+
+    // 15 Seconds Observation Timer
+    let timeLeft = 15;
+    activeTimer = setInterval(() => {
+        timeLeft -= 0.1;
+        const pct = Math.max(0, (timeLeft / 15) * 100);
+        gid('p1-memo-timer-bar').style.width = `${pct}%`;
+        gid('p1-memo-timer-val').textContent = Math.ceil(Math.max(0, timeLeft));
+
+        if (timeLeft <= 0) {
+            clearInterval(activeTimer);
+            finishPart1Observation();
+        }
+    }, 100);
+}
+
+function finishPart1Observation() {
+    if (activeTimer) clearInterval(activeTimer);
+    generatePart1Questions();
+    showState('state-p1-questions');
+    loadPart1Question(0);
+}
+
+function generatePart1Questions() {
+    const s = p1Scenario;
+    const generateChoices = (ans, pool) => {
+        const set = new Set([ans]);
+        const sh = [...pool].sort(() => Math.random() - 0.5);
+        for (let it of sh) { set.add(it); if (set.size === 4) break; }
+        return Array.from(set).sort(() => Math.random() - 0.5);
+    };
+
+    p1Questions = [
+        { type: 'CHARACTER MEMORY', prompt: 'What color shirt was the woman wearing?', answer: `${s.wShirt} Shirt`, options: generateChoices(`${s.wShirt} Shirt`, SHIRT_COLORS.map(c => `${c} Shirt`)) },
+        { type: 'SPATIAL RECALL', prompt: 'Which table was the woman sitting at?', answer: `Table ${s.wTable}`, options: generateChoices(`Table ${s.wTable}`, [2,3,4,5,6,7].map(n => `Table ${n}`)) },
+        { type: 'OBJECT IDENTIFICATION', prompt: "What color was the handbag on the woman's table?", answer: s.bagColor, options: generateChoices(s.bagColor, BAG_COLORS) },
+        { type: 'TEMPORAL RECALL', prompt: 'What time was shown on the scene wall clock?', answer: s.clockStr, options: generateChoices(s.clockStr, ['5:30 PM', '6:30 PM', '6:45 PM', '7:30 PM', '7:45 PM']) },
+        { type: 'WITNESS ACTION', prompt: 'What item was the waiter holding near the counter?', answer: s.wItem, options: generateChoices(s.wItem, WITNESS_ITEMS) },
+        { type: 'SECONDARY POSITION', prompt: `What table was the man in the ${s.mJacket} jacket sitting at?`, answer: `Table ${s.mTable}`, options: generateChoices(`Table ${s.mTable}`, [4,5,6,7,8,9].map(n => `Table ${n}`)) }
+    ].sort(() => Math.random() - 0.5);
+}
+
+function loadPart1Question(qIdx) {
+    if (activeTimer) clearInterval(activeTimer);
+    isLocked = false;
+    p1QuestionIdx = qIdx;
+
+    const q = p1Questions[qIdx];
+    gid('p1-q-progress').textContent = `Question ${qIdx + 1} / ${p1Questions.length}`;
+    gid('p1-q-type').textContent = q.type;
+    gid('p1-q-text').textContent = q.prompt;
+    hideToast('p1-q-toast');
+
+    const container = gid('p1-choices-grid');
+    container.innerHTML = '';
+
+    q.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerHTML = `<span>▶</span> <span>${opt}</span>`;
+        btn.onclick = () => onPart1Answer(opt, q.answer, btn);
+        container.appendChild(btn);
+    });
+
+    let timeLeft = 15;
+    gid('p1-q-timer-val').textContent = timeLeft;
+    gid('p1-q-timer-bar').style.width = '100%';
+
+    activeTimer = setInterval(() => {
+        timeLeft -= 0.1;
+        const pct = Math.max(0, (timeLeft / 15) * 100);
+        gid('p1-q-timer-bar').style.width = `${pct}%`;
+        gid('p1-q-timer-val').textContent = Math.ceil(Math.max(0, timeLeft));
+
+        if (timeLeft <= 0) {
+            clearInterval(activeTimer);
+            showToast('p1-q-toast', '⏱ Time Out! Restarting Part 1…', false);
+            setTimeout(startPart1, 1400);
+        }
+    }, 100);
+}
+
+function onPart1Answer(selected, correct, btnEl) {
+    if (isLocked) return;
+    isLocked = true;
+    if (activeTimer) clearInterval(activeTimer);
+
+    if (selected === correct) {
+        btnEl.classList.add('correct');
+        showToast('p1-q-toast', '✓ CORRECT EVIDENCE RECALL!', true);
+        part1Score += Math.round(40 / 6); // ~7 pts
+
+        setTimeout(() => {
+            if (p1QuestionIdx + 1 < p1Questions.length) {
+                loadPart1Question(p1QuestionIdx + 1);
+            } else {
+                    sessionStorage.setItem('mm_lvl20_part1_done', 'true');
+                    showPartCompletion({
+                        part: 1,
+                        totalParts: 2,
+                        score: 40,
+                        title: 'Correct!',
+                        message: 'Brilliant observation! You passed the investigation memory trial. Ready for the Ultimate Brain Gauntlet?',
+                        buttonText: 'Continue to Part 2 ▶',
+                        onContinue: () => {
+                            showPart2IntroPage();
+                        }
+                    });
+            }
+        }, 650);
+    } else {
+        btnEl.classList.add('wrong');
+        showToast('p1-q-toast', '❌ Incorrect! Restarting Part 1…', false);
+        setTimeout(startPart1, 1600);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PART 2 – ULTIMATE BRAIN GAUNTLET (5 MINI-GAMES × 3 ROUNDS = 15 ROUNDS)
+   ═══════════════════════════════════════════════════════════════ */
+const GAUNTLET_GAMES = [
+    { id: 1, name: 'PATTERN BREAKER', ptsPerRound: 3.33, timer: 15 },
+    { id: 2, name: 'DISTRACTION FILTER', ptsPerRound: 3.33, timer: 20 },
+    { id: 3, name: 'MEMORY SWITCH', ptsPerRound: 3.33, timer: 12 },
+    { id: 4, name: 'RULE STACK', ptsPerRound: 4.0, timer: 25 },
+    { id: 5, name: 'LOGIC LOCK (BOSS)', ptsPerRound: 6.0, timer: 40 }
+];
+
+function startGauntletMiniGame(gameIdx, roundNum) {
+    if (activeTimer) clearInterval(activeTimer);
+    isLocked = false;
+    gauntletGameIdx = gameIdx;
+    gauntletRound = roundNum;
+    updatePartIndicator(2);
+
+    const game = GAUNTLET_GAMES[gameIdx - 1];
+    const diffNames = ['EASY', 'HARDER', 'EXTREME'];
+
+    gid('gauntlet-stage-badge').textContent = `⚡ MINI-GAME ${gameIdx}/5 • ${game.name}`;
+    gid('gauntlet-round-title').textContent = `ROUND ${roundNum}/3 (${diffNames[roundNum - 1]})`;
+    gid('gauntlet-timer-val').textContent = game.timer;
+    gid('gauntlet-timer-bar').style.width = '100%';
+    hideToast('gauntlet-toast');
+
+    showState('state-gauntlet-play');
+
+    if (gameIdx === 1) buildPatternBreakerPuzzle(roundNum, game.timer);
+    else if (gameIdx === 2) buildDistractionFilterPuzzle(roundNum, game.timer);
+    else if (gameIdx === 3) buildMemorySwitchPuzzle(roundNum, game.timer);
+    else if (gameIdx === 4) buildRuleStackPuzzle(roundNum, game.timer);
+    else if (gameIdx === 5) buildLogicLockPuzzle(roundNum, game.timer);
+}
+
+function startGauntletTimer(durationSecs, onTimeout) {
+    let timeLeft = durationSecs;
+    activeTimer = setInterval(() => {
+        timeLeft -= 0.1;
+        const pct = Math.max(0, (timeLeft / durationSecs) * 100);
+        gid('gauntlet-timer-bar').style.width = `${pct}%`;
+        gid('gauntlet-timer-val').textContent = Math.ceil(Math.max(0, timeLeft));
+
+        if (timeLeft <= 0) {
+            clearInterval(activeTimer);
+            onTimeout();
+        }
+    }, 100);
+}
+
+function handleGauntletRoundSuccess() {
+    const game = GAUNTLET_GAMES[gauntletGameIdx - 1];
+    part2Score += game.ptsPerRound;
+
+    if (gauntletRound < 3) {
+        // Next round of current mini-game
+        startGauntletMiniGame(gauntletGameIdx, gauntletRound + 1);
+    } else {
+        // Mini-game complete!
+        if (gauntletGameIdx < 5) {
+            showMiniGameTransition(game.name, GAUNTLET_GAMES[gauntletGameIdx].name);
+        } else {
+            // ALL 5 MINI-GAMES COMPLETE -> LEVEL 20 GRAND FINALE!
+            part2Score = 60;
+            showGrandCompletion();
+        }
+    }
+}
+
+function showMiniGameTransition(completedGame, nextGame) {
+    gid('trans-title').textContent = `⚡ ${completedGame} COMPLETE!`;
+    gid('trans-sub').textContent = `Advancing to Trial ${gauntletGameIdx + 1} / 5: ${nextGame}`;
+    showState('state-gauntlet-transition');
+    fireConfetti();
+}
+
+function handleGauntletFail(msg) {
+    isLocked = true;
+    showToast('gauntlet-toast', msg || '❌ Trial Failed! Restarting round…', false);
+    setTimeout(() => {
+        startGauntletMiniGame(gauntletGameIdx, gauntletRound);
+    }, 1500);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MINI-GAME 1: PATTERN BREAKER
+   ───────────────────────────────────────────────────────────── */
+function buildPatternBreakerPuzzle(round, timerSecs) {
+    const canvas = gid('gauntlet-game-canvas');
+    canvas.innerHTML = '';
+
+    const shapes = ['▲', '▶', '▼', '◀'];
+    const colors = ['🔴', '🔵', '🟢', '🟡', '🟣', '🔶'];
+
+    let seq = [];
+    let correctNext = '';
+    let choices = [];
+
+    if (round === 1) {
+        // Simple shape rotation
+        const startIdx = Math.floor(Math.random() * 4);
+        seq = [shapes[startIdx % 4], shapes[(startIdx + 1) % 4], shapes[(startIdx + 2) % 4], shapes[(startIdx + 3) % 4]];
+        correctNext = shapes[(startIdx + 4) % 4];
+        choices = [correctNext, shapes[(startIdx + 2) % 4], shapes[(startIdx + 1) % 4], '★'].sort(() => Math.random() - 0.5);
+    } else if (round === 2) {
+        // Shape + Count shift
+        const baseSh = shapes[Math.floor(Math.random() * 4)];
+        seq = [`${baseSh} 1`, `${baseSh} 2`, `${baseSh} 4`, `${baseSh} 8`];
+        correctNext = `${baseSh} 16`;
+        choices = [correctNext, `${baseSh} 12`, `${baseSh} 10`, `${baseSh} 14`].sort(() => Math.random() - 0.5);
+    } else {
+        // Multi-color alternate rotation
+        const c1 = colors[0]; const c2 = colors[1];
+        seq = [`${c1} ▲`, `${c2} ▶`, `${c1} ▼`, `${c2} ◀`];
+        correctNext = `${c1} ▲`;
+        choices = [correctNext, `${c2} ▲`, `${c1} ◀`, `${c2} ▼`].sort(() => Math.random() - 0.5);
+    }
+
+    gauntletCurrentPuzzle = { correctNext };
+
+    let chipsHtml = '';
+    seq.forEach(s => chipsHtml += `<div class="pattern-item-chip">${s}</div>`);
+    chipsHtml += `<div class="pattern-item-chip mystery-target">?</div>`;
+
+    canvas.innerHTML = `
+        <div class="q-prompt-card gauntlet-card">
+            <div class="q-type-badge">PATTERN RECOGNITION</div>
+            <div class="q-main-text">Analyze the multi-property sequence and determine what comes next:</div>
+        </div>
+        <div class="pattern-sequence-row">${chipsHtml}</div>
+        <div class="choices-grid" id="pattern-choices-grid"></div>
+    `;
+
+    const choicesGrid = gid('pattern-choices-grid');
+    choices.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerHTML = `<span>⚡</span> <span>${opt}</span>`;
+        btn.onclick = () => {
+            if (isLocked) return;
+            isLocked = true;
+            if (activeTimer) clearInterval(activeTimer);
+
+            if (opt === correctNext) {
+                btn.classList.add('correct');
+                showToast('gauntlet-toast', '✓ PATTERN SOLVED!', true);
+                setTimeout(handleGauntletRoundSuccess, 650);
+            } else {
+                btn.classList.add('wrong');
+                handleGauntletFail('❌ Pattern Rule Broken!');
+            }
+        };
+        choicesGrid.appendChild(btn);
+    });
+
+    startGauntletTimer(timerSecs, () => handleGauntletFail('⏱ Pattern Timer Expired!'));
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MINI-GAME 2: DISTRACTION FILTER
+   ───────────────────────────────────────────────────────────── */
+function buildDistractionFilterPuzzle(round, timerSecs) {
+    const canvas = gid('gauntlet-game-canvas');
+    canvas.innerHTML = '';
+
+    let targetRuleText = "Click all BLUE TRIANGLES (🔵 ▲)";
+    let isTarget = (it) => it.color === '🔵' && it.shape === '▲';
+    if (round === 2) {
+        targetRuleText = "Click all YELLOW STARS with NUMBER (🟡 ★ #)";
+        isTarget = (it) => it.color === '🟡' && it.shape === '★';
+    } else if (round === 3) {
+        targetRuleText = "Click all RED DIAMONDS (🔴 ◆)";
+        isTarget = (it) => it.color === '🔴' && it.shape === '◆';
+    }
+
+    // Generate 12 items (exactly 4 targets, 8 distractors)
+    const allShapes = ['▲', '●', '■', '★', '◆'];
+    const allColors = ['🔵', '🔴', '🟡', '🟢', '🟣'];
+
+    const items = [];
+    // 4 Targets
+    for (let i = 0; i < 4; i++) {
+        if (round === 1) items.push({ color: '🔵', shape: '▲', label: '🔵 ▲' });
+        else if (round === 2) items.push({ color: '🟡', shape: '★', label: `🟡 ★ ${i+1}` });
+        else items.push({ color: '🔴', shape: '◆', label: '🔴 ◆' });
+    }
+    // 8 Distractors
+    for (let i = 0; i < 8; i++) {
+        const rc = allColors[(i + 1) % allColors.length];
+        const rs = allShapes[(i + 2) % allShapes.length];
+        items.push({ color: rc, shape: rs, label: `${rc} ${rs}` });
+    }
+    items.sort(() => Math.random() - 0.5);
+
+    let targetsRemaining = 4;
+
+    canvas.innerHTML = `
+        <div class="q-prompt-card gauntlet-card">
+            <div class="q-type-badge">SELECTIVE ATTENTION</div>
+            <div class="q-main-text" style="color:#fbbf24;">${targetRuleText}</div>
+            <div style="font-size:12px; color:var(--text-sec); margin-top:4px;">Filter out moving distractions and click all 4 targets!</div>
+        </div>
+        <div class="distraction-field" id="distraction-field-grid"></div>
+    `;
+
+    const field = gid('distraction-field-grid');
+    items.forEach((it, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'target-symbol-btn';
+        btn.textContent = it.label;
+        btn.onclick = () => {
+            if (isLocked) return;
+
+            if (isTarget(it)) {
+                btn.classList.add('clicked-correct');
+                targetsRemaining -= 1;
+                showToast('gauntlet-toast', `✓ Target Hit! (${targetsRemaining} Remaining)`, true);
+
+                if (targetsRemaining <= 0) {
+                    isLocked = true;
+                    if (activeTimer) clearInterval(activeTimer);
+                    showToast('gauntlet-toast', '✓ ALL DISTRACTIONS FILTERED!', true);
+                    setTimeout(handleGauntletRoundSuccess, 650);
+                }
+            } else {
+                btn.classList.add('clicked-wrong');
+                if (activeTimer) clearInterval(activeTimer);
+                handleGauntletFail('❌ Distractor Clicked! Stay Focused!');
+            }
+        };
+        field.appendChild(btn);
+    });
+
+    startGauntletTimer(timerSecs, () => handleGauntletFail('⏱ Focus Filter Timer Expired!'));
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MINI-GAME 3: MEMORY SWITCH
+   ───────────────────────────────────────────────────────────── */
+function buildMemorySwitchPuzzle(round, timerSecs) {
+    const canvas = gid('gauntlet-game-canvas');
+    canvas.innerHTML = '';
+
+    const initialTokens = ['🔴 Star', '🔵 Square', '🟢 Circle', '🟡 Diamond', '🟣 Triangle'];
+    const modifiedTokens = [...initialTokens];
+
+    let changeDesc = "";
+    let falseChoices = [];
+
+    if (round === 1) {
+        modifiedTokens[0] = '🔴 Hexagon';
+        changeDesc = "🔴 Star changed to 🔴 Hexagon";
+        falseChoices = ["🔵 Square moved to end", "🟢 Circle turned Red", "🟡 Diamond removed"];
+    } else if (round === 2) {
+        modifiedTokens[1] = '🟣 Square';
+        modifiedTokens[3] = '🟡 Star';
+        changeDesc = "🔵 Square turned Purple & 🟡 Diamond changed to Star";
+        falseChoices = ["🔴 Star turned Green", "🟢 Circle swapped with Square", "All colors inverted"];
+    } else {
+        modifiedTokens[2] = '💎 Gem';
+        modifiedTokens[4] = '⚡ Bolt';
+        changeDesc = "🟢 Circle became Gem & 🟣 Triangle became Bolt";
+        falseChoices = ["🔴 Star turned Blue", "No change occurred", "Positions 1 and 3 swapped"];
+    }
+
+    const choices = [changeDesc, ...falseChoices].sort(() => Math.random() - 0.5);
+
+    // Phase 1: Observation for 4s
+    canvas.innerHTML = `
+        <div class="q-prompt-card gauntlet-card">
+            <div class="q-type-badge">VISUAL MEMORY ENCODING</div>
+            <div class="q-main-text">Memorize this arrangement! (Changes incoming…)</div>
+        </div>
+        <div class="switch-items-grid" id="switch-grid">
+            ${initialTokens.map(t => `<div class="switch-token">${t}</div>`).join('')}
+        </div>
+    `;
+
+    setTimeout(() => {
+        // Phase 2: Show modified tokens & choices
+        canvas.innerHTML = `
+            <div class="q-prompt-card gauntlet-card">
+                <div class="q-type-badge">CHANGE DETECTION</div>
+                <div class="q-main-text">The field has shifted! What changed from the original?</div>
+            </div>
+            <div class="switch-items-grid" id="switch-grid">
+                ${modifiedTokens.map(t => `<div class="switch-token" style="border-color:#ec4899; color:#f472b6;">${t}</div>`).join('')}
+            </div>
+            <div class="choices-grid" id="switch-choices-grid" style="margin-top:12px;"></div>
+        `;
+
+        const cGrid = gid('switch-choices-grid');
+        choices.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.innerHTML = `<span>🔄</span> <span>${opt}</span>`;
+            btn.onclick = () => {
+                if (isLocked) return;
+                isLocked = true;
+                if (activeTimer) clearInterval(activeTimer);
+
+                if (opt === changeDesc) {
+                    btn.classList.add('correct');
+                    showToast('gauntlet-toast', '✓ SWITCH ACCURATELY DETECTED!', true);
+                    setTimeout(handleGauntletRoundSuccess, 650);
+                } else {
+                    btn.classList.add('wrong');
+                    handleGauntletFail('❌ Change Detection Missed!');
+                }
+            };
+            cGrid.appendChild(btn);
+        });
+
+        startGauntletTimer(timerSecs, () => handleGauntletFail('⏱ Switch Detection Timed Out!'));
+    }, 4000);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MINI-GAME 4: RULE STACK
+   ───────────────────────────────────────────────────────────── */
+function buildRuleStackPuzzle(round, timerSecs) {
+    const canvas = gid('gauntlet-game-canvas');
+    canvas.innerHTML = '';
+
+    let seq = ['▲', '●', '■', '★'];
+    let rules = [];
+
+    // Rule 1: Move last to front
+    rules.push("Rule 1: Move the last symbol to the beginning.");
+    const last = seq.pop();
+    seq.unshift(last);
+
+    // Rule 2: Swap pos 2 and pos 4
+    rules.push("Rule 2: Swap position 2 and position 4.");
+    const temp = seq[1];
+    seq[1] = seq[3];
+    seq[3] = temp;
+
+    if (round >= 2) {
+        rules.push("Rule 3: Reverse the complete sequence.");
+        seq.reverse();
+    }
+    if (round >= 3) {
+        rules.push("Rule 4: Swap position 1 and position 3.");
+        const t2 = seq[0];
+        seq[0] = seq[2];
+        seq[2] = t2;
+    }
+
+    const correctStr = seq.join('  ');
+    const fake1 = [...seq].reverse().join('  ');
+    const fake2 = [seq[1], seq[0], seq[3], seq[2]].join('  ');
+    const fake3 = [seq[2], seq[3], seq[0], seq[1]].join('  ');
+    const choices = Array.from(new Set([correctStr, fake1, fake2, fake3])).sort(() => Math.random() - 0.5);
+
+    canvas.innerHTML = `
+        <div class="q-prompt-card gauntlet-card">
+            <div class="q-type-badge">WORKING MEMORY TRANSFORMATION</div>
+            <div class="q-main-text">Start: <strong style="color:#fbbf24;">[ ▲   ●   ■   ★ ]</strong></div>
+        </div>
+        <div class="rules-list-box">
+            ${rules.map((r, i) => `<div class="rule-step-item"><strong>STEP ${i+1}:</strong> ${r}</div>`).join('')}
+        </div>
+        <div class="choices-grid" id="rule-choices-grid" style="margin-top:14px;"></div>
+    `;
+
+    const cGrid = gid('rule-choices-grid');
+    choices.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerHTML = `<span>🔮</span> <strong>[ ${opt} ]</strong>`;
+        btn.onclick = () => {
+            if (isLocked) return;
+            isLocked = true;
+            if (activeTimer) clearInterval(activeTimer);
+
+            if (opt === correctStr) {
+                btn.classList.add('correct');
+                showToast('gauntlet-toast', '✓ RULE STACK EXECUTED!', true);
+                setTimeout(handleGauntletRoundSuccess, 650);
+            } else {
+                btn.classList.add('wrong');
+                handleGauntletFail('❌ Transformation Error in Rule Stack!');
+            }
+        };
+        cGrid.appendChild(btn);
+    });
+
+    startGauntletTimer(timerSecs, () => handleGauntletFail('⏱ Rule Stack Timed Out!'));
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MINI-GAME 5: LOGIC LOCK (GRAND FINAL BOSS)
+   ───────────────────────────────────────────────────────────── */
+function buildLogicLockPuzzle(round, timerSecs) {
+    const canvas = gid('gauntlet-game-canvas');
+    canvas.innerHTML = '';
+
+    let clues = [];
+    let correctArrangement = "";
+    let choices = [];
+
+    if (round === 1) {
+        clues = [
+            "• The Red item is at Position 1.",
+            "• The Blue item is immediately to the right of the Green item.",
+            "• Number 7 is on the Red item."
+        ];
+        correctArrangement = "🔴 Red (#7)  |  🟢 Green  |  🔵 Blue";
+        choices = [
+            correctArrangement,
+            "🔵 Blue  |  🟢 Green  |  🔴 Red (#7)",
+            "🟢 Green  |  🔴 Red (#7)  |  🔵 Blue",
+            "🔴 Red (#7)  |  🔵 Blue  |  🟢 Green"
+        ].sort(() => Math.random() - 0.5);
+    } else if (round === 2) {
+        clues = [
+            "• Position 1 contains the Circle.",
+            "• The Star is somewhere to the left of the Diamond.",
+            "• The Triangle is at Position 4.",
+            "• Number 9 is inside the Star."
+        ];
+        correctArrangement = "● Circle  |  ★ Star (#9)  |  ◆ Diamond  |  ▲ Triangle";
+        choices = [
+            correctArrangement,
+            "★ Star (#9)  |  ● Circle  |  ◆ Diamond  |  ▲ Triangle",
+            "● Circle  |  ◆ Diamond  |  ★ Star (#9)  |  ▲ Triangle",
+            "▲ Triangle  |  ● Circle  |  ★ Star (#9)  |  ◆ Diamond"
+        ].sort(() => Math.random() - 0.5);
+    } else {
+        // EXTREME FINAL BOSS
+        clues = [
+            "• 5 Relational positions: [ Slot 1 | Slot 2 | Slot 3 | Slot 4 | Slot 5 ]",
+            "• The Gold Key is at Slot 5.",
+            "• The Crimson Gem is directly between Diamond and Star.",
+            "• Slot 1 is occupied by the Azure Ring (#8).",
+            "• The Star is in Slot 4."
+        ];
+        correctArrangement = "1: Azure Ring (#8) | 2: Diamond | 3: Crimson Gem | 4: Star | 5: Gold Key";
+        choices = [
+            correctArrangement,
+            "1: Azure Ring (#8) | 2: Star | 3: Crimson Gem | 4: Diamond | 5: Gold Key",
+            "1: Gold Key | 2: Diamond | 3: Crimson Gem | 4: Star | 5: Azure Ring (#8)",
+            "1: Diamond | 2: Azure Ring (#8) | 3: Crimson Gem | 4: Star | 5: Gold Key"
+        ].sort(() => Math.random() - 0.5);
+    }
+
+    canvas.innerHTML = `
+        <div class="q-prompt-card gauntlet-card" style="border-color:#a855f7;">
+            <div class="q-type-badge" style="color:#c084fc;">🧠 DEDUCTIVE REASONING MATRIX</div>
+            <div class="q-main-text">Synthesize all interconnected constraints to crack the Logic Lock:</div>
+        </div>
+        <div class="logic-clues-box">
+            ${clues.map(c => `<div>${c}</div>`).join('')}
+        </div>
+        <div class="choices-grid" id="logic-choices-grid" style="margin-top:12px; grid-template-columns: 1fr;"></div>
+    `;
+
+    const cGrid = gid('logic-choices-grid');
+    choices.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerHTML = `<span>🔐</span> <strong>${opt}</strong>`;
+        btn.onclick = () => {
+            if (isLocked) return;
+            isLocked = true;
+            if (activeTimer) clearInterval(activeTimer);
+
+            if (opt === correctArrangement) {
+                btn.classList.add('correct');
+                showToast('gauntlet-toast', '✓ LOGIC LOCK DECRYPTED!', true);
+                setTimeout(handleGauntletRoundSuccess, 700);
+            } else {
+                btn.classList.add('wrong');
+                handleGauntletFail('❌ Logic Constraint Violated!');
+            }
+        };
+        cGrid.appendChild(btn);
+    });
+
+    startGauntletTimer(timerSecs, () => handleGauntletFail('⏱ Logic Lock Timed Out!'));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL HINT SYSTEM
+   ═══════════════════════════════════════════════════════════════ */
+function executeMasterHint() {
+    if (isLocked) return false;
+
+    if (currentPart === 1) {
+        showToast('p1-q-toast', '💡 Clue: Cross-reference the table number with the clothing badge.', true);
+        return true;
+    } else if (currentPart === 2) {
+        hintsUsedInGauntlet = true;
+        showToast('gauntlet-toast', '💡 Clue: Eliminate constraints that do not match Position 1.', true);
+        return true;
+    }
+    return false;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GRAND FINALE COMPLETION & PROGRESS SAVING
+   ═══════════════════════════════════════════════════════════════ */
+function showGrandCompletion() {
+    gid('dot-2').className = 'part-dot done';
+
+    totalScore = Math.round(part1Score + part2Score);
+    if (!hintsUsedInGauntlet) totalScore = Math.min(100, totalScore + 10);
+    if (totalScore <= 0) totalScore = 100;
+
+    const savePromise = saveProgress(totalScore);
+
+    showPartCompletion({
+        part: 2,
+        totalParts: 2,
+        score: 60,
+        title: 'Correct!',
+        message: 'Masterful cognitive triumph! You conquered all 20 levels of MindMatrix and solved the Grand Finale!',
+        buttonText: '🏆 Level Complete – Continue',
+        isFinal: true,
+        onContinue: async () => {
+            try {
+                await savePromise;
+            } catch(e) {}
+            window.location.href = 'dashboard.html';
+        }
+    });
+}
+
+let isDashboardRedirecting = false;
+function onPopupGoToDashboard() {
+    if (isDashboardRedirecting) return;
+    isDashboardRedirecting = true;
+    window.location.href = 'dashboard.html';
+}
+
+function saveProgress(finalScore) {
+    if (!finalScore || finalScore <= 0) finalScore = 100;
+
+    const currentUser = localStorage.getItem('mm_current_user') || 'User';
+    const userPrefix = 'mm_' + currentUser + '_';
+
+    const defaultScores = Array(20).fill(0);
+    const defaultTimes = Array(20).fill("-");
+    const defaultStars = Array(20).fill("0");
+
+    let prevScore = parseInt(localStorage.getItem('mm_score'), 10) || parseInt(localStorage.getItem(userPrefix + 'score'), 10) || 0;
+    let score = prevScore + finalScore;
+    let lastPlayedDateStr = localStorage.getItem('mm_last_played_date') || localStorage.getItem(userPrefix + 'last_played_date') || "";
+    let currentStreak = parseInt(localStorage.getItem('mm_streak'), 10) || parseInt(localStorage.getItem(userPrefix + 'streak'), 10) || 0;
+    let streakRes = (window.calculateNewStreak ? window.calculateNewStreak(currentStreak, lastPlayedDateStr, true) : { streak: (currentStreak || 1), dateStr: (window.getLocalDateString ? window.getLocalDateString() : new Date().toISOString().split('T')[0]) });
+    let streak = streakRes.streak;
+    let lastPlayedDate = streakRes.dateStr;
+    let unlockedLevel = 21; // All 20 levels completed (unlockedLevel = 21)
+    let gamesPlayed = (parseInt(localStorage.getItem('mm_games_played'), 10) || parseInt(localStorage.getItem(userPrefix + 'games_played'), 10) || 0) + 1;
+    let bestStreak = Math.max(streak, parseInt(localStorage.getItem('mm_best_streak'), 10) || parseInt(localStorage.getItem(userPrefix + 'best_streak'), 10) || streak);
+
+    let bestScores = safeParseArray(localStorage.getItem('mm_best_scores') || localStorage.getItem(userPrefix + 'best_scores'), defaultScores);
+    let bestTimes = safeParseArray(localStorage.getItem('mm_best_times') || localStorage.getItem(userPrefix + 'best_times'), defaultTimes);
+    let stars = safeParseArray(localStorage.getItem('mm_stars') || localStorage.getItem(userPrefix + 'stars'), defaultStars);
+
+    const elapsedSeconds = Math.round((Date.now() - startTimeStamp) / 1000);
+    const mins = Math.floor(elapsedSeconds / 60);
+    const secs = elapsedSeconds % 60;
+    const timeStr = `${mins}m ${secs}s`;
+
+    bestScores[19] = Math.max(finalScore, parseInt(bestScores[19], 10) || 100);
+    bestTimes[19] = timeStr;
+    stars[19] = '3'; // Max 3 stars for final level completion
+
+    // Save to generic keys
+    localStorage.setItem('mm_score', score);
+    localStorage.setItem('mm_streak', streak);
+    localStorage.setItem('mm_last_played_date', lastPlayedDate);
+    localStorage.setItem('mm_unlocked_level', unlockedLevel);
+    localStorage.setItem('mm_games_played', gamesPlayed);
+    localStorage.setItem('mm_best_streak', bestStreak);
+    localStorage.setItem('mm_best_scores', JSON.stringify(bestScores));
+    localStorage.setItem('mm_best_times', JSON.stringify(bestTimes));
+    localStorage.setItem('mm_stars', JSON.stringify(stars));
+
+    // Save to User-Prefixed keys for instant dashboard cache sync
+    localStorage.setItem(userPrefix + 'score', score);
+    localStorage.setItem(userPrefix + 'streak', streak);
+    localStorage.setItem(userPrefix + 'last_played_date', lastPlayedDate);
+    localStorage.setItem(userPrefix + 'unlocked_level', unlockedLevel);
+    localStorage.setItem(userPrefix + 'games_played', gamesPlayed);
+    localStorage.setItem(userPrefix + 'best_streak', bestStreak);
+    localStorage.setItem(userPrefix + 'best_scores', JSON.stringify(bestScores));
+    localStorage.setItem(userPrefix + 'best_times', JSON.stringify(bestTimes));
+    localStorage.setItem(userPrefix + 'stars', JSON.stringify(stars));
+
+    return fetch('saveProgress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            score: score,
+            streak: streak,
+            unlockedLevel: unlockedLevel,
+            gamesPlayed: gamesPlayed,
+            bestStreak: bestStreak,
+            bestScores: JSON.stringify(bestScores),
+            bestTimes: JSON.stringify(bestTimes),
+            stars: JSON.stringify(stars),
+            lastPlayedDate: lastPlayedDate,
+            clientDate: lastPlayedDate,
+            hints: localStorage.getItem('mm_hints') || 3
+        })
+    }).catch(() => {});
+}
+
+function safeParseArray(val, def) {
+    if (!val) return def;
+    try {
+        const p = JSON.parse(val);
+        return Array.isArray(p) ? p : def;
+    } catch (e) {
+        return def;
+    }
+}
+
+function showToast(id, msg, isSuccess) {
+    const t = gid(id);
+    if (!t) return;
+    t.textContent = msg;
+    t.className = isSuccess ? 'toast-msg success' : 'toast-msg error';
+}
+
+function hideToast(id) {
+    const t = gid(id);
+    if (t) t.className = 'toast-msg';
+}
+
+/* ── Confetti Animation ── */
+function fireConfetti() {
+    const canvas = gid('confetti-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const colors = ['#f59e0b', '#06b6d4', '#10b981', '#ec4899', '#8b5cf6', '#ffffff'];
+
+    for (let i = 0; i < 110; i++) {
+        particles.push({
+            x: canvas.width / 2 + (Math.random() - 0.5) * 250,
+            y: canvas.height / 2,
+            vx: (Math.random() - 0.5) * 16,
+            vy: Math.random() * -18 - 4,
+            w: Math.random() * 9 + 4,
+            h: Math.random() * 6 + 2,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rot: Math.random() * 360,
+            rotSpeed: (Math.random() - 0.5) * 10,
+            gravity: 0.28,
+            opacity: 1
+        });
+    }
+
+    function anim() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let alive = false;
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.vy += p.gravity;
+            p.y += p.vy;
+            p.rot += p.rotSpeed;
+            p.opacity -= 0.007;
+            if (p.opacity > 0) {
+                alive = true;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rot * Math.PI) / 180);
+                ctx.globalAlpha = Math.max(0, p.opacity);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                ctx.restore();
+            }
+        });
+        if (alive) requestAnimationFrame(anim);
+    }
+    anim();
+}
+</script>
+</body>
+</html>

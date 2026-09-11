@@ -18,8 +18,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends AppCompatActivity {
 
-    // ⚡ Live Cloudflare Secure URL
-    private static final String APP_URL = "https://nil-idaho-mild-maria.trycloudflare.com/mindmatrix/login.html";
+    // ⚡ Standalone Offline Local Asset URL (Runs 100% on phone without server/laptop)
+    private static final String APP_URL = "file:///android_asset/login.html";
     private static final int PERMISSION_REQUEST_CODE = 101;
 
     private WebView webView;
@@ -40,12 +40,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Configure WebView settings
+        // Configure WebView settings for full standalone offline operation
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setDatabaseEnabled(true);
         webSettings.setAllowFileAccess(true);
+        webSettings.setAllowContentAccess(true);
+        webSettings.setAllowFileAccessFromFileURLs(true);
+        webSettings.setAllowUniversalAccessFromFileURLs(true);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(true);
 
@@ -71,12 +74,29 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Add Javascript Interface for Web-to-Native communication
+        webView.addJavascriptInterface(new WebAppInterface(), "AndroidInterface");
+
+        // Schedule background daily alarm at 7:00 PM
+        StreakAlarmScheduler.scheduleDailyReminder(this);
+
         // Swipe to refresh
         swipeRefreshLayout.setOnRefreshListener(() -> webView.reload());
 
-        // Load MindMatrix App
+        // Load MindMatrix App from local assets
         if (savedInstanceState == null) {
             webView.loadUrl(APP_URL);
+        }
+    }
+
+    public class WebAppInterface {
+        @android.webkit.JavascriptInterface
+        public void setStreakReminderEnabled(boolean enabled) {
+            if (enabled) {
+                StreakAlarmScheduler.scheduleDailyReminder(MainActivity.this);
+            } else {
+                StreakAlarmScheduler.cancelDailyReminder(MainActivity.this);
+            }
         }
     }
 

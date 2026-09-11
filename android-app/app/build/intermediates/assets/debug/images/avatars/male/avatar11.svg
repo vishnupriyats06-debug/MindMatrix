@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bgGrad11" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0c4a6e"/>
+    </radialGradient>
+    <!-- Skin Shading -->
+    <linearGradient id="skinGrad11" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#fde047"/>
+    </linearGradient>
+    <!-- Hair Gradient -->
+    <linearGradient id="hairGrad11" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+    <!-- Filter Glow -->
+    <filter id="softGlow11" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Circular Clip / Base -->
+  <circle cx="100" cy="100" r="96" fill="url(#bgGrad11)"/>
+  <!-- Ambient Orbit Ring -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-dasharray="8 6"/>
+
+  <!-- Back Hair (if any) -->
+  
+
+  <!-- Body / Torso / Neck -->
+  <!-- Neck -->
+  <path d="M86,120 L114,120 L118,150 L82,150 Z" fill="#fde047" opacity="0.95"/>
+  <path d="M88,126 C96,134 104,134 112,126 L112,136 C104,142 96,142 88,136 Z" fill="rgba(0,0,0,0.12)"/>
+
+  <!-- Clothing / Shoulders -->
+  <g class="clothing">
+    <path d="M42,148 C48,124 76,122 100,122 C124,122 152,124 158,148 L174,200 L26,200 Z" fill="#0369a1"/>
+                        <path d="M80,122 L100,154 L120,122 Z" fill="#f8fafc"/>
+                        <path d="M42,148 L80,122 L86,200 L32,200 Z" fill="#075985"/>
+                        <path d="M158,148 L120,122 L114,200 L168,200 Z" fill="#075985"/>
+  </g>
+
+  <!-- Head / Face Base -->
+  <g class="face">
+    <!-- Head Base Shape -->
+    <path d="M62,80 C62,48 138,48 138,80 C138,114 122,136 100,136 C78,136 62,114 62,80 Z" fill="url(#skinGrad11)"/>
+    
+    <!-- Ears -->
+    <ellipse cx="61" cy="88" rx="6.5" ry="10" fill="#fef08a"/>
+    <ellipse cx="61" cy="88" rx="3.5" ry="6" fill="#fde047"/>
+    <ellipse cx="139" cy="88" rx="6.5" ry="10" fill="#fef08a"/>
+    <ellipse cx="139" cy="88" rx="3.5" ry="6" fill="#fde047"/>
+
+    <!-- Cheeks Blush -->
+    <ellipse cx="76" cy="98" rx="9" ry="5" fill="#f87171" opacity="0.35"/>
+    <ellipse cx="124" cy="98" rx="9" ry="5" fill="#f87171" opacity="0.35"/>
+
+    <!-- Eyebrows -->
+    <path d="M72,69 Q82,65 92,69" fill="none" stroke="#451a03" stroke-width="3" stroke-linecap="round"/>
+    <path d="M108,69 Q118,65 128,69" fill="none" stroke="#451a03" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Eyes (Left & Right) -->
+    <!-- Left Eye -->
+    <ellipse cx="82" cy="78" rx="7" ry="6.5" fill="#ffffff"/>
+    <circle cx="82.5" cy="78" r="4.5" fill="#0284c7"/>
+    <circle cx="82.5" cy="78" r="2.2" fill="#111827"/>
+    <circle cx="80.5" cy="76" r="1.5" fill="#ffffff"/>
+    <path d="M74,75 Q82,71 90,75" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Right Eye -->
+    <ellipse cx="118" cy="78" rx="7" ry="6.5" fill="#ffffff"/>
+    <circle cx="117.5" cy="78" r="4.5" fill="#0284c7"/>
+    <circle cx="117.5" cy="78" r="2.2" fill="#111827"/>
+    <circle cx="115.5" cy="76" r="1.5" fill="#ffffff"/>
+    <path d="M110,75 Q118,71 126,75" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Nose -->
+    <path d="M98,84 Q100,94 95,95 Q100,96 105,95" fill="none" stroke="#fde047" stroke-width="2.2" stroke-linecap="round"/>
+
+    <!-- Mouth / Smile -->
+    <path d="M89,106 Q100,116 111,106" fill="none" stroke="#f87171" stroke-width="3" stroke-linecap="round"/>
+    <path d="M93,107 Q100,113 107,107" fill="#ffffff" opacity="0.85"/>
+  </g>
+
+  <!-- Front Hair -->
+  <g class="hair">
+    <path d="M58,74 C58,34 142,34 142,74 C142,78 136,56 124,46 C110,38 90,38 76,46 C64,56 58,78 58,74 Z" fill="url(#hairGrad11)"/>
+                    <polygon points="70,48 76,34 84,46" fill="url(#hairGrad11)"/>
+                    <polygon points="86,42 94,28 104,42" fill="url(#hairGrad11)"/>
+                    <polygon points="106,44 116,32 124,46" fill="url(#hairGrad11)"/>
+                    <path d="M68,54 C82,42 118,42 132,54" fill="none" stroke="#d97706" stroke-width="2" opacity="0.6"/>
+  </g>
+
+  <!-- Accessories & Highlights -->
+  <circle cx="60" cy="94" r="2.5" fill="#38bdf8"/>
+  
+
+  <!-- Outer Glass Border -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+</svg>

@@ -1,0 +1,671 @@
+/* Light Theme variables - default */
+html, html[data-theme="light"] {
+    --bg-deep:     #f4f6fa;
+    --bg-mid:      #eef1f6;
+    --bg-card:     #ffffff;
+    --bg-card-h:   #f8fafc;
+    --border:      rgba(0, 0, 0, 0.08);
+    --border-h:    rgba(124, 58, 237, 0.45);
+    --border-focus:rgba(124, 58, 237, 0.70);
+    --accent-1:    #7c3aed;
+    --accent-2:    #0891b2;
+    --accent-3:    #d97706;
+    --glow:        rgba(124, 58, 237, 0.15);
+    --text-pri:    #0f172a;
+    --text-sec:    rgba(15, 23, 42, 0.70);
+    --text-muted:  rgba(15, 23, 42, 0.45);
+    --success:     #10b981;
+    --warning:     #f59e0b;
+    --error:       #ef4444;
+    --grid-color:  rgba(0, 0, 0, 0.025);
+}
+
+/* Dark Theme overrides */
+html[data-theme="dark"] {
+    --bg-deep:     #050814;
+    --bg-mid:      #0b0f24;
+    --bg-card:     rgba(255,255,255,0.04);
+    --bg-card-h:   rgba(255,255,255,0.07);
+    --border:      rgba(255,255,255,0.09);
+    --border-h:    rgba(139,92,246,0.45);
+    --border-focus:rgba(139,92,246,0.70);
+    --accent-1:    #8b5cf6;
+    --accent-2:    #06b6d4;
+    --accent-3:    #f59e0b;
+    --glow:        rgba(139,92,246,0.35);
+    --text-pri:    #f0f4ff;
+    --text-sec:    rgba(240,244,255,0.55);
+    --text-muted:  rgba(240,244,255,0.28);
+    --success:     #34d399;
+    --warning:     #fbbf24;
+    --error:       #f87171;
+    --grid-color:  rgba(255, 255, 255, 0.025);
+}
+
+/* Smooth transition for theme colors */
+body, .game-card, .settings-card, .btn-back, input, button, select, div, span, label {
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease !important;
+}
+
+/* Apply variable grid lines */
+.bg-grid {
+    background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px) !important;
+}
+
+/* Background scene overrides */
+html[data-theme="light"] .bg-scene::before {
+    background: radial-gradient(circle, rgba(124,58,237,0.08), transparent 70%) !important;
+}
+html[data-theme="light"] .bg-scene::after {
+    background: radial-gradient(circle, rgba(8,145,178,0.06), transparent 70%) !important;
+}
+
+/* Modal default/results backgrounds */
+html[data-theme="light"] .result-card,
+html[data-theme="light"] .level-modal-content {
+    background: #ffffff !important;
+    border-color: rgba(0,0,0,0.1) !important;
+}
+
+/* Inputs readability */
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: rgba(0,0,0,0.15) !important;
+}
+
+html[data-theme="light"] input::placeholder {
+    color: rgba(15, 23, 42, 0.4) !important;
+}
+
+/* Cards & modules in light theme */
+html[data-theme="light"] .settings-card,
+html[data-theme="light"] .stat-card,
+html[data-theme="light"] .streak-stat,
+html[data-theme="light"] .level-card,
+html[data-theme="light"] .calendar-wrap,
+html[data-theme="light"] .achievement-card,
+html[data-theme="light"] .feedback-card {
+    background: #ffffff !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Stats value text alignment/contrast */
+html[data-theme="light"] .stat-value {
+    color: var(--accent-1) !important;
+}
+
+/* Secondary Button standard styles in light theme */
+html[data-theme="light"] .btn-secondary {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+}
+html[data-theme="light"] .btn-secondary:hover {
+    background: #e2e8f0 !important;
+}
+
+/* Memory cards flip styling under light mode */
+html[data-theme="light"] .memory-card-front {
+    background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(8,145,178,0.08)) !important;
+    border-color: rgba(124,58,237,0.2) !important;
+    color: rgba(15, 23, 42, 0.25) !important;
+}
+html[data-theme="light"] .memory-card-back {
+    background: #ffffff !important;
+    border-color: rgba(0,0,0,0.12) !important;
+    color: #0f172a !important;
+}
+
+/* Shell & header structures */
+html[data-theme="light"] .shell {
+    background: #f4f6fa !important;
+}
+html[data-theme="light"] .sidebar {
+    background: #ffffff !important;
+    border-right-color: rgba(0,0,0,0.08) !important;
+}
+html[data-theme="light"] .sidebar-logo {
+    border-bottom-color: rgba(0,0,0,0.08) !important;
+}
+html[data-theme="light"] .topbar {
+    background: rgba(244, 246, 250, 0.85) !important;
+    border-bottom-color: rgba(0,0,0,0.08) !important;
+}
+html[data-theme="light"] .profile-dropdown {
+    background: #ffffff !important;
+    border-color: rgba(0,0,0,0.1) !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+}
+html[data-theme="light"] .dropdown-header {
+    border-bottom-color: rgba(0,0,0,0.08) !important;
+}
+html[data-theme="light"] .dropdown-item:hover {
+    background-color: #f1f5f9 !important;
+}
+
+/* Miscellaneous visibility fixes */
+html[data-theme="light"] .timer-circle svg .timer-track {
+    stroke: rgba(0,0,0,0.06) !important;
+}
+html[data-theme="light"] .answer-area {
+    background: rgba(0,0,0,0.02) !important;
+    border-color: rgba(0,0,0,0.08) !important;
+}
+html[data-theme="light"] .level-topbar {
+    background: rgba(244, 246, 250, 0.85) !important;
+    border-bottom-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Theme selector cards inside settings */
+.theme-selector-group {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.theme-select-card {
+    flex: 1;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.theme-select-card:hover {
+    border-color: var(--border-h);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.theme-select-card.selected {
+    border-color: var(--accent-1);
+    background: rgba(139, 92, 246, 0.08);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.2);
+}
+
+.theme-select-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.theme-select-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-pri);
+    margin-bottom: 4px;
+}
+
+.theme-select-status {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.theme-select-card.selected .theme-select-status {
+    color: var(--accent-1);
+    font-weight: bold;
+}
+
+/* Header theme toggle */
+.theme-toggle-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-pri);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+    background: var(--bg-card-h);
+    border-color: var(--border-h);
+    transform: scale(1.05);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GLOBAL MOBILE RESPONSIVENESS (All Levels & Game Modules)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+    /* Base Sizing & Overflow Prevention */
+    *, *::before, *::after {
+        box-sizing: border-box !important;
+    }
+
+    body {
+        overflow-x: hidden !important;
+        width: 100vw !important;
+        max-width: 100% !important;
+    }
+
+    /* Top Bar Mobile Optimization */
+    .level-topbar {
+        padding: 0 8px !important;
+        height: 54px !important;
+        gap: 4px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+    .topbar-left {
+        gap: 6px !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .btn-back {
+        padding: 5px 8px !important;
+        font-size: 11px !important;
+        gap: 4px !important;
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        border-radius: 8px !important;
+    }
+    .btn-back svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+    .topbar-level-info {
+        min-width: 0 !important;
+        overflow: hidden !important;
+        flex: 1 1 auto !important;
+    }
+    .topbar-level-info h1 {
+        font-size: 12px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.2 !important;
+    }
+    .topbar-level-info span {
+        font-size: 9.5px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+    }
+    .topbar-right {
+        gap: 4px !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .part-indicator {
+        padding: 3px 6px !important;
+        font-size: 10px !important;
+        gap: 3px !important;
+        flex-shrink: 0 !important;
+        border-radius: 100px !important;
+    }
+    .part-dot {
+        width: 5px !important;
+        height: 5px !important;
+    }
+    .theme-toggle-btn {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 12px !important;
+        min-width: 28px !important;
+        flex-shrink: 0 !important;
+    }
+    .btn-hint {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+        gap: 3px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Page Wrapper & Cards */
+    .page-wrapper {
+        padding: 60px 8px 20px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+        min-height: calc(100vh - 10px) !important;
+    }
+    .game-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 20px 10px !important;
+        border-radius: 18px !important;
+        margin-top: 6px !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+
+    .intro-emoji {
+        font-size: 42px !important;
+        margin-bottom: 10px !important;
+    }
+    .intro-title {
+        font-size: 22px !important;
+    }
+    .intro-subtitle {
+        font-size: 12.5px !important;
+    }
+    .intro-desc {
+        font-size: 12px !important;
+        margin-bottom: 18px !important;
+        line-height: 1.5 !important;
+    }
+    .btn-primary {
+        padding: 12px 24px !important;
+        font-size: 13.5px !important;
+        min-width: 160px !important;
+        width: 100% !important;
+        max-width: 280px !important;
+    }
+
+    /* Level 13: Neural Shift / Shadow Detective & Gravity Flip */
+    .scene-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 8px 6px !important;
+        gap: 6px !important;
+        border-radius: 14px !important;
+        box-sizing: border-box !important;
+        min-height: 160px !important;
+    }
+    .scene-grid-r1 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+    .scene-grid-r2 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    .scene-grid-r3 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+    .scene-slot {
+        border-radius: 8px !important;
+        padding: 4px 2px !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+    .scene-slot .slot-emoji {
+        font-size: clamp(16px, 4.5vw, 24px) !important;
+    }
+    .scene-slot .obj-label {
+        font-size: clamp(7px, 1.8vw, 8.5px) !important;
+        letter-spacing: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        display: block !important;
+        margin-top: 2px !important;
+    }
+    .detective-choices-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .det-choice-btn {
+        padding: 10px 12px !important;
+        border-radius: 12px !important;
+    }
+    .gravity-arena {
+        width: 100% !important;
+        max-width: 270px !important;
+        height: auto !important;
+        aspect-ratio: 1 !important;
+        gap: 4px !important;
+        padding: 6px !important;
+        box-sizing: border-box !important;
+    }
+    .target-options-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Digit & Number Levels (Level 1, 2, 3) */
+    .digit-boxes, .digit-inputs {
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+    }
+    .digit-box {
+        width: clamp(38px, 11vw, 52px) !important;
+        height: clamp(48px, 13vw, 66px) !important;
+        font-size: clamp(20px, 6vw, 28px) !important;
+        border-radius: 10px !important;
+    }
+    .digit-input {
+        width: clamp(36px, 10vw, 48px) !important;
+        height: clamp(46px, 12vw, 60px) !important;
+        font-size: clamp(18px, 5.5vw, 24px) !important;
+        border-radius: 10px !important;
+    }
+
+    /* Shape Memory Grid / Display Area (Level 7 & similar) */
+    .shape-display-area, .answer-area {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+        padding: 8px 4px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .shape-box, .answer-slot {
+        width: 100% !important;
+        max-width: 52px !important;
+        height: auto !important;
+        aspect-ratio: 1 !important;
+        font-size: clamp(18px, 5vw, 24px) !important;
+        border-radius: 10px !important;
+    }
+    .shape-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 6px !important;
+        max-width: 280px !important;
+        width: 100% !important;
+        margin: 16px auto !important;
+    }
+    .grid-cell {
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 1 !important;
+        font-size: clamp(16px, 5vw, 24px) !important;
+        border-radius: 8px !important;
+    }
+    .draggable-shape {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 20px !important;
+    }
+
+    /* Position Matrix Inputs & Cells (Level 4 & Matrix levels) */
+    .matrix-display-area, .matrix-inputs {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+    }
+    .matrix-table, .matrix-input-table {
+        border-spacing: 3px !important;
+    }
+    .matrix-cell, .matrix-input, .static-cell {
+        width: clamp(30px, 8vw, 44px) !important;
+        height: clamp(30px, 8vw, 44px) !important;
+        font-size: clamp(12px, 3.5vw, 17px) !important;
+        border-radius: 6px !important;
+    }
+
+    /* Emojis & Word Cards (Level 8, 9, 10, etc.) */
+    .emoji-grid, .emoji-row, .items-grid, .symbols-grid {
+        max-width: 100% !important;
+        gap: 6px !important;
+        box-sizing: border-box !important;
+    }
+    .emoji-box, .emoji-cell, .emoji-item {
+        font-size: clamp(20px, 5.5vw, 28px) !important;
+        padding: 4px !important;
+    }
+
+    /* Level 6 Memory Cards Grid */
+    .cards-grid { max-width: 100% !important; gap: 6px !important; }
+    .grid-p1 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; max-width: 290px !important; gap: 6px !important; }
+    .grid-p2 { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; max-width: 310px !important; gap: 4px !important; }
+    .memory-card-front, .memory-card-back { font-size: clamp(14px, 4vw, 20px) !important; border-radius: 8px !important; }
+
+    /* Level 10 Mask Memory */
+    .pm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; max-width: 100% !important; }
+    .pm-card { padding: 12px 6px !important; border-radius: 12px !important; }
+    .pm-card .person-emoji { font-size: 28px !important; }
+    .pm-card .mask-emoji { font-size: 22px !important; }
+    .selection-pool { gap: 6px !important; padding: 10px !important; }
+    .pool-item { width: 44px !important; height: 44px !important; font-size: 20px !important; }
+
+    /* Level 11 Object Grid & Pools */
+    .obj-grid-wrap { max-width: 260px !important; margin: 8px auto !important; }
+    .obj-grid { gap: 6px !important; }
+    .obj-cell { font-size: 18px !important; border-radius: 8px !important; }
+    .obj-pool { gap: 6px !important; padding: 8px !important; }
+    .pool-obj { width: 42px !important; height: 42px !important; font-size: 17px !important; }
+    .choice-btn { min-width: 52px !important; font-size: 20px !important; padding: 8px !important; }
+
+    /* Level 12 Symbol Memory & Flip Cards */
+    .symbol-sequence-display, .answer-slots, .symbol-picker { gap: 6px !important; max-width: 100% !important; }
+    .seq-symbol { width: 48px !important; height: 48px !important; font-size: 20px !important; border-radius: 10px !important; }
+    .answer-slot { width: 46px !important; height: 46px !important; font-size: 18px !important; border-radius: 10px !important; }
+    .sym-btn { width: 40px !important; height: 40px !important; font-size: 16px !important; border-radius: 8px !important; }
+    .card-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 6px !important; max-width: 290px !important; }
+    .flip-card-front, .flip-card-back { font-size: 18px !important; border-radius: 10px !important; }
+
+    /* Level 14 Sequence Tokens & Pickers */
+    .seq-token { width: 44px !important; height: 50px !important; font-size: 20px !important; }
+    .picker-btn { width: 38px !important; height: 38px !important; font-size: 16px !important; }
+
+    /* Level 15 Visual Story */
+    .scene-card-wrap { padding: 18px 12px !important; }
+    .scene-story-text { font-size: 14.5px !important; }
+    .options-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+
+    /* Level 16 Shadow Tracker */
+    .game-area-wrapper { height: 280px !important; max-width: 100% !important; }
+    .tracker-object { width: 38px !important; height: 38px !important; font-size: 9px !important; }
+
+    /* Level 17 Relationship Reconstruction & Memory Calculation */
+    .rel-row { flex-direction: column !important; gap: 6px !important; }
+    .rel-arrow { transform: rotate(90deg) !important; margin: 2px 0 !important; }
+    .recon-row { flex-direction: column !important; align-items: stretch !important; }
+    .assoc-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 6px !important; margin: 16px auto !important; max-width: 100% !important; }
+    .assoc-card { padding: 10px 4px !important; border-radius: 12px !important; gap: 4px !important; }
+    .assoc-sym { font-size: clamp(20px, 5.5vw, 30px) !important; }
+    .assoc-val { font-size: clamp(16px, 4.5vw, 22px) !important; }
+
+    /* Level 18 Advanced Memory Master */
+    .grid-memo { gap: 3px !important; padding: 4px !important; }
+    .grid-5x5 { max-width: 240px !important; }
+    .grid-6x6 { max-width: 260px !important; }
+    .grid-7x7 { max-width: 280px !important; }
+    .palette-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 4px !important; }
+
+    /* Level 19 Cognitive Nexus */
+    .grid-4x4-wrap {
+        max-width: 280px !important;
+        gap: 6px !important;
+        padding: 8px !important;
+    }
+    .p2-recon-area {
+        min-height: 220px !important;
+        padding: 8px !important;
+    }
+    .recon-stage-canvas {
+        max-width: 100% !important;
+        height: 160px !important;
+    }
+    .char-recon-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+    .obj-change-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+    }
+    .timeline-slot-row {
+        gap: 4px !important;
+    }
+    .tl-slot {
+        width: 66px !important;
+        height: 50px !important;
+        font-size: 8.5px !important;
+    }
+    .fusion-table {
+        font-size: 9.5px !important;
+    }
+    .fusion-table th, .fusion-table td {
+        padding: 2px !important;
+    }
+    .fusion-select {
+        font-size: 9px !important;
+        padding: 3px 2px !important;
+    }
+
+    /* Level 20 Grand Finale */
+    .distraction-field {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+        padding: 8px !important;
+    }
+    .room-floor-grid, .choices-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Dashboard Mobile Levels Grid */
+    .levels-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px !important;
+    }
+    .level-card {
+        padding: 10px 4px 8px 4px !important;
+        border-radius: 14px !important;
+        min-height: 118px !important;
+    }
+    .level-badge {
+        font-size: 11px !important;
+        top: 6px !important;
+        right: 6px !important;
+    }
+    .level-emoji {
+        font-size: 19px !important;
+    }
+    .level-num {
+        font-size: 20px !important;
+    }
+    .level-name {
+        font-size: 8px !important;
+        letter-spacing: 0.3px !important;
+    }
+    .level-subtitle {
+        font-size: 9.5px !important;
+        line-height: 1.15 !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .part-indicator span {
+        display: none !important;
+    }
+    .part-indicator {
+        padding: 3px 5px !important;
+    }
+    .topbar-level-info span {
+        display: none !important;
+    }
+    .obj-change-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
