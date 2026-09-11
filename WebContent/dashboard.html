@@ -2219,17 +2219,12 @@
                             </div>
                             <div class="toggle on" id="toggle-anim" onclick="togglePreference('animations', this)"></div>
                         </div>
-                        <div class="setting-row" style="align-items: center;">
+                        <div class="setting-row">
                             <div>
                                 <div class="setting-label">Streak Reminders</div>
                                 <div class="setting-value">Alert before streak expires</div>
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <button type="button" onclick="testStreakNotification(event)" style="padding:6px 12px; font-size:12px; font-weight:600; border-radius:8px; background:var(--accent-1); color:#fff; border:none; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:4px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);">
-                                    🔔 Test Alert
-                                </button>
-                                <div class="toggle" id="toggle-streak" onclick="togglePreference('streakReminder', this)"></div>
-                            </div>
+                            <div class="toggle" id="toggle-streak" onclick="togglePreference('streakReminder', this)"></div>
                         </div>
                         <div class="setting-row">
                             <div>
@@ -3302,31 +3297,6 @@ function togglePreference(prefKey, element) {
             showPrefToast(element.classList.contains('on') ? 'Daily Reminders enabled.' : 'Daily Reminders disabled.', true);
         }
     }
-}
-
-function testStreakNotification(e) {
-    if (e) e.preventDefault();
-    var u = (userState && userState.username) || localStorage.getItem('mm_current_user') || 'default';
-    if (!window.StreakReminder) {
-        showPrefToast('⚠️ StreakReminder module not loaded.', false);
-        return;
-    }
-
-    showPrefToast('🔔 Triggering notification alert to device...', true);
-
-    window.StreakReminder.sendTestNotification(u, userState, function(sent, status) {
-        if (sent) {
-            showPrefToast('🔥 Test notification alert sent! Check your screen/notification tray.', true);
-        } else {
-            if (status === 'denied') {
-                showPrefToast('⚠️ Notifications are BLOCKED in your browser settings. Please allow notifications for MindMatrix.', false);
-            } else if (status === 'unsupported') {
-                showPrefToast('⚠️ Web Notifications are not supported by this browser.', false);
-            } else {
-                showPrefToast('⚠️ Could not send notification alert.', false);
-            }
-        }
-    });
 }
 
 /* ══════════════════════════════════════════
