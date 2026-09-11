@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#0f172a</color>
+    <color name="purple_500">#6366f1</color>
+    <color name="purple_700">#4f46e5</color>
+    <color name="teal_200">#06b6d4</color>
+    <color name="white">#FFFFFF</color>
+    <string name="app_name">MindMatrix</string>
+    <style name="Theme.MindMatrix" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        
+        <item name="android:statusBarColor">@color/black</item>
+    </style>
+</resources>

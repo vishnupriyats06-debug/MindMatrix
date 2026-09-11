@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <script src="js/theme.js"></script>
+    <script src="js/streakReminder.js"></script>
     <link rel="stylesheet" href="css/theme.css" />
     <style>
         /* ══════════════════════════════════════════
@@ -2202,36 +2203,42 @@
                                 <div class="setting-label">Sound Effects</div>
                                 <div class="setting-value">Play sounds during games</div>
                             </div>
-                            <div class="toggle on" id="toggle-sound" onclick="this.classList.toggle('on')"></div>
+                            <div class="toggle on" id="toggle-sound" onclick="togglePreference('sound', this)"></div>
                         </div>
                         <div class="setting-row">
                             <div>
                                 <div class="setting-label">Daily Reminder</div>
                                 <div class="setting-value">Notify me to play each day</div>
                             </div>
-                            <div class="toggle on" id="toggle-reminder" onclick="this.classList.toggle('on')"></div>
+                            <div class="toggle on" id="toggle-reminder" onclick="togglePreference('dailyReminder', this)"></div>
                         </div>
                         <div class="setting-row">
                             <div>
                                 <div class="setting-label">Animations</div>
                                 <div class="setting-value">Enable UI animations</div>
                             </div>
-                            <div class="toggle on" id="toggle-anim" onclick="this.classList.toggle('on')"></div>
+                            <div class="toggle on" id="toggle-anim" onclick="togglePreference('animations', this)"></div>
                         </div>
-                        <div class="setting-row">
+                        <div class="setting-row" style="align-items: center;">
                             <div>
                                 <div class="setting-label">Streak Reminders</div>
                                 <div class="setting-value">Alert before streak expires</div>
                             </div>
-                            <div class="toggle" id="toggle-streak" onclick="this.classList.toggle('on')"></div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <button type="button" onclick="testStreakNotification(event)" style="padding:6px 12px; font-size:12px; font-weight:600; border-radius:8px; background:var(--accent-1); color:#fff; border:none; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:4px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);">
+                                    🔔 Test Alert
+                                </button>
+                                <div class="toggle" id="toggle-streak" onclick="togglePreference('streakReminder', this)"></div>
+                            </div>
                         </div>
                         <div class="setting-row">
                             <div>
                                 <div class="setting-label">Leaderboard</div>
                                 <div class="setting-value">Show my score publicly</div>
                             </div>
-                            <div class="toggle on" id="toggle-lb" onclick="this.classList.toggle('on')"></div>
+                            <div class="toggle on" id="toggle-lb" onclick="togglePreference('leaderboard', this)"></div>
                         </div>
+                        <div id="pref-toast-msg" class="avatar-toast-msg" style="margin-top: 10px;"></div>
                     </div>
 
                     <!-- Appearance Card -->
@@ -3165,6 +3172,7 @@ function updateUI() {
     buildCalendar();
     updateAchievements();
     updateCognitiveProgress();
+    if (typeof initPreferencesUI === 'function') initPreferencesUI();
 }
 
 function buildWeekTracker() {
@@ -3217,6 +3225,108 @@ function buildWeekTracker() {
         dayBox.appendChild(statusIcon);
         row.appendChild(dayBox);
     }
+}
+
+/* ══════════════════════════════════════════
+   PREFERENCES & NOTIFICATION MANAGEMENT
+   ══════════════════════════════════════════ */
+function showPrefToast(msg, isSuccess) {
+    var toast = document.getElementById('pref-toast-msg');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.className = 'avatar-toast-msg ' + (isSuccess ? 'success' : 'error') + ' show';
+    setTimeout(function() {
+        toast.classList.remove('show');
+    }, 4000);
+}
+
+function initPreferencesUI() {
+    var u = (userState && userState.username) || localStorage.getItem('mm_current_user') || 'default';
+    if (window.StreakReminder) {
+        var prefs = window.StreakReminder.loadPreferences(u);
+
+        var toggleSound = document.getElementById('toggle-sound');
+        var toggleReminder = document.getElementById('toggle-reminder');
+        var toggleAnim = document.getElementById('toggle-anim');
+        var toggleStreak = document.getElementById('toggle-streak');
+        var toggleLb = document.getElementById('toggle-lb');
+
+        if (toggleSound) toggleSound.classList.toggle('on', !!prefs.sound);
+        if (toggleReminder) toggleReminder.classList.toggle('on', !!prefs.dailyReminder);
+        if (toggleAnim) toggleAnim.classList.toggle('on', !!prefs.animations);
+        if (toggleStreak) toggleStreak.classList.toggle('on', !!prefs.streakReminder);
+        if (toggleLb) toggleLb.classList.toggle('on', !!prefs.leaderboard);
+
+        if (userState) {
+            window.StreakReminder.checkAndTriggerAlerts(userState);
+        }
+    }
+}
+
+function togglePreference(prefKey, element) {
+    var wasOn = element.classList.contains('on');
+    var isNowOn = !wasOn;
+    var u = (userState && userState.username) || localStorage.getItem('mm_current_user') || 'default';
+
+    if (prefKey === 'streakReminder') {
+        if (isNowOn) {
+            element.classList.add('on');
+            window.StreakReminder.enableStreakReminders(u, userState, function(success, status) {
+                if (success) {
+                    showPrefToast('🔥 Streak Reminders Enabled! Notification alert sent to this device.', true);
+                } else {
+                    element.classList.remove('on');
+                    if (status === 'denied') {
+                        showPrefToast('⚠️ Notification permission denied in browser settings. Please allow notifications for MindMatrix.', false);
+                    } else if (status === 'unsupported') {
+                        showPrefToast('⚠️ Device Notifications are not supported by this browser.', false);
+                    } else {
+                        showPrefToast('⚠️ Notifications could not be enabled.', false);
+                    }
+                }
+            });
+        } else {
+            element.classList.remove('on');
+            window.StreakReminder.disableStreakReminders(u);
+            showPrefToast('Streak Reminders disabled.', true);
+        }
+    } else {
+        element.classList.toggle('on');
+        var p = {};
+        p[prefKey] = element.classList.contains('on');
+        window.StreakReminder.savePreferences(u, p);
+        if (prefKey === 'dailyReminder') {
+            if (element.classList.contains('on') && window.StreakReminder.getPermissionStatus() === 'default') {
+                window.StreakReminder.requestPermission();
+            }
+            showPrefToast(element.classList.contains('on') ? 'Daily Reminders enabled.' : 'Daily Reminders disabled.', true);
+        }
+    }
+}
+
+function testStreakNotification(e) {
+    if (e) e.preventDefault();
+    var u = (userState && userState.username) || localStorage.getItem('mm_current_user') || 'default';
+    if (!window.StreakReminder) {
+        showPrefToast('⚠️ StreakReminder module not loaded.', false);
+        return;
+    }
+
+    showPrefToast('🔔 Triggering notification alert to device...', true);
+
+    window.StreakReminder.sendTestNotification(u, userState, function(sent, status) {
+        if (sent) {
+            showPrefToast('🔥 Test notification alert sent! Check your screen/notification tray.', true);
+        } else {
+            if (status === 'denied') {
+                showPrefToast('⚠️ Notifications are BLOCKED in your browser settings. Please allow notifications for MindMatrix.', false);
+            } else if (status === 'unsupported') {
+                showPrefToast('⚠️ Web Notifications are not supported by this browser.', false);
+            } else {
+                showPrefToast('⚠️ Could not send notification alert.', false);
+            }
+        }
+    });
 }
 
 /* ══════════════════════════════════════════

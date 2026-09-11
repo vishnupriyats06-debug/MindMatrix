@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.mindmatrix.app-merged_res-29:/layout_activity_main.xml.flat",
+        "source": "com.mindmatrix.app-main-31:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.mindmatrix.app-merged_res-29:/xml_backup_rules.xml.flat",
+        "source": "com.mindmatrix.app-main-31:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.mindmatrix.app-merged_res-29:/xml_data_extraction_rules.xml.flat",
+        "source": "com.mindmatrix.app-main-31:/xml/data_extraction_rules.xml"
+    }
+]
