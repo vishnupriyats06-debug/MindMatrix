@@ -18,8 +18,8 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends AppCompatActivity {
 
-    // ⚡ Standalone Offline Local Asset URL (Runs 100% on phone without server/laptop)
-    private static final String APP_URL = "file:///android_asset/login.html";
+    // ⚡ Live Cloud Database Backend URL (Synchronized with Web Application Database)
+    private static final String APP_URL = "https://mindmatrix-p2z8.onrender.com/login.html";
     private static final int PERMISSION_REQUEST_CODE = 101;
 
     private WebView webView;
@@ -40,15 +40,20 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        // Configure WebView settings for full standalone offline operation
+        // Enable cookies and session persistence
+        android.webkit.CookieManager cookieManager = android.webkit.CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            cookieManager.setAcceptThirdPartyCookies(webView, true);
+        }
+
+        // Configure WebView settings for online live database operation
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setDatabaseEnabled(true);
         webSettings.setAllowFileAccess(true);
         webSettings.setAllowContentAccess(true);
-        webSettings.setAllowFileAccessFromFileURLs(true);
-        webSettings.setAllowUniversalAccessFromFileURLs(true);
         webSettings.setLoadWithOverviewMode(true);
         webSettings.setUseWideViewPort(true);
 
@@ -64,6 +69,22 @@ public class MainActivity extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 swipeRefreshLayout.setRefreshing(false);
+            }
+
+            @Override
+            public void onReceivedError(WebView view, android.webkit.WebResourceRequest request, android.webkit.WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                swipeRefreshLayout.setRefreshing(false);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && request.isForMainFrame()) {
+                    String errorHtml = "<html><head><meta name='viewport' content='width=device-width, initial-scale=1.0'/></head>"
+                        + "<body style='background:#050814;color:#f0f4ff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:90vh;text-align:center;padding:20px;box-sizing:border-box;margin:0;'>"
+                        + "<div style='font-size:36px;margin-bottom:12px;'>⚡</div>"
+                        + "<h2 style='color:#8b5cf6;margin:0 0 10px;'>Connecting to MindMatrix</h2>"
+                        + "<p style='color:#94a3b8;max-width:320px;font-size:14px;line-height:1.5;margin:0 0 24px;'>Unable to reach server. Please ensure internet access is available and try again.</p>"
+                        + "<button onclick='location.reload()' style='padding:12px 32px;background:linear-gradient(135deg,#8b5cf6,#06b6d4);border:none;border-radius:12px;color:white;font-weight:bold;font-size:15px;cursor:pointer;'>Retry</button>"
+                        + "</body></html>";
+                    view.loadDataWithBaseURL(null, errorHtml, "text/html", "UTF-8", null);
+                }
             }
         });
 
