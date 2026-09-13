@@ -5,9 +5,14 @@ color purple_500
 color purple_700
 color teal_200
 color white
+drawable app_logo
+drawable ic_launcher_foreground
+drawable ic_notification
 id swipeRefreshLayout
 id webView
 layout activity_main
+mipmap ic_launcher
+mipmap ic_launcher_round
 string app_name
 style Theme.MindMatrix
 xml backup_rules

@@ -113,11 +113,36 @@ public class MainActivity extends AppCompatActivity {
     public class WebAppInterface {
         @android.webkit.JavascriptInterface
         public void setStreakReminderEnabled(boolean enabled) {
-            if (enabled) {
-                StreakAlarmScheduler.scheduleDailyReminder(MainActivity.this);
-            } else {
-                StreakAlarmScheduler.cancelDailyReminder(MainActivity.this);
-            }
+            runOnUiThread(() -> {
+                if (enabled) {
+                    StreakAlarmScheduler.scheduleDailyReminder(MainActivity.this);
+                    StreakReminderReceiver.showNotification(
+                            MainActivity.this,
+                            "🔥 MindMatrix Streak Alert Active!",
+                            "Daily reminders set for 7:00 PM. We will alert you before your streak expires!"
+                    );
+                } else {
+                    StreakAlarmScheduler.cancelDailyReminder(MainActivity.this);
+                }
+            });
+        }
+
+        @android.webkit.JavascriptInterface
+        public void showNotification(String title, String message) {
+            runOnUiThread(() -> {
+                StreakReminderReceiver.showNotification(MainActivity.this, title, message);
+            });
+        }
+
+        @android.webkit.JavascriptInterface
+        public void requestNotificationPermission() {
+            runOnUiThread(() -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_CODE);
+                    }
+                }
+            });
         }
     }
 

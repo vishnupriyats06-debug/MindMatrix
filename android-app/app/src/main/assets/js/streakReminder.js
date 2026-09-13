@@ -11,10 +11,10 @@
         lastState: null,
 
         /**
-         * Check if Web Notifications API is supported
+         * Check if Web Notifications API or Android Native Interface is supported
          */
         isSupported: function() {
-            return ('Notification' in window);
+            return ('Notification' in window) || (typeof window.AndroidInterface !== 'undefined');
         },
 
         /**
@@ -34,6 +34,7 @@
          * Get current Notification permission status
          */
         getPermissionStatus: function() {
+            if (typeof window.AndroidInterface !== 'undefined') return 'granted';
             if (!this.isSupported()) return 'unsupported';
             return Notification.permission; // 'granted', 'denied', or 'default'
         },
@@ -42,6 +43,14 @@
          * Request notification permission from user
          */
         requestPermission: function(callback) {
+            if (typeof window.AndroidInterface !== 'undefined') {
+                if (typeof window.AndroidInterface.requestNotificationPermission === 'function') {
+                    window.AndroidInterface.requestNotificationPermission();
+                }
+                if (callback) callback('granted');
+                return;
+            }
+
             if (!this.isSupported()) {
                 if (callback) callback('unsupported');
                 return;
@@ -59,6 +68,11 @@
          * Send a device notification alert
          */
         sendNotification: function(title, body, options) {
+            if (typeof window.AndroidInterface !== 'undefined' && typeof window.AndroidInterface.showNotification === 'function') {
+                window.AndroidInterface.showNotification(title, body);
+                return true;
+            }
+
             if (!this.isSupported() || Notification.permission !== 'granted') {
                 return false;
             }

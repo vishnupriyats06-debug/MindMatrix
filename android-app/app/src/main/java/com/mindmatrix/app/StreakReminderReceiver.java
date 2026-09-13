@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.os.Build;
 import androidx.core.app.NotificationCompat;
 
+import android.graphics.BitmapFactory;
+
 /**
  * StreakReminderReceiver - Fired by Android OS AlarmManager (7:00 PM daily)
  * even when MindMatrix app process is closed or killed!
@@ -27,10 +29,14 @@ public class StreakReminderReceiver extends BroadcastReceiver {
         }
 
         // Show native background notification
-        showStreakNotification(context);
+        showNotification(
+                context,
+                "🔥 Don't Lose Your MindMatrix Streak!",
+                "You haven't played today! Complete a quick puzzle now to protect your daily streak."
+        );
     }
 
-    private void showStreakNotification(Context context) {
+    public static void showNotification(Context context, String title, String content) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager == null) return;
 
@@ -43,6 +49,8 @@ public class StreakReminderReceiver extends BroadcastReceiver {
             );
             channel.setDescription("Alerts you before your MindMatrix streak expires");
             channel.enableVibration(true);
+            channel.enableLights(true);
+            channel.setShowBadge(true);
             notificationManager.createNotificationChannel(channel);
         }
 
@@ -51,19 +59,21 @@ public class StreakReminderReceiver extends BroadcastReceiver {
         launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context,
-                0,
+                (int) System.currentTimeMillis(),
                 launchIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.stat_notify_chat)
-                .setContentTitle("🔥 Don't Lose Your MindMatrix Streak!")
-                .setContentText("You haven't played today! Complete a quick puzzle now to protect your daily streak.")
+                .setSmallIcon(R.drawable.ic_notification)
+                .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher))
+                .setContentTitle(title)
+                .setContentText(content)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(content))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent);
 
-        notificationManager.notify(NOTIFICATION_ID, builder.build());
+        notificationManager.notify((int) System.currentTimeMillis(), builder.build());
     }
 }
