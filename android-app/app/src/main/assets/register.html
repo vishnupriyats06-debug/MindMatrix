@@ -4,7 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MindMatrix – Create Account</title>
-    <meta name="description" content="Join MindMatrix and start training your brain with 40 unique memory and cognitive games across 20 progressive levels." />
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -111,12 +113,9 @@
         .logo-icon {
             width: 56px; height: 56px;
             border-radius: 16px;
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px; font-weight: 800; color: #fff;
-            letter-spacing: -1px;
             box-shadow: 0 0 30px var(--glow);
             flex-shrink: 0;
+            object-fit: contain;
         }
         .logo-text { display: flex; flex-direction: column; line-height: 1; }
         .logo-title {
@@ -352,7 +351,7 @@
 
         <!-- Logo -->
         <a href="register.html" class="logo-block" aria-label="MindMatrix Home">
-            <div class="logo-icon" aria-hidden="true">M²</div>
+            <img src="images/logo.svg" alt="MindMatrix Logo" class="logo-icon" />
             <div class="logo-text">
                 <span class="logo-title">MindMatrix</span>
                 <span class="logo-tagline">Train Your Brain</span>
@@ -520,7 +519,7 @@
         const form = document.getElementById('register-form');
         const btn  = document.getElementById('register-btn');
 
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener('submit', (e) => {
             const username = document.getElementById('username').value.trim();
             const email    = document.getElementById('email').value.trim();
             const password = pwInput.value.trim();
@@ -545,30 +544,6 @@
                 showAlert('Password must be at least 6 characters.', 'error');
                 return;
             }
-
-            // Offline mode: running as bundled file:// APK — save credentials locally
-            if (window.location.protocol === 'file:') {
-                e.preventDefault();
-                // Check if username already taken
-                const accounts = JSON.parse(localStorage.getItem('mm_accounts') || '{}');
-                if (accounts[username.toLowerCase()]) {
-                    showAlert('Username already taken. Please choose another.', 'error');
-                    return;
-                }
-                // Hash the password simply using SubtleCrypto
-                const encoder = new TextEncoder();
-                const data = encoder.encode(password + 'mm_salt_2024');
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                // Store account
-                accounts[username.toLowerCase()] = { username, email, passwordHash: hashHex };
-                localStorage.setItem('mm_accounts', JSON.stringify(accounts));
-                showAlert('Account created! Redirecting to login...', 'success');
-                setTimeout(() => { window.location.href = 'login.html?success=' + encodeURIComponent('Account created! Please log in.'); }, 1500);
-                return;
-            }
-
             setButtonLoading(btn, true);
         });
 

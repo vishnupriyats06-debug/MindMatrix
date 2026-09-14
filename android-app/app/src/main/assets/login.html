@@ -4,7 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MindMatrix – Sign In</title>
-    <meta name="description" content="Sign in to MindMatrix and continue your brain training journey across 20 levels of memory and cognitive challenges." />
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -90,10 +92,8 @@
         }
         .logo-icon {
             width: 56px; height: 56px; border-radius: 16px;
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px; font-weight: 800; color: #fff;
-            letter-spacing: -1px; box-shadow: 0 0 30px var(--glow); flex-shrink: 0;
+            box-shadow: 0 0 30px var(--glow); flex-shrink: 0;
+            object-fit: contain;
         }
         .logo-text { display: flex; flex-direction: column; line-height: 1; }
         .logo-title {
@@ -278,7 +278,7 @@
 
         <!-- Logo -->
         <a href="register.html" class="logo-block" aria-label="MindMatrix Home">
-            <div class="logo-icon" aria-hidden="true">M²</div>
+            <img src="images/logo.svg" alt="MindMatrix Logo" class="logo-icon" />
             <div class="logo-text">
                 <span class="logo-title">MindMatrix</span>
                 <span class="logo-tagline">Train Your Brain</span>
@@ -399,7 +399,7 @@
         /* Form validation */
         const form = document.getElementById('login-form');
         const btn  = document.getElementById('login-btn');
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener('submit', (e) => {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             hideAlert();
@@ -408,33 +408,6 @@
                 showAlert('Please enter your username and password.', 'error');
                 return;
             }
-
-            // Offline mode: validate credentials against locally stored accounts
-            if (window.location.protocol === 'file:') {
-                e.preventDefault();
-                const accounts = JSON.parse(localStorage.getItem('mm_accounts') || '{}');
-                const account = accounts[username.toLowerCase()];
-                if (!account) {
-                    showAlert('Account not found. Please register first.', 'error');
-                    return;
-                }
-                // Hash the entered password and compare
-                const encoder = new TextEncoder();
-                const data = encoder.encode(password + 'mm_salt_2024');
-                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                if (hashHex !== account.passwordHash) {
-                    showAlert('Incorrect password. Please try again.', 'error');
-                    return;
-                }
-                // Valid credentials — log in
-                localStorage.setItem('mm_current_user', account.username);
-                localStorage.setItem('mm_offline_mode', '1');
-                window.location.href = 'dashboard.html';
-                return;
-            }
-
             setButtonLoading(btn, true);
         });
 

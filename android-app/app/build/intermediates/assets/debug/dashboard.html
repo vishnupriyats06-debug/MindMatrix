@@ -9,6 +9,9 @@
     <meta http-equiv="Expires" content="0" />
     <title>MindMatrix – Dashboard</title>
     <meta name="description" content="MindMatrix Dashboard – Track your levels, streaks, achievements and settings." />
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -116,10 +119,8 @@
         }
         .logo-icon {
             width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; font-weight: 800; color: #fff;
             box-shadow: 0 0 24px var(--glow);
+            object-fit: contain;
         }
         .logo-name {
             font-size: 18px; font-weight: 800;
@@ -1828,7 +1829,7 @@
     <!-- ── SIDEBAR ── -->
     <aside class="sidebar" id="sidebar">
         <a href="dashboard.html" class="sidebar-logo">
-            <div class="logo-icon">M²</div>
+            <img src="images/logo.svg" alt="MindMatrix Logo" class="logo-icon" />
             <span class="logo-name">MindMatrix</span>
         </a>
 
@@ -2897,25 +2898,6 @@ function getCalculatedCompletedLevels(state) {
 }
 
 function fetchStateAndInit() {
-    // Detect standalone offline mode (file:// protocol = bundled in Android APK)
-    var isOffline = (window.location.protocol === 'file:');
-    if (isOffline) {
-        var local = loadLocalState();
-        if (local) {
-            userState = Object.assign(userState, local);
-        } else {
-            userState.username = 'Player';
-            localStorage.setItem('mm_current_user', 'Player');
-        }
-        if (!userState.username) { userState.username = 'Player'; }
-        var ddNameEl = document.getElementById('dd-name');
-        if (ddNameEl) ddNameEl.textContent = userState.username;
-        userState.completedLevels = getCalculatedCompletedLevels(userState);
-        updateAvatarUI(userState.avatarId || 0);
-        saveLocalState(userState);
-        updateUI();
-        return;
-    }
     // Add cache-busting parameter so the browser never caches the old user's stats
     fetch('getProgress?t=' + new Date().getTime())
         .then(function(response) {
@@ -3700,12 +3682,7 @@ function hookProfile() {
 
     document.getElementById('logout-btn').addEventListener('click', () => {
         localStorage.removeItem('mm_current_user');
-        if (window.location.protocol === 'file:') {
-            localStorage.clear();
-            window.location.reload();
-        } else {
-            window.location.href = 'logout';
-        }
+        window.location.href = 'logout';
     });
 }
 
