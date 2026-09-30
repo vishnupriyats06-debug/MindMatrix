@@ -15,7 +15,7 @@
             ══════════════════════════════════════════ */
             .result-overlay {
                 display: none; position: fixed; inset: 0; z-index: 9999;
-                background: rgba(5, 8, 20, 0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+                background: rgba(5, 8, 20, 0.85); backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
                 align-items: center; justify-content: center;
                 animation: mmFadeIn 0.25s ease both;
                 padding: 16px;
@@ -173,21 +173,25 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const colors = ['#8b5cf6', '#06b6d4', '#34d399', '#f59e0b', '#f87171', '#ec4899', '#ffffff'];
+        const colors = [
+            '#8b5cf6', '#06b6d4', '#34d399', '#f59e0b', '#f87171',
+            '#ec4899', '#ffeb3b', '#e11d48', '#3b82f6', '#10b981', '#a855f7'
+        ];
 
         confettiParticles = [];
-        for (let i = 0; i < 120; i++) {
+        for (let i = 0; i < 160; i++) {
             confettiParticles.push({
-                x: canvas.width / 2 + (Math.random() - 0.5) * 220,
-                y: canvas.height / 2,
-                vx: (Math.random() - 0.5) * 16,
-                vy: Math.random() * -18 - 4,
-                w: Math.random() * 8 + 4,
-                h: Math.random() * 6 + 2,
+                x: Math.random() * canvas.width,
+                y: Math.random() * (canvas.height * 0.4) - 20,
+                vx: (Math.random() - 0.5) * 8,
+                vy: Math.random() * 5 + 3,
+                w: Math.random() * 10 + 6,
+                h: Math.random() * 8 + 4,
+                shape: Math.random() > 0.3 ? 'rect' : 'circle',
                 color: colors[Math.floor(Math.random() * colors.length)],
                 rotation: Math.random() * 360,
-                rotSpeed: (Math.random() - 0.5) * 12,
-                gravity: 0.25 + Math.random() * 0.15,
+                rotSpeed: (Math.random() - 0.5) * 10,
+                gravity: 0.12 + Math.random() * 0.1,
                 opacity: 1,
             });
         }
@@ -202,8 +206,8 @@
                 p.vy += p.gravity;
                 p.y += p.vy;
                 p.rotation += p.rotSpeed;
-                p.opacity -= 0.005;
-                if (p.opacity <= 0) return;
+                p.opacity -= 0.003;
+                if (p.opacity <= 0 || p.y > canvas.height + 20) return;
                 alive = true;
 
                 ctx.save();
@@ -211,7 +215,15 @@
                 ctx.rotate((p.rotation * Math.PI) / 180);
                 ctx.globalAlpha = Math.max(0, p.opacity);
                 ctx.fillStyle = p.color;
-                ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+
+                if (p.shape === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.w / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                }
+
                 ctx.restore();
             });
             if (alive) {
@@ -231,8 +243,11 @@
         confettiParticles = [];
     }
 
-    // ── 4. Main Exported API ──
+    // ── 4. Exported Completion APIs ──
+
+    // Part 1 Completion Popup API
     window.showPartCompletion = function(opts) {
+        opts = opts || {};
         ensureModalDOM();
         const overlay = document.getElementById('result-overlay');
         const card = document.getElementById('result-card');
@@ -244,187 +259,130 @@
         const actionBtn = document.getElementById('result-action-btn');
         const secBtn = document.getElementById('result-secondary-btn');
 
+        if (card) card.className = 'result-card win';
+        if (emoji) emoji.textContent = opts.emoji || '🎉';
+        if (title) title.textContent = opts.title || 'Correct!';
+        if (desc) desc.textContent = opts.message || 'Excellent memory! You recalled the sequence perfectly. Ready for the next challenge?';
+
+        const scoreEarned = opts.score !== undefined ? opts.score : 50;
+        if (scoreEl) scoreEl.textContent = (scoreEarned >= 0 ? '+' : '') + scoreEarned;
+
         const part = opts.part || 1;
         const totalParts = opts.totalParts || 2;
-        const isFinal = opts.isFinal !== undefined ? opts.isFinal : (part >= totalParts);
-        const scoreEarned = opts.score !== undefined ? opts.score : 50;
+        if (partEl) partEl.textContent = opts.partProgress || `Part ${part}/${totalParts}`;
 
-        card.className = 'result-card win';
-        emoji.textContent = opts.emoji || '🎉';
-        title.textContent = opts.title || 'Correct!';
-        desc.textContent = opts.message || (isFinal ? 'Amazing! You mastered all challenges. Level complete!' : 'Excellent memory! You recalled the sequence perfectly.');
-
-        scoreEl.textContent = (scoreEarned >= 0 ? '+' : '') + scoreEarned;
-        partEl.textContent = `Part ${part}/${totalParts}${isFinal ? ' ✓' : ''}`;
-
-        let defaultBtnText = isFinal ? '🏆 Level Complete – Continue' : `Continue to Part ${part + 1} ▶`;
-        actionBtn.textContent = opts.buttonText || defaultBtnText;
-
-        actionBtn.onclick = function() {
-            window.closePartCompletion();
-            if (typeof opts.onContinue === 'function') {
-                opts.onContinue();
-            }
-        };
-
-        if (opts.showDashboardBtn) {
-            secBtn.style.display = 'inline-flex';
-            secBtn.onclick = function() {
+        if (actionBtn) {
+            actionBtn.textContent = opts.buttonText || `Continue to Part ${part + 1} ▶`;
+            actionBtn.style.display = 'inline-flex';
+            actionBtn.onclick = function() {
                 window.closePartCompletion();
-                if (typeof opts.onSecondary === 'function') {
-                    opts.onSecondary();
-                } else {
-                    window.location.href = 'dashboard.html';
+                if (typeof opts.onContinue === 'function') {
+                    opts.onContinue();
                 }
             };
-        } else {
-            secBtn.style.display = 'none';
         }
 
-        overlay.classList.add('open');
+        if (secBtn) secBtn.style.display = 'none';
+
+        if (overlay) overlay.classList.add('open');
+        fireStandardConfetti();
+    };
+
+    // Part 2 / Level Completion Popup API
+    window.showLevelCompletion = function(opts) {
+        opts = opts || {};
+        ensureModalDOM();
+        const overlay = document.getElementById('result-overlay');
+        const card = document.getElementById('result-card');
+        const emoji = document.getElementById('result-emoji');
+        const title = document.getElementById('result-title');
+        const desc = document.getElementById('result-desc');
+        const scoreEl = document.getElementById('result-score');
+        const partEl = document.getElementById('result-part');
+        const actionBtn = document.getElementById('result-action-btn');
+        const secBtn = document.getElementById('result-secondary-btn');
+
+        const levelNum = opts.level || 1;
+
+        if (card) card.className = 'result-card win';
+        if (emoji) emoji.textContent = opts.emoji || '🎉';
+        if (title) title.textContent = opts.title || 'Correct!';
+        if (desc) desc.textContent = opts.message || `Amazing! Level ${levelNum} complete!`;
+
+        const scoreEarned = opts.score !== undefined ? opts.score : 50;
+        if (scoreEl) scoreEl.textContent = (scoreEarned >= 0 ? '+' : '') + scoreEarned;
+
+        const part = opts.part || 2;
+        const totalParts = opts.totalParts || 2;
+        if (partEl) partEl.textContent = opts.partProgress || `Part ${part}/${totalParts} ✓`;
+
+        let activeSavePromise = null;
+        if (typeof window.recordLevelCompletion === 'function') {
+            activeSavePromise = window.recordLevelCompletion(levelNum, scoreEarned, opts.timeStr || "10s");
+        }
+
+        function safeNavigate(targetUrl, customHandler) {
+            window.closePartCompletion();
+            let p = activeSavePromise;
+            if (!p && typeof window.recordLevelCompletion === 'function') {
+                p = window.recordLevelCompletion(levelNum, scoreEarned, opts.timeStr || "10s");
+            }
+            let navDone = false;
+            function doNav() {
+                if (navDone) return;
+                navDone = true;
+                if (typeof customHandler === 'function') {
+                    customHandler();
+                } else if (targetUrl) {
+                    window.location.href = targetUrl;
+                }
+            }
+            const timer = setTimeout(doNav, 3000);
+            if (p && typeof p.then === 'function') {
+                p.then(() => { clearTimeout(timer); doNav(); })
+                 .catch(() => { clearTimeout(timer); doNav(); });
+            } else {
+                doNav();
+            }
+        }
+
+        if (levelNum < 20) {
+            const nextUrl = opts.nextLevelUrl || (`level${levelNum + 1}.html`);
+            if (actionBtn) {
+                actionBtn.textContent = opts.buttonText || 'Next Level ▶';
+                actionBtn.style.display = 'inline-flex';
+                actionBtn.onclick = function() {
+                    safeNavigate(nextUrl, opts.onNextLevel);
+                };
+            }
+
+            if (secBtn) {
+                secBtn.textContent = 'Dashboard';
+                secBtn.style.display = 'inline-flex';
+                secBtn.onclick = function() {
+                    safeNavigate('dashboard.html', null);
+                };
+            }
+        } else {
+            if (actionBtn) {
+                actionBtn.textContent = opts.buttonText || '🏆 Back to Dashboard';
+                actionBtn.style.display = 'inline-flex';
+                actionBtn.onclick = function() {
+                    safeNavigate('dashboard.html', null);
+                };
+            }
+            if (secBtn) secBtn.style.display = 'none';
+        }
+
+        if (overlay) overlay.classList.add('open');
         fireStandardConfetti();
     };
 
     window.closePartCompletion = function() {
         const overlay = document.getElementById('result-overlay');
-        if (overlay) overlay.classList.remove('open');
+        if (overlay) {
+            overlay.classList.remove('open');
+        }
         clearStandardConfetti();
     };
-
-    // ── 5. Standard Level Authentication Guard ──
-    function checkLevelAuth() {
-        const isLocallyAuth = localStorage.getItem('mm_unlocked_level') !== null ||
-                              localStorage.getItem('mm_score') !== null ||
-                              localStorage.getItem('mm_username') !== null;
-
-        fetch('getProgress?t=' + Date.now())
-            .then(function(r) {
-                if (r.status === 401) {
-                    if (!isLocallyAuth) {
-                        window.location.href = 'login.html?error=' + encodeURIComponent('Please sign in to access game levels.');
-                    }
-                } else if (r.ok) {
-                    return r.json();
-                }
-            })
-            .then(function(data) {
-                if (data && !data.error) {
-                    var u = data.username || localStorage.getItem('mm_current_user') || 'default';
-                    localStorage.setItem('mm_current_user', u);
-                    localStorage.setItem('mm_username', u);
-                    
-                    if (data.unlockedLevel !== undefined) {
-                        localStorage.setItem('mm_unlocked_level', data.unlockedLevel);
-                        localStorage.setItem('mm_' + u + '_unlocked_level', data.unlockedLevel);
-                    }
-                    if (data.score !== undefined) {
-                        localStorage.setItem('mm_score', data.score);
-                        localStorage.setItem('mm_' + u + '_score', data.score);
-                    }
-                    if (data.avatarId !== undefined) {
-                        localStorage.setItem('mm_avatar_id', data.avatarId);
-                        localStorage.setItem('mm_' + u + '_avatar_id', data.avatarId);
-                    }
-                    if (data.streak !== undefined) {
-                        localStorage.setItem('mm_streak', data.streak);
-                        localStorage.setItem('mm_' + u + '_streak', data.streak);
-                    }
-                    if (data.gamesPlayed !== undefined) {
-                        localStorage.setItem('mm_games_played', data.gamesPlayed);
-                        localStorage.setItem('mm_' + u + '_games_played', data.gamesPlayed);
-                    }
-                    if (data.bestStreak !== undefined) {
-                        localStorage.setItem('mm_best_streak', data.bestStreak);
-                        localStorage.setItem('mm_' + u + '_best_streak', data.bestStreak);
-                    }
-                    if (data.lastPlayedDate) {
-                        localStorage.setItem('mm_last_played_date', data.lastPlayedDate);
-                        localStorage.setItem('mm_' + u + '_last_played_date', data.lastPlayedDate);
-                    }
-                    if (data.bestScores) {
-                        var scStr = typeof data.bestScores === 'string' ? data.bestScores : JSON.stringify(data.bestScores);
-                        localStorage.setItem('mm_best_scores', scStr);
-                        localStorage.setItem('mm_' + u + '_best_scores', scStr);
-                    }
-                    if (data.bestTimes) {
-                        var tmStr = typeof data.bestTimes === 'string' ? data.bestTimes : JSON.stringify(data.bestTimes);
-                        localStorage.setItem('mm_best_times', tmStr);
-                        localStorage.setItem('mm_' + u + '_best_times', tmStr);
-                    }
-                    if (data.stars) {
-                        var stStr = typeof data.stars === 'string' ? data.stars : JSON.stringify(data.stars);
-                        localStorage.setItem('mm_stars', stStr);
-                        localStorage.setItem('mm_' + u + '_stars', stStr);
-                    }
-                    if (data.activityDates) {
-                        var adStr = typeof data.activityDates === 'string' ? data.activityDates : JSON.stringify(data.activityDates);
-                        localStorage.setItem('mm_activity_dates', adStr);
-                        localStorage.setItem('mm_' + u + '_activity_dates', adStr);
-                    }
-                }
-            })
-            .catch(function() {
-                if (!isLocallyAuth) {
-                    window.location.href = 'login.html?error=' + encodeURIComponent('Please sign in to access game levels.');
-                }
-            });
-    }
-
-    window.getAvatarPath = function(avatarId) {
-        var id = parseInt(avatarId, 10) || 0;
-        if (id < 1 || id > 20) return '';
-        var folder = id <= 10 ? 'female' : 'male';
-        var pad = (id < 10 ? '0' : '') + id;
-        return 'images/avatars/' + folder + '/avatar' + pad + '.svg';
-    };
-
-    window.getLocalDateString = function() {
-        var d = new Date();
-        var year = d.getFullYear();
-        var month = String(d.getMonth() + 1).padStart(2, '0');
-        var day = String(d.getDate()).padStart(2, '0');
-        return year + '-' + month + '-' + day;
-    };
-
-    window.calculateNewStreak = function(currentStreak, lastPlayedDateStr, isSuccess) {
-        if (!isSuccess) return { streak: (currentStreak || 0), dateStr: lastPlayedDateStr || "" };
-        var todayStr = window.getLocalDateString();
-        if (!lastPlayedDateStr) return { streak: 1, dateStr: todayStr };
-
-        if (lastPlayedDateStr > todayStr) {
-            lastPlayedDateStr = todayStr;
-        }
-
-        if (lastPlayedDateStr === todayStr) {
-            // Played today already: streak stays same on multiple plays today
-            return { streak: (currentStreak > 0 ? currentStreak : 1), dateStr: todayStr };
-        }
-
-        var today = new Date(todayStr + 'T00:00:00');
-        var lastPlayed = new Date(lastPlayedDateStr + 'T00:00:00');
-        var diffDays = Math.round((today - lastPlayed) / (1000 * 60 * 60 * 24));
-
-        var newStreak = currentStreak || 0;
-        if (diffDays === 1) {
-            // Played yesterday: increment streak by 1
-            newStreak = (currentStreak > 0 ? currentStreak : 0) + 1;
-        } else {
-            // Missed 1 or more full days: reset streak to 1 today
-            newStreak = 1;
-        }
-        return { streak: newStreak, dateStr: todayStr };
-    };
-
-    window.checkLevelAuth = checkLevelAuth;
-
-    // Attach to DOMContentLoaded
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            ensureModalDOM();
-            checkLevelAuth();
-        });
-    } else {
-        ensureModalDOM();
-        checkLevelAuth();
-    }
 })();

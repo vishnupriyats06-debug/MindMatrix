@@ -1,27 +1,5 @@
-/* Light Theme variables - default */
-html, html[data-theme="light"] {
-    --bg-deep:     #f4f6fa;
-    --bg-mid:      #eef1f6;
-    --bg-card:     #ffffff;
-    --bg-card-h:   #f8fafc;
-    --border:      rgba(0, 0, 0, 0.08);
-    --border-h:    rgba(124, 58, 237, 0.45);
-    --border-focus:rgba(124, 58, 237, 0.70);
-    --accent-1:    #7c3aed;
-    --accent-2:    #0891b2;
-    --accent-3:    #d97706;
-    --glow:        rgba(124, 58, 237, 0.15);
-    --text-pri:    #0f172a;
-    --text-sec:    rgba(15, 23, 42, 0.70);
-    --text-muted:  rgba(15, 23, 42, 0.45);
-    --success:     #10b981;
-    --warning:     #f59e0b;
-    --error:       #ef4444;
-    --grid-color:  rgba(0, 0, 0, 0.025);
-}
-
-/* Dark Theme overrides */
-html[data-theme="dark"] {
+/* Dark Theme variables - default */
+html, html[data-theme="dark"] {
     --bg-deep:     #050814;
     --bg-mid:      #0b0f24;
     --bg-card:     rgba(255,255,255,0.04);
@@ -42,9 +20,40 @@ html[data-theme="dark"] {
     --grid-color:  rgba(255, 255, 255, 0.025);
 }
 
+/* Light Theme overrides */
+html[data-theme="light"] {
+    --bg-deep:     #f4f6fa;
+    --bg-mid:      #eef1f6;
+    --bg-card:     #ffffff;
+    --bg-card-h:   #f8fafc;
+    --border:      rgba(0, 0, 0, 0.08);
+    --border-h:    rgba(124, 58, 237, 0.45);
+    --border-focus:rgba(124, 58, 237, 0.70);
+    --accent-1:    #7c3aed;
+    --accent-2:    #0891b2;
+    --accent-3:    #d97706;
+    --glow:        rgba(124, 58, 237, 0.15);
+    --text-pri:    #0f172a;
+    --text-sec:    rgba(15, 23, 42, 0.70);
+    --text-muted:  rgba(15, 23, 42, 0.45);
+    --success:     #10b981;
+    --warning:     #f59e0b;
+    --error:       #ef4444;
+    --grid-color:  rgba(0, 0, 0, 0.025);
+}
+
 /* Smooth transition for theme colors */
-body, .game-card, .settings-card, .btn-back, input, button, select, div, span, label {
-    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease !important;
+body, .game-card, .settings-card, .stat-card, .level-card, .sidebar, .topbar, input, button, select {
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Protect SVG avatars from Android WebView Force Dark color inversion */
+img[src*="avatars"], img[src*="avatar"], .avatar-card img, .profile-avatar img, .dd-avatar-large img, .profile-hero-avatar-wrap img, .avatar-img, .avatar-selected-thumb, .avatar-grid-card img, .avatar-modal-grid img {
+    color-scheme: light !important;
+    forced-color-adjust: none !important;
+    -webkit-filter: none !important;
+    filter: none !important;
+    background-color: transparent !important;
 }
 
 /* Apply variable grid lines */
@@ -557,9 +566,13 @@ html[data-theme="light"] .level-topbar {
     .tracker-object { width: 38px !important; height: 38px !important; font-size: 9px !important; }
 
     /* Level 17 Relationship Reconstruction & Memory Calculation */
-    .rel-row { flex-direction: column !important; gap: 6px !important; }
-    .rel-arrow { transform: rotate(90deg) !important; margin: 2px 0 !important; }
-    .recon-row { flex-direction: column !important; align-items: stretch !important; }
+    .rels-container, .recon-container { width: 100% !important; margin: 12px auto !important; gap: 8px !important; }
+    .rel-row, .recon-row { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; padding: 8px 6px !important; gap: 4px !important; width: 100% !important; box-sizing: border-box !important; }
+    .rel-node { padding: 8px 4px !important; gap: 4px !important; font-size: 12px !important; text-align: center !important; justify-content: center !important; min-width: 0 !important; flex: 1 1 0% !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+    .rel-arrow { transform: none !important; margin: 0 !important; font-size: 12px !important; flex: 0 0 auto !important; }
+    .recon-person { min-width: 0 !important; flex: 1 1 0% !important; padding: 8px 4px !important; font-size: 12px !important; text-align: center !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+    .recon-select-wrap { flex: 1.2 1 0% !important; min-width: 0 !important; }
+    .recon-select { width: 100% !important; padding: 8px 2px !important; font-size: 11px !important; border-radius: 8px !important; text-overflow: ellipsis !important; box-sizing: border-box !important; }
     .assoc-grid { grid-template-columns: repeat(5, 1fr) !important; gap: 6px !important; margin: 16px auto !important; max-width: 100% !important; }
     .assoc-card { padding: 10px 4px !important; border-radius: 12px !important; gap: 4px !important; }
     .assoc-sym { font-size: clamp(20px, 5.5vw, 30px) !important; }

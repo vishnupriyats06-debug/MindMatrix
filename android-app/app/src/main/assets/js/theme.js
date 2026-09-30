@@ -1,18 +1,39 @@
 (function() {
-    // 1. Determine active theme (localStorage preference, default is 'light')
-    var savedTheme = localStorage.getItem('theme');
-    if (!savedTheme) {
-        savedTheme = 'light';
+    var savedTheme = 'dark';
+    try {
+        savedTheme = localStorage.getItem('theme') || 'dark';
+    } catch(e) {
+        savedTheme = 'dark';
     }
-    // 2. Immediately apply to html element to prevent transition flickering
     document.documentElement.setAttribute('data-theme', savedTheme);
+    var bg = savedTheme === 'light' ? '#f4f6fa' : '#050814';
+    if (document.documentElement.style) {
+        document.documentElement.style.colorScheme = savedTheme;
+        document.documentElement.style.backgroundColor = bg;
+    }
 })();
 
 // Reusable function to set theme
 function setTheme(theme) {
     if (theme !== 'light' && theme !== 'dark') return;
-    localStorage.setItem('theme', theme);
+    try {
+        localStorage.setItem('theme', theme);
+    } catch(e) {}
     document.documentElement.setAttribute('data-theme', theme);
+    var bg = theme === 'light' ? '#f4f6fa' : '#050814';
+    var text = theme === 'light' ? '#0f172a' : '#f0f4ff';
+    if (document.documentElement && document.documentElement.style) {
+        document.documentElement.style.colorScheme = theme;
+        document.documentElement.style.backgroundColor = bg;
+    }
+    if (document.body && document.body.style) {
+        document.body.style.backgroundColor = bg;
+        document.body.style.color = text;
+    }
+    var metaTheme = document.getElementById('meta-theme-color');
+    if (metaTheme) {
+        metaTheme.setAttribute('content', bg);
+    }
     
     // Update selector displays on DOM
     updateThemeUI(theme);
@@ -20,7 +41,7 @@ function setTheme(theme) {
 
 // Reusable function to toggle theme
 function toggleTheme() {
-    var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    var currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     var nextTheme = currentTheme === 'light' ? 'dark' : 'light';
     setTheme(nextTheme);
 }
@@ -50,8 +71,18 @@ function updateThemeUI(theme) {
 
 // Setup initial UI states when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    var currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     updateThemeUI(currentTheme);
+
+    // Bind touch/click events on theme cards for Android WebView mobile compatibility
+    var lightCard = document.getElementById('theme-card-light');
+    var darkCard = document.getElementById('theme-card-dark');
+    if (lightCard) {
+        lightCard.addEventListener('click', function(e) { e.preventDefault(); setTheme('light'); });
+    }
+    if (darkCard) {
+        darkCard.addEventListener('click', function(e) { e.preventDefault(); setTheme('dark'); });
+    }
 });
 
 // ══════════════════════════════════════════════════════════════
@@ -100,6 +131,7 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
     var earned = parseInt(earnedScore, 10) || 100;
     var time = timeStr || "10s";
     var u = localStorage.getItem('mm_current_user') || 'default';
+    var currentHints = (typeof window.getHints === 'function') ? window.getHints() : 3;
 
     // 1. Read existing local data
     var curScore = parseInt(localStorage.getItem('mm_' + u + '_score') || localStorage.getItem('mm_score') || '0', 10);
@@ -125,7 +157,7 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
     curTimes[levelIdx] = time;
 
     // Synchronously write to LocalStorage immediately!
-    function writeLocal(s, strk, unl, g, bstrk, scs, tms, strs, dt) {
+    function writeLocal(s, strk, unl, g, bstrk, scs, tms, strs, dt, h) {
         try {
             localStorage.setItem('mm_score', s);
             localStorage.setItem('mm_streak', strk);
@@ -136,6 +168,7 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
             localStorage.setItem('mm_best_times', JSON.stringify(tms));
             localStorage.setItem('mm_stars', JSON.stringify(strs));
             if (dt) localStorage.setItem('mm_last_played_date', dt);
+            if (h !== undefined && h !== null) localStorage.setItem('mm_hints', h);
 
             localStorage.setItem('mm_' + u + '_score', s);
             localStorage.setItem('mm_' + u + '_streak', strk);
@@ -146,10 +179,26 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
             localStorage.setItem('mm_' + u + '_best_times', JSON.stringify(tms));
             localStorage.setItem('mm_' + u + '_stars', JSON.stringify(strs));
             if (dt) localStorage.setItem('mm_' + u + '_last_played_date', dt);
+            if (h !== undefined && h !== null) localStorage.setItem('mm_' + u + '_hints', h);
         } catch(e) {}
     }
 
-    writeLocal(localScore, localStreak, localUnlocked, localGames, localBestStreak, curScores, curTimes, curStars, localDate);
+    writeLocal(localScore, localStreak, localUnlocked, localGames, localBestStreak, curScores, curTimes, curStars, localDate, currentHints);
+
+    // Notify native Android layer of level unlock & progress state
+    var notifBridge = window.AndroidNotificationBridge || window.AndroidInterface;
+    if (notifBridge) {
+        try {
+            if (typeof notifBridge.syncProgressData === 'function') {
+                notifBridge.syncProgressData(localStreak, localDate, localUnlocked);
+            }
+            if (targetUnlock > curUnlocked && targetUnlock <= 20) {
+                if (typeof notifBridge.onLevelUnlocked === 'function') {
+                    notifBridge.onLevelUnlocked(targetUnlock);
+                }
+            }
+        } catch(e) {}
+    }
 
     // 2. Fetch server progress & save
     return fetch('getProgress?t=' + new Date().getTime())
@@ -163,10 +212,12 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
             var dbGames = parseInt(data.gamesPlayed, 10) || 0;
             var dbStreak = parseInt(data.streak, 10) || 0;
             var dbBestStreak = parseInt(data.bestStreak, 10) || 0;
+            var dbHints = (data.hints !== undefined && data.hints !== null) ? parseInt(data.hints, 10) : currentHints;
 
             var finalScore = dbScore + earned;
             var finalUnlocked = Math.max(dbUnlocked, targetUnlock);
             var finalGames = dbGames + 1;
+            var finalHints = Math.min(dbHints, currentHints);
 
             var sResult = window.calculateNewStreak(dbStreak, data.lastPlayedDate || "", true);
             var finalStreak = sResult.streak;
@@ -181,7 +232,7 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
             stars[levelIdx] = "3";
             bestTimes[levelIdx] = time;
 
-            writeLocal(finalScore, finalStreak, finalUnlocked, finalGames, finalBestStreak, bestScores, bestTimes, stars, finalDate);
+            writeLocal(finalScore, finalStreak, finalUnlocked, finalGames, finalBestStreak, bestScores, bestTimes, stars, finalDate, finalHints);
 
             return fetch('saveProgress', {
                 method: 'POST',
@@ -197,7 +248,8 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
                     bestTimes: JSON.stringify(bestTimes),
                     stars: JSON.stringify(stars),
                     lastPlayedDate: finalDate,
-                    clientDate: finalDate
+                    clientDate: finalDate,
+                    hints: finalHints
                 })
             })
             .then(function(res) {
@@ -214,7 +266,8 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
                         mergedData.bestScores,
                         mergedData.bestTimes,
                         mergedData.stars,
-                        finalDate
+                        finalDate,
+                        mergedData.hints
                     );
                 }
             });
@@ -235,7 +288,8 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
                     bestTimes: JSON.stringify(curTimes),
                     stars: JSON.stringify(curStars),
                     lastPlayedDate: localDate,
-                    clientDate: localDate
+                    clientDate: localDate,
+                    hints: currentHints
                 })
             })
             .then(function(res) {
@@ -252,10 +306,66 @@ window.recordLevelCompletion = function(levelNum, earnedScore, timeStr) {
                         mergedData.bestScores,
                         mergedData.bestTimes,
                         mergedData.stars,
-                        localDate
+                        localDate,
+                        mergedData.hints
                     );
                 }
             })
             .catch(function() {});
         });
 };
+
+
+// Mobile Drawer Navigation & Touch Support
+function initMobileDrawer() {
+    var sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+
+    var overlay = document.getElementById('sidebar-backdrop') || document.getElementById('sidebar-overlay');
+    var hamburger = document.getElementById('hamburger') || document.getElementById('btn-hamburger');
+    if (!hamburger) return;
+
+    function toggleSidebar(e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        var isOpen = sidebar.classList.contains('open');
+        if (isOpen) {
+            sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('open');
+        } else {
+            sidebar.classList.add('open');
+            if (overlay) overlay.classList.add('open');
+        }
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+    }
+
+    if (hamburger.getAttribute('data-drawer-bound') !== 'true') {
+        hamburger.setAttribute('data-drawer-bound', 'true');
+        hamburger.addEventListener('click', toggleSidebar);
+        hamburger.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            toggleSidebar(e);
+        }, { passive: false });
+    }
+
+    if (overlay && overlay.getAttribute('data-drawer-bound') !== 'true') {
+        overlay.setAttribute('data-drawer-bound', 'true');
+        overlay.addEventListener('click', closeSidebar);
+        overlay.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            closeSidebar();
+        }, { passive: false });
+    }
+
+    var navLinks = sidebar.querySelectorAll('.nav-item, a');
+    navLinks.forEach(function(link) {
+        link.addEventListener('click', closeSidebar);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initMobileDrawer();
+});

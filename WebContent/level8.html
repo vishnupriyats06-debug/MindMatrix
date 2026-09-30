@@ -538,29 +538,7 @@
         window.speechSynthesis.speak(utterance);
     }
 
-    // Audio sequence player for Part 2 (animal sounds)
-    function playAudioSequence(seq, index, onComplete) {
-        if (index >= seq.length) {
-            setTimeout(onComplete, 800);
-            return;
-        }
-
-        const bars = document.querySelectorAll('#audio-wave .wave-bar');
-        bars.forEach(b => b.style.animationPlayState = 'running');
-
-        gid('listening-status').textContent = `🔊 Playing ${index + 1} of ${seq.length}`;
-        gid('listening-badge').textContent = '🔊 Listening Phase';
-        gid('listening-title').textContent = 'Listen Carefully!';
-        gid('listening-sub').textContent = 'Remember the sound and order!';
-        AudioSynth.play(seq[index]);
-
-        setTimeout(() => {
-            bars.forEach(b => b.style.animationPlayState = 'paused');
-            setTimeout(() => {
-                playAudioSequence(seq, index + 1, onComplete);
-            }, 550);
-        }, 1200);
-    }
+    // (playAudioSequence removed — unused dead code; game uses speakWordSequence via Web Speech API)
 
     function setupP1InputFields() {
         const inputsDiv = gid('p1-word-inputs');
@@ -775,7 +753,7 @@
                 gid('result-action-btn').onclick = () => { closeResult(); setupRoundP1(); };
             } else {
                 gid('result-action-btn').textContent = 'Try Again';
-                gid('result-action-btn').onclick = () => { closeResult(); closeResult(); /* user manually retries */ };
+                gid('result-action-btn').onclick = () => { closeResult(); setupPart2Game(); };
             }
         }
         overlay.classList.add('open');

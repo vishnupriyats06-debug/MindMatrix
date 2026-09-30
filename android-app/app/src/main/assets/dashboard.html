@@ -9,9 +9,8 @@
     <meta http-equiv="Expires" content="0" />
     <title>MindMatrix – Dashboard</title>
     <meta name="description" content="MindMatrix Dashboard – Track your levels, streaks, achievements and settings." />
-    <link rel="icon" type="image/svg+xml" href="images/logo.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" id="meta-theme-color" content="#050814" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -24,7 +23,7 @@
         ══════════════════════════════════════════ */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        :root {
+        html, html[data-theme="dark"] {
             --bg-deep:     #050814;
             --bg-mid:      #0b0f24;
             --bg-card:     rgba(255,255,255,0.04);
@@ -42,6 +41,28 @@
             --warning:     #fbbf24;
             --error:       #f87171;
             --sidebar-w:   240px;
+            --grid-color:  rgba(255, 255, 255, 0.025);
+        }
+
+        html[data-theme="light"] {
+            --bg-deep:     #f4f6fa;
+            --bg-mid:      #eef1f6;
+            --bg-card:     #ffffff;
+            --bg-card-h:   #f8fafc;
+            --border:      rgba(0, 0, 0, 0.08);
+            --border-h:    rgba(124, 58, 237, 0.45);
+            --accent-1:    #7c3aed;
+            --accent-2:    #0891b2;
+            --accent-3:    #d97706;
+            --glow:        rgba(124, 58, 237, 0.15);
+            --text-pri:    #0f172a;
+            --text-sec:    rgba(15, 23, 42, 0.70);
+            --text-muted:  rgba(15, 23, 42, 0.45);
+            --success:     #10b981;
+            --warning:     #f59e0b;
+            --error:       #ef4444;
+            --sidebar-w:   240px;
+            --grid-color:  rgba(0, 0, 0, 0.025);
         }
 
         html { scroll-behavior: smooth; }
@@ -101,7 +122,7 @@
         ══════════════════════════════════════════ */
         .sidebar {
             width: var(--sidebar-w);
-            background: rgba(5,8,20,0.85);
+            background: var(--bg-mid);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border-right: 1px solid var(--border);
@@ -119,8 +140,10 @@
         }
         .logo-icon {
             width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 800; color: #fff;
             box-shadow: 0 0 24px var(--glow);
-            object-fit: contain;
         }
         .logo-name {
             font-size: 18px; font-weight: 800;
@@ -184,7 +207,7 @@
         ══════════════════════════════════════════ */
         .topbar {
             position: sticky; top: 0; z-index: 40;
-            background: rgba(5,8,20,0.80);
+            background: var(--bg-deep);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
             padding: 0 32px;
@@ -1829,7 +1852,7 @@
     <!-- ── SIDEBAR ── -->
     <aside class="sidebar" id="sidebar">
         <a href="dashboard.html" class="sidebar-logo">
-            <img src="images/logo.svg" alt="MindMatrix Logo" class="logo-icon" />
+            <div class="logo-icon">M²</div>
             <span class="logo-name">MindMatrix</span>
         </a>
 
@@ -1892,8 +1915,8 @@
                         <div class="dd-header">
                             <div class="dd-avatar-large" id="dd-avatar">U</div>
                             <div class="dd-info">
-                                <div class="dd-name" id="dd-name">-</div>
-                                <div class="dd-email" id="dd-email">-</div>
+                                <div class="dd-name" id="dd-name">User</div>
+                                <div class="dd-email" id="dd-email">user@email.com</div>
                             </div>
                         </div>
                         <button class="dd-item" onclick="switchSection('settings')">
@@ -2158,10 +2181,10 @@
 
                     <!-- Profile Card -->
                     <div class="settings-card">
-                        <h3><span>👤</span> Profile & Account</h3>
+                        <h3><span>👤</span> Edit Profile</h3>
                         <div class="profile-form-group">
                             <label>Profile Avatar</label>
-                            <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:12px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:4px;">
                                 <div style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="openAvatarModal()" title="Click to change avatar">
                                     <div id="settings-avatar-thumb-wrap" style="width:40px; height:40px; border-radius:50%; overflow:hidden; border:2px solid var(--accent-1); background:rgba(0,0,0,0.3); flex-shrink:0;">
                                         <img id="settings-avatar-thumb" src="images/avatars/female/avatar01.svg" alt="Avatar" style="width:100%; height:100%; object-fit:cover;" />
@@ -2176,24 +2199,19 @@
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Account Details (Read-only badges) -->
-                        <div class="account-info-group" style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
-                            <div class="setting-row" style="padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px;">
-                                <div>
-                                    <div class="setting-label" style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;">Username</div>
-                                    <div class="setting-value" id="settings-info-username" style="font-weight:600; color:var(--text-pri); font-size:14px; margin-top:2px;">-</div>
-                                </div>
-                                <span style="font-size:16px; opacity:0.7;">👤</span>
-                            </div>
-                            <div class="setting-row" style="padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px;">
-                                <div>
-                                    <div class="setting-label" style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px;">Email Address</div>
-                                    <div class="setting-value" id="settings-info-email" style="font-weight:600; color:var(--text-pri); font-size:14px; margin-top:2px;">-</div>
-                                </div>
-                                <span style="font-size:16px; opacity:0.7;">✉️</span>
-                            </div>
+                        <div class="profile-form-group">
+                            <label>Username</label>
+                            <input type="text" id="settings-username" placeholder="Your username" />
                         </div>
+                        <div class="profile-form-group">
+                            <label>Email</label>
+                            <input type="email" id="settings-email" placeholder="your@email.com" />
+                        </div>
+                        <div class="profile-form-group">
+                            <label>New Password</label>
+                            <input type="password" id="settings-password" placeholder="Leave blank to keep current" />
+                        </div>
+                        <button class="btn-save">Save Changes</button>
                     </div>
 
                     <!-- Preferences Card -->
@@ -2204,37 +2222,36 @@
                                 <div class="setting-label">Sound Effects</div>
                                 <div class="setting-value">Play sounds during games</div>
                             </div>
-                            <div class="toggle on" id="toggle-sound" onclick="togglePreference('sound', this)"></div>
+                            <div class="toggle on" id="toggle-sound" onclick="this.classList.toggle('on')"></div>
                         </div>
                         <div class="setting-row">
                             <div>
                                 <div class="setting-label">Daily Reminder</div>
                                 <div class="setting-value">Notify me to play each day</div>
                             </div>
-                            <div class="toggle on" id="toggle-reminder" onclick="togglePreference('dailyReminder', this)"></div>
+                            <div class="toggle on" id="toggle-reminder" onclick="this.classList.toggle('on')"></div>
                         </div>
                         <div class="setting-row">
                             <div>
                                 <div class="setting-label">Animations</div>
                                 <div class="setting-value">Enable UI animations</div>
                             </div>
-                            <div class="toggle on" id="toggle-anim" onclick="togglePreference('animations', this)"></div>
+                            <div class="toggle on" id="toggle-anim" onclick="this.classList.toggle('on')"></div>
                         </div>
                         <div class="setting-row">
                             <div>
                                 <div class="setting-label">Streak Reminders</div>
                                 <div class="setting-value">Alert before streak expires</div>
                             </div>
-                            <div class="toggle" id="toggle-streak" onclick="togglePreference('streakReminder', this)"></div>
+                            <div class="toggle" id="toggle-streak" onclick="this.classList.toggle('on')"></div>
                         </div>
                         <div class="setting-row">
                             <div>
                                 <div class="setting-label">Leaderboard</div>
                                 <div class="setting-value">Show my score publicly</div>
                             </div>
-                            <div class="toggle on" id="toggle-lb" onclick="togglePreference('leaderboard', this)"></div>
+                            <div class="toggle on" id="toggle-lb" onclick="this.classList.toggle('on')"></div>
                         </div>
-                        <div id="pref-toast-msg" class="avatar-toast-msg" style="margin-top: 10px;"></div>
                     </div>
 
                     <!-- Appearance Card -->
@@ -2268,6 +2285,13 @@
                     <!-- Danger Zone -->
                     <div class="settings-card">
                         <h3><span>⚠️</span> Account</h3>
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label">Export Data</div>
+                                <div class="setting-value">Download your game history</div>
+                            </div>
+                            <button class="btn-save" style="padding:8px 16px;font-size:12px;">Export</button>
+                        </div>
                         <div class="setting-row">
                             <div>
                                 <div class="setting-label" style="color:var(--error)">Delete Account</div>
@@ -2332,31 +2356,44 @@
     </div>
 </div>
 
+<!-- Logout Confirmation Modal Overlay -->
+<div class="modal-overlay" id="logout-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="logout-modal-title">
+    <div class="modal" style="max-width: 380px; text-align: center; padding: 32px 28px;">
+        <div style="font-size: 44px; margin-bottom: 12px; line-height: 1;">🚪</div>
+        <h3 id="logout-modal-title" style="font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--text-pri);">Log Out</h3>
+        <p style="font-size: 15px; color: var(--text-sec); margin-bottom: 24px; line-height: 1.5;">Are you sure you want to logout?</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+            <button id="logout-confirm-no" class="modal-btn secondary" style="flex: 1; padding: 12px 18px; border-radius: 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: var(--text-pri); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">No</button>
+            <button id="logout-confirm-yes" class="modal-btn primary" style="flex: 1; padding: 12px 18px; border-radius: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: #ffffff; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(239,68,68,0.4);">Yes</button>
+        </div>
+    </div>
+</div>
+
 <script>
 /* ══════════════════════════════════════════
    DATA
    ══════════════════════════════════════════ */
 const LEVEL_DATA = [
-    { name:"Memory Spark",    desc:"Match pairs to ignite your memory. Simple patterns to get started.",     emoji:"\ud83d\udd25", type:"Beginner" },
-    { name:"Alphabet Sequence",desc:"Memorize a sequence of 6 random letters and recall them perfectly.",      emoji:"🔡", type:"Beginner" },
+    { name:"Number Memory",   desc:"Match pairs to ignite your memory. Simple patterns to get started.",     emoji:"🔥", type:"Beginner" },
+    { name:"Alphabetical Sequence",desc:"Memorize a sequence of 6 random letters and recall them perfectly.",  emoji:"🔡", type:"Beginner" },
     { name:"Word Memory",     desc:"Memorize the sequence of words and find the missing ones.",         emoji:"📝", type:"Beginner" },
     { name:"Position Memory Matrix", desc:"Recall number/letter positions and fill the missing cells.", emoji:"🎯", type:"Beginner" },
-    { name:"Color Challenge",  desc:"Spot the odd-colored shade in a grid, then memorize a 10-color sequence.",  emoji:"\ud83c\udfa8", type:"Beginner" },
-    { name:"Word Weave",      desc:"Spot hidden words in a shifting letter grid before time runs out.",        emoji:"\ud83d\udcdd", type:"Intermediate" },
-    { name:"Rapid Recall",    desc:"Items flash for a second - can you recall every one of them?",              emoji:"\u26a1", type:"Intermediate" },
-    { name:"Word Sequence Recall", desc:"Listen to spoken words and unscramble jumbled letters – recall exact spelling and sequence.", emoji:"🧩", type:"Intermediate" },
-    { name:"Emoji Detective", desc:"Memorize an emoji sequence, then scan five 10×10 grids to hunt down the odd emoji before time runs out!", emoji:"\ud83d\udd0d", type:"Intermediate" },
+    { name:"Color Detection & Sequence Memory", desc:"Spot the odd-colored shade in a grid, then memorize a 10-color sequence.", emoji:"🎨", type:"Beginner" },
+    { name:"Number Sequence & Image Matching", desc:"Spot hidden words in a shifting letter grid before time runs out.", emoji:"📝", type:"Intermediate" },
+    { name:"Shape Memory",    desc:"Items flash for a second - can you recall every one of them?",              emoji:"⚡", type:"Intermediate" },
+    { name:"Auditory Memory", desc:"Listen to spoken words and unscramble jumbled letters – recall exact spelling and sequence.", emoji:"🧩", type:"Intermediate" },
+    { name:"Emoji Memory & Detection", desc:"Memorize an emoji sequence, then scan five 10×10 grids to hunt down the odd emoji before time runs out!", emoji:"🔍", type:"Intermediate" },
     { name:"Mask Memory",     desc:"Remember person–mask associations and recall them from memory.",           emoji:"🎭", type:"Intermediate" },
-    { name:"Object Memory",   desc:"Remember which objects occupied which grid positions, then spot the missing one.", emoji:"\uD83E\uDDF8", type:"Advanced" },
-    { name:"Symbol Memory",   desc:"Reproduce an exact symbol sequence, then match all hidden symbol pairs.",       emoji:"\uD83D\uDD24", type:"Advanced" },
+    { name:"Object Memory",   desc:"Remember which objects occupied which grid positions, then spot the missing one.", emoji:"🧸", type:"Advanced" },
+    { name:"Symbol Memory",   desc:"Reproduce an exact symbol sequence, then match all hidden symbol pairs.",       emoji:"🔤", type:"Advanced" },
     { name:"Neural Shift", desc:"Visual change recognition in Shadow Detective and trajectory prediction in Gravity Flip.", emoji:"🕵️", type:"Advanced" },
-    { name:"Sequence Transformation", desc:"Memorize mixed sequences and transform them using dynamic logical rules.", emoji:"🔄", type:"Advanced" },
+    { name:"Sequence Transformation Memory", desc:"Memorize mixed sequences and transform them using dynamic logical rules.", emoji:"🔄", type:"Advanced" },
     { name:"Visual Story Memory", desc:"Observe visual narratives and recall intricate story details and event sequences.", emoji:"📖", type:"Expert" },
     { name:"Shadow Tracker", desc:"Track it. Follow it. Don't lose it.", emoji:"🎯", type:"Expert" },
-    { name:"Advanced Memory", desc:"Reconstruct relational connections and solve arithmetic calculations from memory.", emoji:"🧠", type:"Expert" },
+    { name:"Advanced Memory Challenge", desc:"Reconstruct relational connections and solve arithmetic calculations from memory.", emoji:"🧠", type:"Expert" },
     { name:"Advanced Memory Master", desc:"Multi-layer spatial relationships and mental sequence transformation rules.", emoji:"🧬", type:"Expert" },
-    { name:"Cognitive Lock", desc:"Focus. Filter. Remember. Decide.", emoji:"🔐", type:"Expert" },
-    { name:"Memory Detective", desc:"Observe. Remember. Investigate. Solve the grand finale mystery.", emoji:"🔍", type:"MASTER" }
+    { name:"Cognitive Nexus", desc:"Focus. Filter. Remember. Decide.", emoji:"🔐", type:"Expert" },
+    { name:"Memory Detective & Ultimate Brain Gauntlet", desc:"Observe. Remember. Investigate. Solve the grand finale mystery.", emoji:"🔍", type:"MASTER" }
 ];
 
 const QUOTES = [
@@ -2373,26 +2410,26 @@ const QUOTES = [
    AVATAR METADATA & HELPER FUNCTIONS
    ══════════════════════════════════════════ */
 const AVATAR_METADATA = [
-    { id: 1,  name: "Aria",      gender: "female", desc: "Wavy Caramel Hair • Lavender Jacket",     path: "images/avatars/female/avatar01.svg" },
-    { id: 2,  name: "Kira",      gender: "female", desc: "Sleek Bob • Cyber Teal Outfit",          path: "images/avatars/female/avatar02.svg" },
-    { id: 3,  name: "Maya",      gender: "female", desc: "Sporty Ponytail • Cyan Athletic Hoodie", path: "images/avatars/female/avatar03.svg" },
-    { id: 4,  name: "Zendaya",   gender: "female", desc: "Voluminous Curls • Vibrant Coral Top",   path: "images/avatars/female/avatar04.svg" },
-    { id: 5,  name: "Yuki",      gender: "female", desc: "Straight Black Hair • Purple Blazer",     path: "images/avatars/female/avatar05.svg" },
-    { id: 6,  name: "Chloe",     gender: "female", desc: "Rose Gold Waves • Cozy Cyber Hoodie",    path: "images/avatars/female/avatar06.svg" },
-    { id: 7,  name: "Amara",     gender: "female", desc: "Braided Style • Emerald Denim Outfit",   path: "images/avatars/female/avatar07.svg" },
-    { id: 8,  name: "Roxie",     gender: "female", desc: "Top-Knot Ponytail • Biker Jacket",       path: "images/avatars/female/avatar08.svg" },
-    { id: 9,  name: "Elena",     gender: "female", desc: "Curly Chestnut Hair • Amber Knit",       path: "images/avatars/female/avatar09.svg" },
-    { id: 10, name: "Seraphina", gender: "female", desc: "Platinum Blonde • Velvet Navy Suit",     path: "images/avatars/female/avatar10.svg" },
-    { id: 11, name: "Ethan",     gender: "male",   desc: "Textured Short Hair • Bomber Jacket",    path: "images/avatars/male/avatar11.svg" },
-    { id: 12, name: "Marcus",    gender: "male",   desc: "Curly Dark Fade • Violet Tech Hoodie",   path: "images/avatars/male/avatar12.svg" },
-    { id: 13, name: "Alexander", gender: "male",   desc: "Side-Parted Hair • Tailored Shirt",      path: "images/avatars/male/avatar13.svg" },
-    { id: 14, name: "Kai",       gender: "male",   desc: "Spiky Hair • Sporty Tech & Headband",    path: "images/avatars/male/avatar14.svg" },
-    { id: 15, name: "Liam",      gender: "male",   desc: "Swept-Back Waves • Suede Olive Jacket",  path: "images/avatars/male/avatar15.svg" },
-    { id: 16, name: "Jordan",    gender: "male",   desc: "Short Fade • Streetwear Graphic Hoodie", path: "images/avatars/male/avatar16.svg" },
-    { id: 17, name: "Noah",      gender: "male",   desc: "Layered Dark Hair • Modern Turtleneck",  path: "images/avatars/male/avatar17.svg" },
-    { id: 18, name: "Lucas",     gender: "male",   desc: "Sleek Undercut • Denim Button-Up",       path: "images/avatars/male/avatar18.svg" },
-    { id: 19, name: "Malik",     gender: "male",   desc: "Curly Afro Fade • Denim Shearling",      path: "images/avatars/male/avatar19.svg" },
-    { id: 20, name: "Victor",    gender: "male",   desc: "Platinum Ash Crop • Obsidian Techwear",  path: "images/avatars/male/avatar20.svg" }
+    { id: 1,  name: "Aria",      gender: "female", desc: "", path: "images/avatars/female/avatar01.svg?v=5" },
+    { id: 2,  name: "Kira",      gender: "female", desc: "", path: "images/avatars/female/avatar02.svg?v=5" },
+    { id: 3,  name: "Maya",      gender: "female", desc: "", path: "images/avatars/female/avatar03.svg?v=5" },
+    { id: 4,  name: "Zendaya",   gender: "female", desc: "", path: "images/avatars/female/avatar04.svg?v=5" },
+    { id: 5,  name: "Yuki",      gender: "female", desc: "", path: "images/avatars/female/avatar05.svg?v=5" },
+    { id: 6,  name: "Chloe",     gender: "female", desc: "", path: "images/avatars/female/avatar06.svg?v=5" },
+    { id: 7,  name: "Amara",     gender: "female", desc: "", path: "images/avatars/female/avatar07.svg?v=5" },
+    { id: 8,  name: "Rose",      gender: "female", desc: "", path: "images/avatars/female/avatar08.svg?v=5" },
+    { id: 9,  name: "Elena",     gender: "female", desc: "", path: "images/avatars/female/avatar09.svg?v=5" },
+    { id: 10, name: "Seraphina", gender: "female", desc: "", path: "images/avatars/female/avatar10.svg?v=5" },
+    { id: 11, name: "Ethan",     gender: "male",   desc: "", path: "images/avatars/male/avatar11.svg?v=5" },
+    { id: 12, name: "Marcus",    gender: "male",   desc: "", path: "images/avatars/male/avatar12.svg?v=5" },
+    { id: 13, name: "Alex",      gender: "male",   desc: "", path: "images/avatars/male/avatar13.svg?v=5" },
+    { id: 14, name: "Kai",       gender: "male",   desc: "", path: "images/avatars/male/avatar14.svg?v=5" },
+    { id: 15, name: "Liam",      gender: "male",   desc: "", path: "images/avatars/male/avatar15.svg?v=5" },
+    { id: 16, name: "Jordan",    gender: "male",   desc: "", path: "images/avatars/male/avatar16.svg?v=5" },
+    { id: 17, name: "Nick",      gender: "male",   desc: "", path: "images/avatars/male/avatar17.svg?v=5" },
+    { id: 18, name: "Lucas",     gender: "male",   desc: "", path: "images/avatars/male/avatar18.svg?v=5" },
+    { id: 19, name: "Malik",     gender: "male",   desc: "", path: "images/avatars/male/avatar19.svg?v=5" },
+    { id: 20, name: "Victor",    gender: "male",   desc: "", path: "images/avatars/male/avatar20.svg?v=5" }
 ];
 
 var selectedAvatarForSave = 0;
@@ -2434,6 +2471,10 @@ document.addEventListener('keydown', function(e) {
         var modal = document.getElementById('avatar-modal-overlay');
         if (modal && modal.classList.contains('active')) {
             closeAvatarModal();
+        }
+        var logoutModal = document.getElementById('logout-modal-overlay');
+        if (logoutModal && logoutModal.classList.contains('open')) {
+            logoutModal.classList.remove('open');
         }
     }
 });
@@ -2533,7 +2574,6 @@ function renderAvatarSelectionGrid() {
                     <img src="${av.path}" alt="${av.name}" loading="lazy" />
                 </div>
                 <div class="avatar-card-name">${av.name}</div>
-                <div class="avatar-card-desc">${av.desc}</div>
             </div>
         `;
     }).join('');
@@ -2564,7 +2604,7 @@ function updateSelectedAvatarDisplay(id) {
             thumb.style.display = 'block';
         }
         if (label && av) {
-            label.innerHTML = `Selected: <strong>Avatar #${av.id} (${av.name})</strong> – ${av.desc}`;
+            label.innerHTML = `Selected: <strong>Avatar #${av.id} (${av.name})</strong>`;
         }
     } else {
         if (thumb) {
@@ -2730,9 +2770,6 @@ function getLocalDateString() {
 }
 
 function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
-    if (!isSuccess) {
-        return { streak: 0, dateStr: lastPlayedDateStr };
-    }
     var todayStr = getLocalDateString();
     if (!lastPlayedDateStr) {
         return { streak: 1, dateStr: todayStr };
@@ -2747,7 +2784,7 @@ function calculateNewStreak(currentStreak, lastPlayedDateStr, isSuccess) {
         if (newStreak === 0) newStreak = 1;
     } else if (diffDays === 1) {
         newStreak = currentStreak + 1;
-    } else {
+    } else if (diffDays > 1) {
         newStreak = 1;
     }
     return { streak: newStreak, dateStr: todayStr };
@@ -2795,7 +2832,6 @@ function saveLocalState(state) {
         localStorage.setItem('mm_' + u + '_best_streak', state.bestStreak);
         if (state.hints !== undefined) localStorage.setItem('mm_' + u + '_hints', state.hints);
         localStorage.setItem('mm_' + u + '_avatar_id', (state.avatarId !== undefined ? state.avatarId : 0));
-        if (state.email) localStorage.setItem('mm_' + u + '_email', state.email);
         localStorage.setItem('mm_' + u + '_best_scores', JSON.stringify(state.bestScores));
         localStorage.setItem('mm_' + u + '_best_times', JSON.stringify(state.bestTimes));
         localStorage.setItem('mm_' + u + '_stars', JSON.stringify(state.stars));
@@ -2822,29 +2858,28 @@ function loadLocalState() {
     try {
         var u = localStorage.getItem('mm_current_user');
         if (!u) return null;
-        var scoreStr = localStorage.getItem('mm_' + u + '_score') || localStorage.getItem('mm_score');
-        var unlockedLevelStr = localStorage.getItem('mm_' + u + '_unlocked_level') || localStorage.getItem('mm_unlocked_level');
-        if (scoreStr === null && unlockedLevelStr === null) return null;
+        var userScoreKey = 'mm_' + u + '_score';
+        var userUnlockedKey = 'mm_' + u + '_unlocked_level';
+        if (localStorage.getItem(userScoreKey) === null && localStorage.getItem(userUnlockedKey) === null) {
+            return null;
+        }
 
-        var score = parseInt(scoreStr, 10) || 0;
-        var unlockedLevel = parseInt(unlockedLevelStr, 10) || 1;
-        var streak = parseInt(localStorage.getItem('mm_' + u + '_streak') || localStorage.getItem('mm_streak'), 10) || 0;
-        var gamesPlayed = parseInt(localStorage.getItem('mm_' + u + '_games_played') || localStorage.getItem('mm_games_played'), 10) || 0;
-        var bestStreak = parseInt(localStorage.getItem('mm_' + u + '_best_streak') || localStorage.getItem('mm_best_streak'), 10) || 0;
-        var hints = parseInt(localStorage.getItem('mm_' + u + '_hints') || localStorage.getItem('mm_hints') || '3', 10);
-        var avatarId = parseInt(localStorage.getItem('mm_' + u + '_avatar_id') || localStorage.getItem('mm_avatar_id') || '0', 10);
-        var lastPlayedDate = localStorage.getItem('mm_' + u + '_last_played_date') || localStorage.getItem('mm_last_played_date') || "";
-        var activityDates = safeParseArray(localStorage.getItem('mm_' + u + '_activity_dates') || localStorage.getItem('mm_activity_dates'), []);
+        var score = parseInt(localStorage.getItem(userScoreKey), 10) || 0;
+        var unlockedLevel = parseInt(localStorage.getItem(userUnlockedKey), 10) || 1;
+        var streak = parseInt(localStorage.getItem('mm_' + u + '_streak'), 10) || 0;
+        var gamesPlayed = parseInt(localStorage.getItem('mm_' + u + '_games_played'), 10) || 0;
+        var bestStreak = parseInt(localStorage.getItem('mm_' + u + '_best_streak'), 10) || 0;
+        var hints = (localStorage.getItem('mm_' + u + '_hints') !== null) ? parseInt(localStorage.getItem('mm_' + u + '_hints'), 10) : (localStorage.getItem('mm_hints') !== null ? parseInt(localStorage.getItem('mm_hints'), 10) : 3);
+        var avatarId = parseInt(localStorage.getItem('mm_' + u + '_avatar_id') || '0', 10);
+        var lastPlayedDate = localStorage.getItem('mm_' + u + '_last_played_date') || "";
+        var activityDates = safeParseArray(localStorage.getItem('mm_' + u + '_activity_dates'), []);
 
-        var bestScores = safeParseArray(localStorage.getItem('mm_' + u + '_best_scores') || localStorage.getItem('mm_best_scores'), Array(20).fill(0));
-        var bestTimes = sanitiseTimes(safeParseArray(localStorage.getItem('mm_' + u + '_best_times') || localStorage.getItem('mm_best_times'), DEFAULT_TIMES));
-        var stars = sanitiseStars(safeParseArray(localStorage.getItem('mm_' + u + '_stars') || localStorage.getItem('mm_stars'), DEFAULT_STARS));
-
-        var email = localStorage.getItem('mm_' + u + '_email') || '';
+        var bestScores = safeParseArray(localStorage.getItem('mm_' + u + '_best_scores'), Array(20).fill(0));
+        var bestTimes = sanitiseTimes(safeParseArray(localStorage.getItem('mm_' + u + '_best_times'), DEFAULT_TIMES));
+        var stars = sanitiseStars(safeParseArray(localStorage.getItem('mm_' + u + '_stars'), DEFAULT_STARS));
 
         return {
             username: u,
-            email: email,
             score: score,
             unlockedLevel: unlockedLevel,
             streak: streak,
@@ -2923,14 +2958,10 @@ function fetchStateAndInit() {
                 userState.email = email;
                 localStorage.setItem('mm_current_user', name);
 
-                var ddNameEl = document.getElementById('dd-name');
-                if (ddNameEl) ddNameEl.textContent = name;
-                var ddEmailEl = document.getElementById('dd-email');
-                if (ddEmailEl) ddEmailEl.textContent = email;
-                var infoUserEl = document.getElementById('settings-info-username');
-                if (infoUserEl) infoUserEl.textContent = name;
-                var infoEmailEl = document.getElementById('settings-info-email');
-                if (infoEmailEl) infoEmailEl.textContent = email;
+                document.getElementById('dd-name').textContent          = name;
+                document.getElementById('dd-email').textContent         = email;
+                document.getElementById('settings-username').value      = name;
+                document.getElementById('settings-email').value         = email;
 
                 // Smart merge between DB and LocalStorage to prevent losing client-side recorded progress
                 var local = loadLocalState();
@@ -2946,25 +2977,26 @@ function fetchStateAndInit() {
                 var localBestStreak = (local && local.bestStreak) ? local.bestStreak : 0;
 
                 userState.score = Math.max(dbScore, localScore);
-                userState.streak = (data.streak !== undefined && data.streak !== null) ? (parseInt(data.streak, 10) || 0) : (local ? (local.streak || 0) : 0);
+                var fetchedStreak = (data.streak !== undefined && data.streak !== null) ? parseInt(data.streak, 10) : (local ? local.streak : 0);
+                userState.streak = Math.max(1, fetchedStreak);
                 userState.unlockedLevel = Math.max(dbUnlocked, localUnlocked);
                 userState.gamesPlayed = Math.max(dbGames, localGames);
-                userState.bestStreak = Math.max(dbBestStreak, localBestStreak);
-                userState.lastPlayedDate = data.lastPlayedDate || (local ? local.lastPlayedDate : "");
+                userState.bestStreak = Math.max(dbBestStreak, localBestStreak, userState.streak);
+                var todayStr = getLocalDateString();
+                userState.lastPlayedDate = data.lastPlayedDate || todayStr;
                 userState.activityDates = Array.isArray(data.activityDates) && data.activityDates.length > 0 ? data.activityDates : (local ? local.activityDates : []);
+                if (userState.activityDates.indexOf(todayStr) === -1) {
+                    userState.activityDates.push(todayStr);
+                }
 
-                try {
-                    var uName = localStorage.getItem('mm_current_user') || 'default';
-                    localStorage.setItem('mm_' + uName + '_streak', userState.streak);
-                    localStorage.setItem('mm_streak', userState.streak);
-                } catch(e) {}
+                var dbAvatarId = (data.avatarId !== undefined && data.avatarId !== null) ? parseInt(data.avatarId, 10) : 0;
+                var locAvatarId = (local && local.avatarId) ? parseInt(local.avatarId, 10) : 0;
+                var avatarId = (dbAvatarId >= 1 && dbAvatarId <= 20) ? dbAvatarId : ((locAvatarId >= 1 && locAvatarId <= 20) ? locAvatarId : 0);
+                userState.avatarId = avatarId;
 
-                var avatarId = parseInt(data.avatarId, 10) || (local ? local.avatarId : 0);
-                userState.avatarId = (avatarId >= 1 && avatarId <= 20) ? avatarId : 0;
-
-                if (data.hints !== undefined) {
+                if (data.hints !== undefined && data.hints !== null) {
                     userState.hints = parseInt(data.hints, 10);
-                } else if (local && local.hints !== undefined) {
+                } else if (local && local.hints !== undefined && local.hints !== null) {
                     userState.hints = local.hints;
                 } else {
                     userState.hints = 3;
@@ -3012,6 +3044,12 @@ function fetchStateAndInit() {
             userState.completedLevels = getCalculatedCompletedLevels(userState);
             saveLocalState(userState);
             updateUI();
+
+            if (window.AndroidNotificationBridge) {
+                try {
+                    window.AndroidNotificationBridge.syncProgressData(userState.streak || 0, userState.lastPlayedDate || '', userState.unlockedLevel || 1);
+                } catch(e) {}
+            }
         })
         .catch(function(err) {
             console.error('Error fetching progress:', err);
@@ -3154,21 +3192,11 @@ function updateUI() {
     document.getElementById('stats-best-streak').textContent = displayBestStreak + (displayBestStreak === 1 ? " day" : " days");
     document.getElementById('stats-levels-completed').textContent = userState.completedLevels + " / 20";
 
-    const ddNameEl = document.getElementById('dd-name');
-    if (ddNameEl) ddNameEl.textContent = userState.username || '-';
-    const ddEmailEl = document.getElementById('dd-email');
-    if (ddEmailEl) ddEmailEl.textContent = userState.email || '-';
-    const infoUserEl = document.getElementById('settings-info-username');
-    if (infoUserEl) infoUserEl.textContent = userState.username || '-';
-    const infoEmailEl = document.getElementById('settings-info-email');
-    if (infoEmailEl) infoEmailEl.textContent = userState.email || '-';
-
     buildLevels();
     buildWeekTracker();
     buildCalendar();
     updateAchievements();
     updateCognitiveProgress();
-    if (typeof initPreferencesUI === 'function') initPreferencesUI();
 }
 
 function buildWeekTracker() {
@@ -3220,83 +3248,6 @@ function buildWeekTracker() {
         dayBox.appendChild(label);
         dayBox.appendChild(statusIcon);
         row.appendChild(dayBox);
-    }
-}
-
-/* ══════════════════════════════════════════
-   PREFERENCES & NOTIFICATION MANAGEMENT
-   ══════════════════════════════════════════ */
-function showPrefToast(msg, isSuccess) {
-    var toast = document.getElementById('pref-toast-msg');
-    if (!toast) return;
-    toast.textContent = msg;
-    toast.className = 'avatar-toast-msg ' + (isSuccess ? 'success' : 'error') + ' show';
-    setTimeout(function() {
-        toast.classList.remove('show');
-    }, 4000);
-}
-
-function initPreferencesUI() {
-    var u = (userState && userState.username) || localStorage.getItem('mm_current_user') || 'default';
-    if (window.StreakReminder) {
-        var prefs = window.StreakReminder.loadPreferences(u);
-
-        var toggleSound = document.getElementById('toggle-sound');
-        var toggleReminder = document.getElementById('toggle-reminder');
-        var toggleAnim = document.getElementById('toggle-anim');
-        var toggleStreak = document.getElementById('toggle-streak');
-        var toggleLb = document.getElementById('toggle-lb');
-
-        if (toggleSound) toggleSound.classList.toggle('on', !!prefs.sound);
-        if (toggleReminder) toggleReminder.classList.toggle('on', !!prefs.dailyReminder);
-        if (toggleAnim) toggleAnim.classList.toggle('on', !!prefs.animations);
-        if (toggleStreak) toggleStreak.classList.toggle('on', !!prefs.streakReminder);
-        if (toggleLb) toggleLb.classList.toggle('on', !!prefs.leaderboard);
-
-        if (userState) {
-            window.StreakReminder.checkAndTriggerAlerts(userState);
-        }
-    }
-}
-
-function togglePreference(prefKey, element) {
-    var wasOn = element.classList.contains('on');
-    var isNowOn = !wasOn;
-    var u = (userState && userState.username) || localStorage.getItem('mm_current_user') || 'default';
-
-    if (prefKey === 'streakReminder') {
-        if (isNowOn) {
-            element.classList.add('on');
-            window.StreakReminder.enableStreakReminders(u, userState, function(success, status) {
-                if (success) {
-                    showPrefToast('🔥 Streak Reminders Enabled! Notification alert sent to this device.', true);
-                } else {
-                    element.classList.remove('on');
-                    if (status === 'denied') {
-                        showPrefToast('⚠️ Notification permission denied in browser settings. Please allow notifications for MindMatrix.', false);
-                    } else if (status === 'unsupported') {
-                        showPrefToast('⚠️ Device Notifications are not supported by this browser.', false);
-                    } else {
-                        showPrefToast('⚠️ Notifications could not be enabled.', false);
-                    }
-                }
-            });
-        } else {
-            element.classList.remove('on');
-            window.StreakReminder.disableStreakReminders(u);
-            showPrefToast('Streak Reminders disabled.', true);
-        }
-    } else {
-        element.classList.toggle('on');
-        var p = {};
-        p[prefKey] = element.classList.contains('on');
-        window.StreakReminder.savePreferences(u, p);
-        if (prefKey === 'dailyReminder') {
-            if (element.classList.contains('on') && window.StreakReminder.getPermissionStatus() === 'default') {
-                window.StreakReminder.requestPermission();
-            }
-            showPrefToast(element.classList.contains('on') ? 'Daily Reminders enabled.' : 'Daily Reminders disabled.', true);
-        }
     }
 }
 
@@ -3680,10 +3631,38 @@ function hookProfile() {
         if (!btn.contains(e.target)) dropdown.classList.remove('open');
     });
 
-    document.getElementById('logout-btn').addEventListener('click', () => {
-        localStorage.removeItem('mm_current_user');
-        window.location.href = 'logout';
-    });
+    var logoutModal = document.getElementById('logout-modal-overlay');
+    var logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            dropdown.classList.remove('open');
+            if (logoutModal) logoutModal.classList.add('open');
+        });
+    }
+
+    var confirmNo = document.getElementById('logout-confirm-no');
+    if (confirmNo) {
+        confirmNo.addEventListener('click', () => {
+            if (logoutModal) logoutModal.classList.remove('open');
+        });
+    }
+
+    var confirmYes = document.getElementById('logout-confirm-yes');
+    if (confirmYes) {
+        confirmYes.addEventListener('click', () => {
+            localStorage.removeItem('mm_current_user');
+            window.location.href = 'logout';
+        });
+    }
+
+    if (logoutModal) {
+        logoutModal.addEventListener('click', (e) => {
+            if (e.target === logoutModal) {
+                logoutModal.classList.remove('open');
+            }
+        });
+    }
 }
 
 /* ══════════════════════════════════════════
@@ -3971,6 +3950,7 @@ function hookEditProfile() {
         e.preventDefault();
         const username = document.getElementById('settings-username').value.trim();
         const email = document.getElementById('settings-email').value.trim();
+        const password = document.getElementById('settings-password').value.trim();
 
         if (!username || !email) {
             alert('Username and Email are required.');
@@ -3987,7 +3967,8 @@ function hookEditProfile() {
             },
             body: new URLSearchParams({
                 username: username,
-                email: email
+                email: email,
+                password: password
             })
         })
         .then(response => {
@@ -4005,6 +3986,7 @@ function hookEditProfile() {
             userState.username = data.username;
             userState.email = data.email;
             updateAvatarUI(userState.avatarId || 1);
+            document.getElementById('settings-password').value = '';
         })
         .catch(err => {
             alert('Failed to update profile: ' + err.message);
@@ -4044,7 +4026,22 @@ function hookDeleteAccount() {
     });
 }
 
-function hookExportData() {}
+function hookExportData() {
+    // Target the Export button in Danger Zone card
+    const exportBtn = document.querySelector('.settings-card:nth-child(4) .btn-save');
+    if (!exportBtn) return;
+
+    exportBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userState, null, 4));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `mindmatrix_stats_${userState.score}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    });
+}
 
 /* ══════════════════════════════════════════
    MOBILE HAMBURGER AND MENU

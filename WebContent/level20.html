@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MindMatrix – Level 20: Memory Detective &amp; Ultimate Brain Gauntlet</title>
     <meta name="description" content="Level 20 – Memory Detective & Ultimate Brain Gauntlet: The grand finale MindMatrix challenge." />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <script src="js/theme.js"></script>
-    <link rel="stylesheet" href="css/theme.css" />
+    <script src="js/theme.js?v=4.0"></script>
+    <script src="js/hint.js?v=4.0"></script>
+    <link rel="stylesheet" href="css/theme.css?v=4.0" />
     <style>
         /* ══════════════════════════════════════════
            RESET & DESIGN TOKENS (Level 1/2 Standard)
@@ -84,12 +88,7 @@
         /* ══════════════════════════════════════════
            PAGE LAYOUT & TOPBAR
         ══════════════════════════════════════════ */
-        .page-wrapper {
-            position: relative; z-index: 1;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            min-height: 100vh; padding: 24px 16px;
-        }
+        .page-wrapper { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 32px 20px; box-sizing: border-box; }
 
         .level-topbar {
             position: fixed; top: 0; left: 0; right: 0; z-index: 50;
@@ -142,8 +141,7 @@
                 0 24px 64px rgba(0,0,0,0.55),
                 0 0 80px rgba(245,158,11,0.08);
             text-align: center;
-            margin-top: 68px;
-        }
+            margin-top: 68px; margin-left: auto; margin-right: auto; }
 
         .game-state { display: none; animation: fade-up 0.35s cubic-bezier(0.22,1,0.36,1) both; }
         .game-state.active { display: block; }
@@ -350,28 +348,70 @@
             animation: pulse-glow 1.5s infinite;
         }
 
-        /* Mini-Game 2: Distraction Filter Interactive Field */
-        .distraction-field {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-            max-width: 520px; margin: 14px auto; padding: 14px;
-            background: rgba(0,0,0,0.4); border: 1.5px solid rgba(236,72,153,0.3);
-            border-radius: 18px; min-height: 220px;
+        /* Mini-Game 2: DUAL N-BACK Grid & Controls */
+        .nback-container {
+            max-width: 520px; margin: 10px auto; padding: 6px; text-align: center;
         }
-        .target-symbol-btn {
-            background: var(--bg-card); border: 2px solid var(--border);
-            border-radius: 12px; padding: 14px 8px; font-size: 24px;
-            cursor: pointer; transition: all 0.2s ease; user-select: none;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        .nback-info-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 12px; padding: 8px 14px; margin-bottom: 12px;
+            font-family: 'Outfit', system-ui, sans-serif; font-size: 13px; font-weight: 700;
+            color: rgba(240, 244, 255, 0.85);
         }
-        .target-symbol-btn:hover {
-            transform: scale(1.08); border-color: #ec4899; background: rgba(236,72,153,0.15);
+        .nback-info-pill {
+            padding: 3px 10px; border-radius: 100px;
+            background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4);
+            color: #a78bfa; font-size: 12px; font-weight: 800; letter-spacing: 0.5px;
         }
-        .target-symbol-btn.clicked-correct {
-            border-color: var(--success) !important; background: rgba(52,211,153,0.25) !important;
-            transform: scale(0.92); opacity: 0.5; pointer-events: none;
+        .nback-grid-container {
+            display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+            gap: 10px; width: 100%; max-width: 280px; aspect-ratio: 1 / 1;
+            margin: 12px auto; padding: 12px;
+            background: rgba(11, 15, 36, 0.90); border: 2px solid rgba(139, 92, 246, 0.35);
+            border-radius: 20px; box-shadow: 0 12px 36px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.6);
         }
-        .target-symbol-btn.clicked-wrong {
-            border-color: var(--error) !important; background: rgba(248,113,113,0.3) !important;
+        .nback-grid-cell {
+            background: rgba(255, 255, 255, 0.04); border: 1.5px solid rgba(255, 255, 255, 0.10);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            font-family: 'Outfit', system-ui, sans-serif; font-size: 32px; font-weight: 800;
+            color: #ffffff; transition: all 0.18s ease; user-select: none; position: relative;
+        }
+        .nback-grid-cell.active-trial {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(6, 182, 212, 0.5)) !important;
+            border-color: #a78bfa !important;
+            box-shadow: 0 0 24px rgba(167, 139, 250, 0.7), inset 0 0 14px rgba(255, 255, 255, 0.3);
+            transform: scale(1.05); color: #ffffff !important; text-shadow: 0 0 12px rgba(255,255,255,0.8);
+        }
+        .nback-answers-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+            max-width: 440px; margin: 14px auto 6px auto;
+        }
+        .nback-answer-btn {
+            background: rgba(255, 255, 255, 0.05); border: 1.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px; padding: 13px 10px;
+            font-family: 'Outfit', system-ui, sans-serif; font-size: 14px; font-weight: 700;
+            color: rgba(240, 244, 255, 0.95); cursor: pointer; transition: all 0.18s ease;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 48px;
+        }
+        .nback-answer-btn:hover:not(:disabled) {
+            background: rgba(139, 92, 246, 0.22); border-color: #a78bfa; color: #ffffff;
+            transform: translateY(-2px);
+        }
+        .nback-answer-btn:active:not(:disabled) { transform: translateY(0); }
+        .nback-answer-btn.correct-choice {
+            background: rgba(52, 211, 153, 0.28) !important; border-color: #34d399 !important;
+            color: #34d399 !important; box-shadow: 0 0 16px rgba(52, 211, 153, 0.4);
+        }
+        .nback-answer-btn.wrong-choice {
+            background: rgba(248, 113, 113, 0.28) !important; border-color: #f87171 !important;
+            color: #f87171 !important;
+        }
+        .nback-answer-btn.hint-highlight {
+            border-color: #fbbf24 !important; background: rgba(251, 191, 36, 0.25) !important;
+            color: #fbbf24 !important; box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+            animation: pulse-glow 1.5s infinite;
         }
 
         /* Mini-Game 3: Memory Switch Display */
@@ -493,15 +533,55 @@
         canvas#confetti-canvas { position: fixed; inset: 0; z-index: 250; pointer-events: none; }
 
         @media (max-width: 580px) {
-            .game-card { padding: 24px 14px; margin-top: 60px; }
-            .room-floor-grid { grid-template-columns: 1fr; }
-            .choices-grid { grid-template-columns: 1fr; }
+            .game-card { padding: 20px 14px; margin-top: 58px; width: calc(100% - 12px); border-radius: 18px; }
+            .room-floor-grid { grid-template-columns: 1fr; gap: 8px; }
+            .choices-grid { grid-template-columns: 1fr; gap: 8px; }
+            .choice-btn { width: 100%; min-height: 48px; padding: 12px 14px; touch-action: manipulation; }
             .distraction-field { grid-template-columns: repeat(3, 1fr); }
-            .intro-title { font-size: 24px; }
-            .finale-popup-card { padding: 26px 16px; border-radius: 20px; }
+            .intro-title { font-size: 22px; word-break: break-word; }
+            .finale-popup-card { padding: 22px 14px; border-radius: 18px; }
             .popup-stats-grid { grid-template-columns: 1fr; }
+            .nback-grid-container { width: 100% !important; max-width: min(280px, 75vw) !important; height: min(280px, 75vw) !important; gap: 6px !important; margin: 8px auto !important; }
+            .nback-answers-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+            .nback-answer-btn { min-height: 48px !important; font-size: 12px !important; touch-action: manipulation !important; }
+            .investigation-stage { padding: 12px; min-height: auto; }
+        }
+
+        /* ── MATH VAULT MINI-GAME STYLES ── */
+        .math-vault-badge {
+            display: inline-block; padding: 4px 10px; border-radius: 6px;
+            font-size: 11px; font-weight: 800; background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.35); color: #f59e0b;
+        }
+        .math-vault-badge.mod {
+            background: rgba(139, 92, 246, 0.18); border-color: rgba(139, 92, 246, 0.4); color: #a78bfa;
+        }
+        .math-vault-badge.rev {
+            background: rgba(236, 72, 153, 0.18); border-color: rgba(236, 72, 153, 0.4); color: #f472b6;
+        }
+        .math-vault-badge.op {
+            background: rgba(6, 182, 212, 0.18); border-color: rgba(6, 182, 212, 0.4); color: #38bdf8;
+        }
+        .math-vault-equation-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            border-radius: 18px; padding: 20px 16px; text-align: center;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+        .math-vault-prompt {
+            font-size: 13.5px; font-weight: 600; color: var(--text-sec); margin-bottom: 8px;
+        }
+        .math-vault-equation {
+            font-size: 26px; font-weight: 900; color: #fbbf24; letter-spacing: 1px;
+            font-family: monospace, sans-serif;
+            text-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+        }
+        .math-vault-choice-btn {
+            font-size: 18px; font-weight: 800; font-family: monospace, sans-serif;
         }
     </style>
+<link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050814">
 </head>
 <body>
 
@@ -510,6 +590,7 @@
 <canvas id="confetti-canvas"></canvas>
 
 <!-- Topbar (EXACTLY 2 Parts: Part 1 = Investigation Memory, Part 2 = Ultimate Brain Gauntlet) -->
+<!-- Top Bar -->
 <header class="level-topbar">
     <div class="topbar-left">
         <a href="dashboard.html" class="btn-back" id="btn-back">
@@ -517,7 +598,7 @@
             Dashboard
         </a>
         <div class="topbar-level-info">
-            <h1>Level 20 – Memory Detective</h1>
+            <h1>Level 20 – Memory Detective &amp; Ultimate Brain Gauntlet</h1>
             <span id="topbar-part-label">Part 1: Investigation Memory</span>
         </div>
     </div>
@@ -531,6 +612,7 @@
     </div>
 </header>
 
+<!-- Page Wrapper -->
 <main class="page-wrapper">
     <div class="game-card">
 
@@ -543,7 +625,7 @@
             <div class="intro-desc">
                 The ultimate final trial of MindMatrix: Master visual spatial observation in Part 1, then enter the 15-round Ultimate Brain Gauntlet across 5 unique cognitive mini-games.
             </div>
-            <button class="btn-primary" id="btn-start">
+            <button class="btn-primary" id="btn-start" onclick="if(window.startPart1) window.startPart1();">
                 ▶ Begin Part 1: Investigation Memory
             </button>
         </div>
@@ -572,7 +654,7 @@
             </div>
 
             <div class="btn-row">
-                <button class="btn-primary" id="btn-p1-ready">I'm Ready for Recall ▶</button>
+                <button class="btn-primary" id="btn-p1-ready" onclick="if(window.finishPart1Observation) window.finishPart1Observation();">I'm Ready for Recall ▶</button>
             </div>
         </div>
 
@@ -605,7 +687,7 @@
             <div class="intro-desc">
                 Brilliant observation! You passed the investigation memory trial. Prepare to enter the 5-game <strong>Ultimate Brain Gauntlet</strong>.
             </div>
-            <button class="btn-primary gauntlet-btn" id="btn-start-part2">
+            <button class="btn-primary gauntlet-btn" id="btn-start-part2" onclick="if(window.showPart2IntroPage) window.showPart2IntroPage();">
                 ⚡ Enter Ultimate Brain Gauntlet (Part 2) ▶
             </button>
         </div>
@@ -619,7 +701,7 @@
             <div class="intro-desc">
                 The ultimate final trial of MindMatrix! Conquer 15 intense rounds across 5 unique cognitive mini-games: Pattern Breaker, Dual N-Back, Interference Matrix, Speed Calculus, and Cognitive Synthesis.
             </div>
-            <button class="btn-primary gauntlet-btn" id="btn-start-p2" onclick="startGauntletPart2()">
+            <button class="btn-primary gauntlet-btn" id="btn-start-p2" onclick="if(window.startGauntletPart2) window.startGauntletPart2();">
                 ▶ Start Game
             </button>
         </div>
@@ -773,37 +855,75 @@ function startGauntletPart2() {
     startGauntletMiniGame(1, 1);
 }
 
-// ── INITIALIZATION ──
+// ── INITIALIZATION & GLOBAL BINDINGS ──
+window.showPart2IntroPage = showPart2IntroPage;
+window.startGauntletPart2 = startGauntletPart2;
+
 document.addEventListener('DOMContentLoaded', () => {
-    gid('btn-start').onclick = () => {
-        currentPart = 1;
-        startPart1();
-    };
+    const btnStart = gid('btn-start');
+    if (btnStart) {
+        btnStart.onclick = (e) => {
+            if (e) e.preventDefault();
+            if (currentPart === 1) startPart1();
+            else startGauntletPart2();
+        };
+        btnStart.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (currentPart === 1) startPart1();
+            else startGauntletPart2();
+        }, { passive: false });
+    }
 
-    gid('btn-p1-ready').onclick = finishPart1Observation;
+    const btnP1Ready = gid('btn-p1-ready');
+    if (btnP1Ready) {
+        btnP1Ready.onclick = (e) => {
+            if (e) e.preventDefault();
+            finishPart1Observation();
+        };
+        btnP1Ready.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            finishPart1Observation();
+        }, { passive: false });
+    }
 
-    gid('btn-start-part2').onclick = () => {
-        showPart2IntroPage();
-    };
+    const btnStartPart2 = gid('btn-start-part2');
+    if (btnStartPart2) {
+        btnStartPart2.onclick = (e) => {
+            if (e) e.preventDefault();
+            showPart2IntroPage();
+        };
+        btnStartPart2.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            showPart2IntroPage();
+        }, { passive: false });
+    }
 
     const btnStartP2 = gid('btn-start-p2');
     if (btnStartP2) {
-        btnStartP2.onclick = () => {
-            currentPart = 2;
-            gauntletGameIdx = 1;
-            gauntletRound = 1;
-            startGauntletMiniGame(1, 1);
+        btnStartP2.onclick = (e) => {
+            if (e) e.preventDefault();
+            startGauntletPart2();
         };
+        btnStartP2.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            startGauntletPart2();
+        }, { passive: false });
     }
 
-    gid('btn-next-minigame').onclick = () => {
-        gauntletGameIdx += 1;
-        gauntletRound = 1;
-        startGauntletMiniGame(gauntletGameIdx, 1);
-    };
-
-    if (sessionStorage.getItem('mm_lvl20_part1_done') === 'true') {
-        showPart2IntroPage();
+    const btnNextMg = gid('btn-next-minigame');
+    if (btnNextMg) {
+        btnNextMg.onclick = (e) => {
+            if (e) e.preventDefault();
+            gauntletGameIdx += 1;
+            gauntletRound = 1;
+            startGauntletMiniGame(gauntletGameIdx, 1);
+        };
+        btnNextMg.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            gauntletGameIdx += 1;
+            gauntletRound = 1;
+            startGauntletMiniGame(gauntletGameIdx, 1);
+        }, { passive: false });
     }
 
     if (typeof initHintSystem === 'function') {
@@ -817,51 +937,80 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ═══════════════════════════════════════════════════════════════
    PART 1 – INVESTIGATION MEMORY (15s Observation + 6 Questions)
    ═══════════════════════════════════════════════════════════════ */
-const SHIRT_COLORS = ['Blue', 'Red', 'Black', 'Green', 'Yellow', 'White', 'Purple', 'Grey'];
-const BAG_COLORS = ['Red', 'Brown', 'Black', 'Navy Blue', 'Emerald', 'Golden'];
-const NOTEBOOK_COLORS = ['Green', 'Blue', 'Black', 'Crimson', 'Orange'];
-const CUP_COLORS = ['Yellow', 'White', 'Blue', 'Red', 'Ceramic'];
-const WITNESS_ITEMS = ['Newspaper', 'Menu', 'Water Glass', 'Folder', 'Envelope'];
+/* ═══════════════════════════════════════════════════════════════
+   PART 1 – DYNAMIC INVESTIGATION MEMORY (15s Observation + 6 Questions)
+   ═══════════════════════════════════════════════════════════════ */
+const LOCATIONS = ['Downtown Café', 'Grand Hotel Lobby', 'Art Museum Lounge', 'Airport VIP Club', 'Metropolitan Library', 'Central Station Bistro'];
+const SHIRT_COLORS = ['Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Black', 'White', 'Emerald', 'Crimson'];
+const JACKET_COLORS = ['Navy', 'Grey', 'Brown', 'Black Leather', 'Beige', 'Maroon', 'Olive', 'Charcoal'];
+const BAG_TYPES = ['Handbag', 'Briefcase', 'Backpack', 'Satchel', 'Portfolio Case', 'Clutch'];
+const BAG_COLORS = ['Red', 'Brown', 'Black', 'Navy Blue', 'Emerald', 'Golden', 'Tan'];
+const NOTEBOOK_COLORS = ['Crimson', 'Blue', 'Black', 'Green', 'Orange', 'Purple'];
+const CUP_TYPES = ['Coffee Mug', 'Tea Cup', 'Iced Glass', 'Espresso Cup', 'Ceramic Goblet'];
+const CUP_COLORS = ['Yellow', 'White', 'Blue', 'Red', 'Emerald', 'Black'];
+const WITNESS_ITEMS = ['Newspaper', 'Restaurant Menu', 'Water Glass', 'Confidential Folder', 'Sealed Envelope', 'Guest Ledger'];
+const STAFF_TITLES = ['Waiter in White Shirt', 'Barista in Black Apron', 'Manager in Blue Suit', 'Concierge in Red Vest'];
 
 function startPart1() {
+    window.startPart1 = startPart1;
     if (activeTimer) clearInterval(activeTimer);
     isLocked = false;
     part1Score = 0;
     updatePartIndicator(1);
 
-    // Procedurally generate rich investigation scenario
     const randChoice = (arr) => arr[Math.floor(Math.random() * arr.length)];
     const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
+    // 1. Scene Setting & Time
+    const sceneLoc = randChoice(LOCATIONS);
+    const clockHour = randInt(1, 12);
+    const clockMinArr = ['00', '15', '30', '45'];
+    const clockMin = randChoice(clockMinArr);
+    const clockAmPm = randChoice(['AM', 'PM']);
+    const clockStr = `${clockHour}:${clockMin} ${clockAmPm}`;
+
+    // 2. Table Assignment
+    const wTable = randInt(1, 4);
+    let mTable = randInt(5, 9);
+    while (mTable === wTable) mTable = randInt(5, 9);
+
+    // 3. Characters & Attire
     const wShirt = randChoice(SHIRT_COLORS);
-    const mJacket = randChoice(SHIRT_COLORS.filter(c => c !== wShirt));
+    const mJacket = randChoice(JACKET_COLORS);
+    const staffDesc = randChoice(STAFF_TITLES);
+
+    // 4. Objects
+    const bagType = randChoice(BAG_TYPES);
     const bagColor = randChoice(BAG_COLORS);
+    const bagLabel = `${bagColor} ${bagType}`;
     const nbColor = randChoice(NOTEBOOK_COLORS);
+    const nbLabel = `${nbColor} Notebook`;
+    const cupType = randChoice(CUP_TYPES);
     const cupColor = randChoice(CUP_COLORS);
+    const cupLabel = `${cupColor} ${cupType}`;
     const wItem = randChoice(WITNESS_ITEMS);
 
-    const wTable = randInt(2, 5);
-    let mTable = randInt(6, 9);
-    while (mTable === wTable) mTable = randInt(6, 9);
-
-    const clockHour = randInt(5, 9);
-    const clockMin = (Math.random() > 0.5) ? '30' : '45';
-    const clockStr = `${clockHour}:${clockMin} PM`;
-
-    const keyNum = randInt(1, 9);
+    const keyTypes = ['Master Keycard', 'Brass Key', 'Silver Passcard', 'Gold Badge'];
+    const keyChoice = randChoice(keyTypes);
+    const keyNum = randInt(1, 15);
+    const keyLabel = `${keyChoice} #${keyNum}`;
 
     p1Scenario = {
-        wShirt, mJacket, bagColor, nbColor, cupColor, wItem,
-        wTable, mTable, clockHour, clockMin, clockStr, keyNum,
+        sceneLoc, clockStr, wTable, mTable,
+        wShirt, mJacket, staffDesc,
+        bagLabel, bagColor, bagType,
+        nbLabel, nbColor,
+        cupLabel, cupColor, cupType,
+        wItem, keyLabel, keyNum,
         zones: [
             {
                 name: `Table ${wTable}`,
                 avatar: '👩',
                 avatarDesc: `Woman in ${wShirt} Shirt`,
                 items: [
-                    { icon: '👜', label: `${bagColor} Handbag` },
-                    { icon: '📗', label: `${nbColor} Notebook` },
-                    { icon: '☕', label: `${cupColor} Cup` }
+                    { icon: '👜', label: bagLabel },
+                    { icon: '📗', label: nbLabel },
+                    { icon: '☕', label: cupLabel }
                 ]
             },
             {
@@ -869,7 +1018,7 @@ function startPart1() {
                 avatar: '👨',
                 avatarDesc: `Man in ${mJacket} Jacket`,
                 items: [
-                    { icon: '🔑', label: `Master Key #${keyNum}` },
+                    { icon: '🔑', label: keyLabel },
                     { icon: '💼', label: 'Briefcase' }
                 ]
             },
@@ -885,7 +1034,7 @@ function startPart1() {
             {
                 name: 'Service Counter',
                 avatar: '🤵',
-                avatarDesc: 'Waiter in White Shirt',
+                avatarDesc: staffDesc,
                 items: [
                     { icon: '📰', label: `Holding ${wItem}` },
                     { icon: '🔔', label: 'Service Bell' }
@@ -894,8 +1043,10 @@ function startPart1() {
         ]
     };
 
-    // Render Part 1 Scene
+    // Render Location & Clock
+    gid('p1-location-tag').textContent = `🏛️ Crime Scene • ${sceneLoc}`;
     gid('p1-clock-badge').textContent = `⏰ ${clockStr}`;
+
     const floor = gid('p1-room-floor-grid');
     floor.innerHTML = '';
 
@@ -926,7 +1077,6 @@ function startPart1() {
     gid('p1-memo-timer-bar').style.width = '100%';
     showState('state-p1-memo');
 
-    // 15 Seconds Observation Timer
     let timeLeft = 15;
     activeTimer = setInterval(() => {
         timeLeft -= 0.1;
@@ -942,6 +1092,7 @@ function startPart1() {
 }
 
 function finishPart1Observation() {
+    window.finishPart1Observation = finishPart1Observation;
     if (activeTimer) clearInterval(activeTimer);
     generatePart1Questions();
     showState('state-p1-questions');
@@ -950,21 +1101,71 @@ function finishPart1Observation() {
 
 function generatePart1Questions() {
     const s = p1Scenario;
+
     const generateChoices = (ans, pool) => {
         const set = new Set([ans]);
         const sh = [...pool].sort(() => Math.random() - 0.5);
-        for (let it of sh) { set.add(it); if (set.size === 4) break; }
+        for (let it of sh) {
+            if (it !== ans && !set.has(it)) {
+                set.add(it);
+                if (set.size === 4) break;
+            }
+        }
         return Array.from(set).sort(() => Math.random() - 0.5);
     };
 
-    p1Questions = [
-        { type: 'CHARACTER MEMORY', prompt: 'What color shirt was the woman wearing?', answer: `${s.wShirt} Shirt`, options: generateChoices(`${s.wShirt} Shirt`, SHIRT_COLORS.map(c => `${c} Shirt`)) },
-        { type: 'SPATIAL RECALL', prompt: 'Which table was the woman sitting at?', answer: `Table ${s.wTable}`, options: generateChoices(`Table ${s.wTable}`, [2,3,4,5,6,7].map(n => `Table ${n}`)) },
-        { type: 'OBJECT IDENTIFICATION', prompt: "What color was the handbag on the woman's table?", answer: s.bagColor, options: generateChoices(s.bagColor, BAG_COLORS) },
-        { type: 'TEMPORAL RECALL', prompt: 'What time was shown on the scene wall clock?', answer: s.clockStr, options: generateChoices(s.clockStr, ['5:30 PM', '6:30 PM', '6:45 PM', '7:30 PM', '7:45 PM']) },
-        { type: 'WITNESS ACTION', prompt: 'What item was the waiter holding near the counter?', answer: s.wItem, options: generateChoices(s.wItem, WITNESS_ITEMS) },
-        { type: 'SECONDARY POSITION', prompt: `What table was the man in the ${s.mJacket} jacket sitting at?`, answer: `Table ${s.mTable}`, options: generateChoices(`Table ${s.mTable}`, [4,5,6,7,8,9].map(n => `Table ${n}`)) }
-    ].sort(() => Math.random() - 0.5);
+    const questionPool = [
+        {
+            type: 'CHARACTER MEMORY',
+            prompt: 'What color shirt was the woman wearing?',
+            answer: `${s.wShirt} Shirt`,
+            options: generateChoices(`${s.wShirt} Shirt`, SHIRT_COLORS.map(c => `${c} Shirt`))
+        },
+        {
+            type: 'SPATIAL RECALL',
+            prompt: 'Which table was the woman sitting at?',
+            answer: `Table ${s.wTable}`,
+            options: generateChoices(`Table ${s.wTable}`, [1, 2, 3, 4, 5, 6].map(n => `Table ${n}`))
+        },
+        {
+            type: 'OBJECT IDENTIFICATION',
+            prompt: `What item was on Table ${s.wTable}?`,
+            answer: s.bagLabel,
+            options: generateChoices(s.bagLabel, BAG_COLORS.map(c => `${c} ${s.bagType}`))
+        },
+        {
+            type: 'TEMPORAL RECALL',
+            prompt: 'What time was displayed on the wall clock?',
+            answer: s.clockStr,
+            options: generateChoices(s.clockStr, ['5:15 PM', '6:30 PM', '7:45 PM', '8:00 AM', '9:30 AM', '10:15 PM', '4:30 PM'])
+        },
+        {
+            type: 'WITNESS ACTION',
+            prompt: 'What item was being held at the Service Counter?',
+            answer: s.wItem,
+            options: generateChoices(s.wItem, WITNESS_ITEMS)
+        },
+        {
+            type: 'SECONDARY POSITION',
+            prompt: `Which table was the man in the ${s.mJacket} jacket sitting at?`,
+            answer: `Table ${s.mTable}`,
+            options: generateChoices(`Table ${s.mTable}`, [4, 5, 6, 7, 8, 9].map(n => `Table ${n}`))
+        },
+        {
+            type: 'KEY RECALL',
+            prompt: `What key/passcard item was on Table ${s.mTable}?`,
+            answer: s.keyLabel,
+            options: generateChoices(s.keyLabel, [1, 3, 5, 7, 9, 12, 15].map(num => `Master Keycard #${num}`))
+        },
+        {
+            type: 'LOCATION MEMORY',
+            prompt: 'Where was this investigation crime scene located?',
+            answer: s.sceneLoc,
+            options: generateChoices(s.sceneLoc, LOCATIONS)
+        }
+    ];
+
+    p1Questions = questionPool.sort(() => Math.random() - 0.5).slice(0, 6);
 }
 
 function loadPart1Question(qIdx) {
@@ -984,8 +1185,16 @@ function loadPart1Question(qIdx) {
     q.options.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'choice-btn';
+        btn.style.touchAction = 'manipulation';
         btn.innerHTML = `<span>▶</span> <span>${opt}</span>`;
-        btn.onclick = () => onPart1Answer(opt, q.answer, btn);
+        btn.onclick = (e) => {
+            if (e) e.preventDefault();
+            onPart1Answer(opt, q.answer, btn);
+        };
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            onPart1Answer(opt, q.answer, btn);
+        }, { passive: false });
         container.appendChild(btn);
     });
 
@@ -1001,8 +1210,7 @@ function loadPart1Question(qIdx) {
 
         if (timeLeft <= 0) {
             clearInterval(activeTimer);
-            showToast('p1-q-toast', '⏱ Time Out! Restarting Part 1…', false);
-            setTimeout(startPart1, 1400);
+            triggerPart1Incorrect();
         }
     }, 100);
 }
@@ -1012,33 +1220,56 @@ function onPart1Answer(selected, correct, btnEl) {
     isLocked = true;
     if (activeTimer) clearInterval(activeTimer);
 
-    if (selected === correct) {
-        btnEl.classList.add('correct');
-        showToast('p1-q-toast', '✓ CORRECT EVIDENCE RECALL!', true);
+    const isCorrect = (selected === correct);
+
+    if (isCorrect) {
+        if (btnEl) btnEl.classList.add('correct');
         part1Score += Math.round(40 / 6); // ~7 pts
 
         setTimeout(() => {
             if (p1QuestionIdx + 1 < p1Questions.length) {
                 loadPart1Question(p1QuestionIdx + 1);
             } else {
-                    sessionStorage.setItem('mm_lvl20_part1_done', 'true');
-                    showPartCompletion({
-                        part: 1,
-                        totalParts: 2,
-                        score: 40,
-                        title: 'Correct!',
-                        message: 'Brilliant observation! You passed the investigation memory trial. Ready for the Ultimate Brain Gauntlet?',
-                        buttonText: 'Continue to Part 2 ▶',
-                        onContinue: () => {
-                            showPart2IntroPage();
-                        }
-                    });
+                // Completed all 6 questions -> Part 1 Complete
+                sessionStorage.setItem('mm_lvl20_part1_done', 'true');
+                const finalP1Score = Math.max(10, Math.min(40, Math.round(part1Score)));
+                showPartCompletion({
+                    part: 1,
+                    totalParts: 2,
+                    score: finalP1Score,
+                    title: 'Part 1 Complete!',
+                    message: 'Brilliant observation! You passed the investigation memory trial. Ready for the Ultimate Brain Gauntlet?',
+                    buttonText: 'Continue to Part 2 ▶',
+                    onContinue: () => {
+                        showPart2IntroPage();
+                    }
+                });
             }
-        }, 650);
+        }, 500);
     } else {
-        btnEl.classList.add('wrong');
-        showToast('p1-q-toast', '❌ Incorrect! Restarting Part 1…', false);
-        setTimeout(startPart1, 1600);
+        // WRONG ANSWER:
+        // Show Incorrect / Try Again popup.
+        // Clicking Try Again starts a NEW randomized arrangement (startPart1()).
+        triggerPart1Incorrect();
+    }
+}
+
+function triggerPart1Incorrect() {
+    if (activeTimer) clearInterval(activeTimer);
+    isLocked = true;
+    if (typeof showIncorrectModal === 'function') {
+        showIncorrectModal({
+            title: 'Incorrect!',
+            message: 'Evidence recall failed. Try again to start a new investigation.',
+            buttonText: 'Try Again',
+            score: 0,
+            progressLabel: 'Part 1/2',
+            onTryAgain: () => {
+                startPart1();
+            }
+        });
+    } else {
+        startPart1();
     }
 }
 
@@ -1047,7 +1278,7 @@ function onPart1Answer(selected, correct, btnEl) {
    ═══════════════════════════════════════════════════════════════ */
 const GAUNTLET_GAMES = [
     { id: 1, name: 'PATTERN BREAKER', ptsPerRound: 3.33, timer: 15 },
-    { id: 2, name: 'DISTRACTION FILTER', ptsPerRound: 3.33, timer: 20 },
+    { id: 2, name: 'MATH VAULT', ptsPerRound: 3.33, timer: 12 },
     { id: 3, name: 'MEMORY SWITCH', ptsPerRound: 3.33, timer: 12 },
     { id: 4, name: 'RULE STACK', ptsPerRound: 4.0, timer: 25 },
     { id: 5, name: 'LOGIC LOCK (BOSS)', ptsPerRound: 6.0, timer: 40 }
@@ -1061,18 +1292,19 @@ function startGauntletMiniGame(gameIdx, roundNum) {
     updatePartIndicator(2);
 
     const game = GAUNTLET_GAMES[gameIdx - 1];
-    const diffNames = ['EASY', 'HARDER', 'EXTREME'];
+    const diffNames = gameIdx === 2 ? ['BASIC CHAIN', 'MODIFIER CHAIN', 'FINAL BOSS CHAIN'] : ['EASY', 'HARDER', 'EXTREME'];
+    const currentTimer = (gameIdx === 2) ? (roundNum === 1 ? 12 : (roundNum === 2 ? 18 : 22)) : game.timer;
 
     gid('gauntlet-stage-badge').textContent = `⚡ MINI-GAME ${gameIdx}/5 • ${game.name}`;
     gid('gauntlet-round-title').textContent = `ROUND ${roundNum}/3 (${diffNames[roundNum - 1]})`;
-    gid('gauntlet-timer-val').textContent = game.timer;
+    gid('gauntlet-timer-val').textContent = currentTimer;
     gid('gauntlet-timer-bar').style.width = '100%';
     hideToast('gauntlet-toast');
 
     showState('state-gauntlet-play');
 
     if (gameIdx === 1) buildPatternBreakerPuzzle(roundNum, game.timer);
-    else if (gameIdx === 2) buildDistractionFilterPuzzle(roundNum, game.timer);
+    else if (gameIdx === 2) buildMathVaultPuzzle(roundNum, currentTimer);
     else if (gameIdx === 3) buildMemorySwitchPuzzle(roundNum, game.timer);
     else if (gameIdx === 4) buildRuleStackPuzzle(roundNum, game.timer);
     else if (gameIdx === 5) buildLogicLockPuzzle(roundNum, game.timer);
@@ -1121,47 +1353,49 @@ function showMiniGameTransition(completedGame, nextGame) {
 
 function handleGauntletFail(msg) {
     isLocked = true;
-    showToast('gauntlet-toast', msg || '❌ Trial Failed! Restarting round…', false);
+    showToast('gauntlet-toast', msg || '❌ Trial Failed! Restarting from Round 1…', false);
     setTimeout(() => {
-        startGauntletMiniGame(gauntletGameIdx, gauntletRound);
+        mathVaultState = null;
+        startGauntletMiniGame(gauntletGameIdx, 1);
     }, 1500);
 }
 
 /* ─────────────────────────────────────────────────────────────
    MINI-GAME 1: PATTERN BREAKER
    ───────────────────────────────────────────────────────────── */
+let gauntletPatternCurrent = null;
+
 function buildPatternBreakerPuzzle(round, timerSecs) {
     const canvas = gid('gauntlet-game-canvas');
     canvas.innerHTML = '';
 
     const shapes = ['▲', '▶', '▼', '◀'];
-    const colors = ['🔴', '🔵', '🟢', '🟡', '🟣', '🔶'];
+    const colors = ['🔴', '🔵', '🟢', '🟡', '🟣', '🔶'].sort(() => Math.random() - 0.5);
 
     let seq = [];
     let correctNext = '';
     let choices = [];
 
     if (round === 1) {
-        // Simple shape rotation
-        const startIdx = Math.floor(Math.random() * 4);
+        const startIdx = Math.floor(Math.random() * 8);
         seq = [shapes[startIdx % 4], shapes[(startIdx + 1) % 4], shapes[(startIdx + 2) % 4], shapes[(startIdx + 3) % 4]];
         correctNext = shapes[(startIdx + 4) % 4];
         choices = [correctNext, shapes[(startIdx + 2) % 4], shapes[(startIdx + 1) % 4], '★'].sort(() => Math.random() - 0.5);
     } else if (round === 2) {
-        // Shape + Count shift
         const baseSh = shapes[Math.floor(Math.random() * 4)];
-        seq = [`${baseSh} 1`, `${baseSh} 2`, `${baseSh} 4`, `${baseSh} 8`];
-        correctNext = `${baseSh} 16`;
-        choices = [correctNext, `${baseSh} 12`, `${baseSh} 10`, `${baseSh} 14`].sort(() => Math.random() - 0.5);
+        const mult = Math.random() > 0.5 ? 2 : 3;
+        seq = [`${baseSh} 1`, `${baseSh} ${mult}`, `${baseSh} ${mult * mult}`, `${baseSh} ${mult * mult * mult}`];
+        correctNext = `${baseSh} ${mult * mult * mult * mult}`;
+        choices = [correctNext, `${baseSh} ${mult * mult * 3}`, `${baseSh} ${mult * 10}`, `${baseSh} ${mult * mult + 1}`].sort(() => Math.random() - 0.5);
     } else {
-        // Multi-color alternate rotation
         const c1 = colors[0]; const c2 = colors[1];
-        seq = [`${c1} ▲`, `${c2} ▶`, `${c1} ▼`, `${c2} ◀`];
-        correctNext = `${c1} ▲`;
-        choices = [correctNext, `${c2} ▲`, `${c1} ◀`, `${c2} ▼`].sort(() => Math.random() - 0.5);
+        const rotStart = Math.floor(Math.random() * 4);
+        seq = [`${c1} ${shapes[rotStart % 4]}`, `${c2} ${shapes[(rotStart + 1) % 4]}`, `${c1} ${shapes[(rotStart + 2) % 4]}`, `${c2} ${shapes[(rotStart + 3) % 4]}`];
+        correctNext = `${c1} ${shapes[(rotStart + 4) % 4]}`;
+        choices = [correctNext, `${c2} ${shapes[(rotStart + 4) % 4]}`, `${c1} ${shapes[(rotStart + 3) % 4]}`, `${c2} ${shapes[(rotStart + 2) % 4]}`].sort(() => Math.random() - 0.5);
     }
 
-    gauntletCurrentPuzzle = { correctNext };
+    gauntletPatternCurrent = { correctNext };
 
     let chipsHtml = '';
     seq.forEach(s => chipsHtml += `<div class="pattern-item-chip">${s}</div>`);
@@ -1202,112 +1436,404 @@ function buildPatternBreakerPuzzle(round, timerSecs) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   MINI-GAME 2: DISTRACTION FILTER
+   MINI-GAME 2: MATH VAULT
    ───────────────────────────────────────────────────────────── */
-function buildDistractionFilterPuzzle(round, timerSecs) {
+let mathVaultState = null;
+
+function generateMathVaultQuestions(round) {
+    function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+    function reverseNum(n) {
+        const s = String(Math.abs(n));
+        const rev = parseInt(s.split('').reverse().join(''), 10);
+        return rev;
+    }
+
+    let questions = [];
+
+    if (round === 1) {
+        let a1 = randInt(10, 25);
+        let op1 = Math.random() > 0.5 ? '+' : '-';
+        let v1 = randInt(3, 12);
+        let ans1 = op1 === '+' ? a1 + v1 : a1 - v1;
+        if (ans1 <= 0) ans1 = a1 + v1;
+        let c1 = shuffle(Array.from(new Set([ans1, ans1 + randInt(2, 4), Math.max(1, ans1 - randInt(2, 4)), ans1 + randInt(5, 8)])));
+
+        let op2 = ['+', '-', '×'][randInt(0, 2)];
+        let v2 = op2 === '×' ? randInt(2, 4) : randInt(3, 10);
+        let ans2 = op2 === '+' ? ans1 + v2 : (op2 === '-' ? ans1 - v2 : ans1 * v2);
+        if (ans2 <= 0) { op2 = '+'; ans2 = ans1 + v2; }
+        let c2 = shuffle(Array.from(new Set([ans2, ans2 + randInt(2, 5), Math.max(1, ans2 - randInt(2, 4)), ans2 + randInt(6, 9)])));
+
+        let op3 = ['+', '-', '×'][randInt(0, 2)];
+        let v3 = op3 === '×' ? randInt(2, 3) : randInt(4, 12);
+        let ans3 = op3 === '+' ? ans2 + v3 : (op3 === '-' ? ans2 - v3 : ans2 * v3);
+        if (ans3 <= 0) { op3 = '+'; ans3 = ans2 + v3; }
+        let c3 = shuffle(Array.from(new Set([ans3, ans3 + randInt(3, 6), Math.max(1, ans3 - randInt(3, 5)), ans3 + randInt(7, 10)])));
+
+        questions = [
+            {
+                qNum: 1,
+                promptText: "Solve Q1 to unlock starting value for Q2:",
+                equationDisplay: `${a1} ${op1} ${v1} = ?`,
+                calcExpr: `${a1} ${op1} ${v1}`,
+                correctAnswer: ans1,
+                isModifier: false, isReverse: false, isHiddenOp: false,
+                choices: c1
+            },
+            {
+                qNum: 2,
+                promptText: `Use Q1 answer (${ans1}) as starting number:`,
+                equationDisplay: `${ans1} ${op2} ${v2} = ?`,
+                calcExpr: `${ans1} ${op2} ${v2}`,
+                correctAnswer: ans2,
+                isModifier: false, isReverse: false, isHiddenOp: false,
+                choices: c2
+            },
+            {
+                qNum: 3,
+                promptText: `Use Q2 answer (${ans2}) as starting number:`,
+                equationDisplay: `${ans2} ${op3} ${v3} = ?`,
+                calcExpr: `${ans2} ${op3} ${v3}`,
+                correctAnswer: ans3,
+                isModifier: false, isReverse: false, isHiddenOp: false,
+                choices: c3
+            }
+        ];
+    } else if (round === 2) {
+        let curr = randInt(10, 20);
+
+        let op1 = Math.random() > 0.5 ? '+' : '-';
+        let v1 = randInt(3, 9);
+        let ans1 = op1 === '+' ? curr + v1 : curr - v1;
+        if (ans1 <= 0) ans1 = curr + v1;
+        let c1 = shuffle(Array.from(new Set([ans1, ans1 + 2, Math.max(1, ans1 - 2), ans1 + 4])));
+
+        let op2 = Math.random() > 0.5 ? '+' : '-';
+        let v2 = randInt(2, 7);
+        let base2 = op2 === '+' ? ans1 + v2 : ans1 - v2;
+        if (base2 <= 0) base2 = ans1 + v2;
+        let ans2 = base2 + 5;
+        let c2 = shuffle(Array.from(new Set([ans2, base2, ans2 + 3, Math.max(1, ans2 - 4)])));
+
+        let op3 = Math.random() > 0.5 ? '+' : '-';
+        let v3 = randInt(4, 10);
+        let ans3 = op3 === '+' ? ans2 + v3 : ans2 - v3;
+        if (ans3 <= 0) ans3 = ans2 + v3;
+        let c3 = shuffle(Array.from(new Set([ans3, ans3 + 2, Math.max(1, ans3 - 3), ans3 + 5])));
+
+        let op4 = Math.random() > 0.5 ? '+' : '-';
+        let v4 = randInt(3, 8);
+        let base4 = op4 === '+' ? ans3 + v4 : ans3 - v4;
+        if (base4 <= 0) base4 = ans3 + v4;
+        let ans4 = base4 + 5;
+        let c4 = shuffle(Array.from(new Set([ans4, base4, ans4 + 3, Math.max(1, ans4 - 3)])));
+
+        let op5 = Math.random() > 0.5 ? '+' : '-';
+        let v5 = randInt(3, 9);
+        let ans5 = op5 === '+' ? ans4 + v5 : ans4 - v5;
+        if (ans5 <= 0) ans5 = ans4 + v5;
+        let c5 = shuffle(Array.from(new Set([ans5, ans5 + 3, Math.max(1, ans5 - 2), ans5 + 6])));
+
+        let op6 = Math.random() > 0.5 ? '+' : '-';
+        let v6 = randInt(3, 10);
+        let base6 = op6 === '+' ? ans5 + v6 : ans5 - v6;
+        if (base6 <= 0) base6 = ans5 + v6;
+        let ans6 = base6 + 5;
+        let c6 = shuffle(Array.from(new Set([ans6, base6, ans6 + 4, Math.max(1, ans6 - 5)])));
+
+        questions = [
+            { qNum: 1, promptText: "Question 1/6 (Basic Chain Start):", equationDisplay: `${curr} ${op1} ${v1} = ?`, correctAnswer: ans1, isModifier: false, isReverse: false, isHiddenOp: false, choices: c1 },
+            { qNum: 2, promptText: "Question 2/6 (⚡ +5 MODIFIER APPLIED!):", equationDisplay: `(${ans1} ${op2} ${v2}) + 5 = ?`, correctAnswer: ans2, isModifier: true, modifierVal: 5, isReverse: false, isHiddenOp: false, choices: c2 },
+            { qNum: 3, promptText: `Question 3/6 (Use previous final answer ${ans2}):`, equationDisplay: `${ans2} ${op3} ${v3} = ?`, correctAnswer: ans3, isModifier: false, isReverse: false, isHiddenOp: false, choices: c3 },
+            { qNum: 4, promptText: "Question 4/6 (⚡ +5 MODIFIER APPLIED!):", equationDisplay: `(${ans3} ${op4} ${v4}) + 5 = ?`, correctAnswer: ans4, isModifier: true, modifierVal: 5, isReverse: false, isHiddenOp: false, choices: c4 },
+            { qNum: 5, promptText: `Question 5/6 (Use previous final answer ${ans4}):`, equationDisplay: `${ans4} ${op5} ${v5} = ?`, correctAnswer: ans5, isModifier: false, isReverse: false, isHiddenOp: false, choices: c5 },
+            { qNum: 6, promptText: "Question 6/6 (⚡ +5 MODIFIER APPLIED!):", equationDisplay: `(${ans5} ${op6} ${v6}) + 5 = ?`, correctAnswer: ans6, isModifier: true, modifierVal: 5, isReverse: false, isHiddenOp: false, choices: c6 }
+        ];
+    } else {
+        let curr = randInt(15, 30);
+
+        let op1 = Math.random() > 0.5 ? '+' : '-';
+        let v1 = randInt(4, 12);
+        let ans1 = op1 === '+' ? curr + v1 : curr - v1;
+        if (ans1 <= 0) ans1 = curr + v1;
+        let c1 = shuffle(Array.from(new Set([ans1, ans1 + 2, Math.max(1, ans1 - 3), ans1 + 5])));
+
+        let op2 = Math.random() > 0.5 ? '+' : '-';
+        let v2 = randInt(3, 10);
+        let ans2 = op2 === '+' ? ans1 + v2 : ans1 - v2;
+        if (ans2 <= 0) ans2 = ans1 + v2;
+        let c2 = shuffle(Array.from(new Set([ans2, ans2 + 3, Math.max(1, ans2 - 2), ans2 + 6])));
+
+        let op3 = Math.random() > 0.5 ? '+' : '-';
+        let v3 = randInt(5, 15);
+        let base3 = op3 === '+' ? ans2 + v3 : ans2 - v3;
+        if (base3 < 12 || base3 % 11 === 0) { op3 = '+'; v3 = 14; base3 = ans2 + 14; }
+        let ans3 = reverseNum(base3);
+        let c3 = shuffle(Array.from(new Set([ans3, base3, ans3 + 3, Math.max(1, ans3 - 5)])));
+
+        const ops = ['+', '-', '×'];
+        let op4 = ops[randInt(0, 2)];
+        let v4 = op4 === '×' ? randInt(2, 3) : randInt(4, 12);
+        let res4 = op4 === '+' ? ans3 + v4 : (op4 === '-' ? ans3 - v4 : ans3 * v4);
+        if (res4 <= 0) { op4 = '+'; res4 = ans3 + v4; }
+
+        let op5 = Math.random() > 0.5 ? '+' : '-';
+        let v5 = randInt(3, 12);
+        let ans5 = op5 === '+' ? res4 + v5 : res4 - v5;
+        if (ans5 <= 0) ans5 = res4 + v5;
+        let c5 = shuffle(Array.from(new Set([ans5, ans5 + 4, Math.max(1, ans5 - 3), ans5 + 7])));
+
+        let op6 = Math.random() > 0.5 ? '+' : '-';
+        let v6 = randInt(6, 16);
+        let base6 = op6 === '+' ? ans5 + v6 : ans5 - v6;
+        if (base6 < 12 || base6 % 11 === 0) { op6 = '+'; v6 = 15; base6 = ans5 + 15; }
+        let ans6 = reverseNum(base6);
+        let c6 = shuffle(Array.from(new Set([ans6, base6, ans6 + 5, Math.max(1, ans6 - 4)])));
+
+        let op7 = Math.random() > 0.5 ? '+' : '-';
+        let v7 = randInt(5, 15);
+        let ans7 = op7 === '+' ? ans6 + v7 : ans6 - v7;
+        if (ans7 <= 0) ans7 = ans6 + v7;
+        let c7 = shuffle(Array.from(new Set([ans7, ans7 + 3, Math.max(1, ans7 - 4), ans7 + 6])));
+
+        let op8 = ops[randInt(0, 2)];
+        let v8 = op8 === '×' ? randInt(2, 3) : randInt(3, 10);
+        let res8 = op8 === '+' ? ans7 + v8 : (op8 === '-' ? ans7 - v8 : ans7 * v8);
+        if (res8 <= 0) { op8 = '+'; res8 = ans7 + v8; }
+
+        questions = [
+            { qNum: 1, promptText: `Question 1/8 (Starting value: ${curr}):`, equationDisplay: `${curr} ${op1} ${v1} = ?`, correctAnswer: ans1, isModifier: false, isReverse: false, isHiddenOp: false, choices: c1 },
+            { qNum: 2, promptText: `Question 2/8 (Use previous answer ${ans1}):`, equationDisplay: `${ans1} ${op2} ${v2} = ?`, correctAnswer: ans2, isModifier: false, isReverse: false, isHiddenOp: false, choices: c2 },
+            { qNum: 3, promptText: "Question 3/8 (🔄 REVERSE ANSWER RULE!):", equationDisplay: `${ans2} ${op3} ${v3} = ${base3} ➔ REVERSED = ?`, correctAnswer: ans3, baseResult: base3, isModifier: false, isReverse: true, isHiddenOp: false, choices: c3 },
+            { qNum: 4, promptText: "Question 4/8 (❓ HIDDEN OPERATOR RULE!):", equationDisplay: `${ans3}  ?  ${v4} = ${res4}`, correctAnswer: op4, operator: op4, isModifier: false, isReverse: false, isHiddenOp: true, choices: ['+', '-', '×', '÷'] },
+            { qNum: 5, promptText: `Question 5/8 (Use previous final answer ${res4}):`, equationDisplay: `${res4} ${op5} ${v5} = ?`, correctAnswer: ans5, isModifier: false, isReverse: false, isHiddenOp: false, choices: c5 },
+            { qNum: 6, promptText: "Question 6/8 (🔄 REVERSE ANSWER RULE!):", equationDisplay: `${ans5} ${op6} ${v6} = ${base6} ➔ REVERSED = ?`, correctAnswer: ans6, baseResult: base6, isModifier: false, isReverse: true, isHiddenOp: false, choices: c6 },
+            { qNum: 7, promptText: `Question 7/8 (Use previous final answer ${ans6}):`, equationDisplay: `${ans6} ${op7} ${v7} = ?`, correctAnswer: ans7, isModifier: false, isReverse: false, isHiddenOp: false, choices: c7 },
+            { qNum: 8, promptText: "Question 8/8 (❓ HIDDEN OPERATOR RULE!):", equationDisplay: `${ans7}  ?  ${v8} = ${res8}`, correctAnswer: op8, operator: op8, isModifier: false, isReverse: false, isHiddenOp: true, choices: ['+', '-', '×', '÷'] }
+        ];
+    }
+    return questions;
+}
+
+function buildMathVaultPuzzle(round, timerSecs) {
     const canvas = gid('gauntlet-game-canvas');
     canvas.innerHTML = '';
 
-    let targetRuleText = "Click all BLUE TRIANGLES (🔵 ▲)";
-    let isTarget = (it) => it.color === '🔵' && it.shape === '▲';
-    if (round === 2) {
-        targetRuleText = "Click all YELLOW STARS with NUMBER (🟡 ★ #)";
-        isTarget = (it) => it.color === '🟡' && it.shape === '★';
-    } else if (round === 3) {
-        targetRuleText = "Click all RED DIAMONDS (🔴 ◆)";
-        isTarget = (it) => it.color === '🔴' && it.shape === '◆';
-    }
+    if (activeTimer) clearInterval(activeTimer);
+    isLocked = false;
 
-    // Generate 12 items (exactly 4 targets, 8 distractors)
-    const allShapes = ['▲', '●', '■', '★', '◆'];
-    const allColors = ['🔵', '🔴', '🟡', '🟢', '🟣'];
+    const questions = generateMathVaultQuestions(round);
 
-    const items = [];
-    // 4 Targets
-    for (let i = 0; i < 4; i++) {
-        if (round === 1) items.push({ color: '🔵', shape: '▲', label: '🔵 ▲' });
-        else if (round === 2) items.push({ color: '🟡', shape: '★', label: `🟡 ★ ${i+1}` });
-        else items.push({ color: '🔴', shape: '◆', label: '🔴 ◆' });
-    }
-    // 8 Distractors
-    for (let i = 0; i < 8; i++) {
-        const rc = allColors[(i + 1) % allColors.length];
-        const rs = allShapes[(i + 2) % allShapes.length];
-        items.push({ color: rc, shape: rs, label: `${rc} ${rs}` });
-    }
-    items.sort(() => Math.random() - 0.5);
+    mathVaultState = {
+        round: round,
+        timerSecs: timerSecs,
+        questions: questions,
+        currentQIdx: 0,
+        totalQuestions: questions.length
+    };
 
-    let targetsRemaining = 4;
+    renderMathVaultQuestion();
+    startGauntletTimer(timerSecs, () => handleGauntletFail('⏱ Math Vault Timer Expired! Restarting round…'));
+}
 
-    canvas.innerHTML = `
-        <div class="q-prompt-card gauntlet-card">
-            <div class="q-type-badge">SELECTIVE ATTENTION</div>
-            <div class="q-main-text" style="color:#fbbf24;">${targetRuleText}</div>
-            <div style="font-size:12px; color:var(--text-sec); margin-top:4px;">Filter out moving distractions and click all 4 targets!</div>
-        </div>
-        <div class="distraction-field" id="distraction-field-grid"></div>
-    `;
+function renderMathVaultQuestion() {
+    if (!mathVaultState) return;
+    const canvas = gid('gauntlet-game-canvas');
+    const state = mathVaultState;
+    const q = state.questions[state.currentQIdx];
 
-    const field = gid('distraction-field-grid');
-    items.forEach((it, idx) => {
-        const btn = document.createElement('div');
-        btn.className = 'target-symbol-btn';
-        btn.textContent = it.label;
-        btn.onclick = () => {
-            if (isLocked) return;
+    const rulesInfo = state.round === 1
+        ? "📜 <b>RULE:</b> Solve questions in chain. Previous answer is the next starting number."
+        : state.round === 2
+        ? "📜 <b>RULE:</b> Q2, Q4 & Q6 apply a <b>+5 MODIFIER</b> to the final answer!"
+        : "📜 <b>RULE:</b> Starts at 25. <b>Q3 & Q6 REVERSE answer</b>. <b>Q4 & Q8 feature HIDDEN OPERATOR (?)</b>.";
 
-            if (isTarget(it)) {
-                btn.classList.add('clicked-correct');
-                targetsRemaining -= 1;
-                showToast('gauntlet-toast', `✓ Target Hit! (${targetsRemaining} Remaining)`, true);
+    let badgeHtml = `<span class="math-vault-badge">QUESTION ${q.qNum} / ${state.totalQuestions}</span>`;
+    if (q.isModifier) badgeHtml += ` <span class="math-vault-badge mod">⚡ +5 MODIFIER</span>`;
+    if (q.isReverse) badgeHtml += ` <span class="math-vault-badge rev">🔄 REVERSE RULE</span>`;
+    if (q.isHiddenOp) badgeHtml += ` <span class="math-vault-badge op">❓ HIDDEN OPERATOR</span>`;
 
-                if (targetsRemaining <= 0) {
-                    isLocked = true;
-                    if (activeTimer) clearInterval(activeTimer);
-                    showToast('gauntlet-toast', '✓ ALL DISTRACTIONS FILTERED!', true);
-                    setTimeout(handleGauntletRoundSuccess, 650);
-                }
-            } else {
-                btn.classList.add('clicked-wrong');
-                if (activeTimer) clearInterval(activeTimer);
-                handleGauntletFail('❌ Distractor Clicked! Stay Focused!');
-            }
-        };
-        field.appendChild(btn);
+    let choicesHtml = '';
+    q.choices.forEach(opt => {
+        choicesHtml += `
+            <button class="choice-btn math-vault-choice-btn" data-val="${opt}" onclick="handleMathVaultSubmit('${opt}')">
+                <span>🔐</span> <span>${opt}</span>
+            </button>
+        `;
     });
 
-    startGauntletTimer(timerSecs, () => handleGauntletFail('⏱ Focus Filter Timer Expired!'));
+    canvas.innerHTML = `
+        <div class="q-prompt-card gauntlet-card" style="margin-bottom: 12px; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                <div>${badgeHtml}</div>
+                <div style="font-size:12px; font-weight:800; color:var(--accent-1);">ROUND ${state.round}/3</div>
+            </div>
+            <div style="font-size:12px; color:var(--text-sec); margin-bottom: 6px; text-align:left;">${rulesInfo}</div>
+        </div>
+
+        <div class="math-vault-equation-card">
+            <div class="math-vault-prompt">${q.promptText}</div>
+            <div class="math-vault-equation">${q.equationDisplay}</div>
+        </div>
+
+        <div class="choices-grid" id="math-vault-choices" style="grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px;">
+            ${choicesHtml}
+        </div>
+    `;
 }
+
+function handleMathVaultSubmit(selectedVal) {
+    if (isLocked || !mathVaultState) return;
+
+    const state = mathVaultState;
+    const q = state.questions[state.currentQIdx];
+    const isCorrect = (String(selectedVal) === String(q.correctAnswer));
+
+    const choiceBtns = document.querySelectorAll('.math-vault-choice-btn');
+    choiceBtns.forEach(btn => {
+        if (String(btn.dataset.val) === String(selectedVal)) {
+            btn.classList.add(isCorrect ? 'correct' : 'wrong');
+        }
+        if (!isCorrect && String(btn.dataset.val) === String(q.correctAnswer)) {
+            btn.classList.add('correct');
+        }
+    });
+
+    if (isCorrect) {
+        if (state.currentQIdx + 1 < state.totalQuestions) {
+            state.currentQIdx++;
+            setTimeout(renderMathVaultQuestion, 250);
+        } else {
+            // Round finished!
+            if (activeTimer) clearInterval(activeTimer);
+            isLocked = true;
+
+            let successMsg = '✓ ROUND CLEARED!';
+            if (state.round === 1) {
+                successMsg = '🔑 ACCESS CODE ACCEPTED! 3 / 3 CORRECT • TIME BONUS +150';
+            } else if (state.round === 2) {
+                successMsg = '⚡ ROUND 2 CLEARED ✓ (MODIFIER CHAIN MASTERED)';
+            } else if (state.round === 3) {
+                successMsg = '🔐 MATH VAULT UNLOCKED! ALL CODES VERIFIED ✓';
+            }
+
+            showToast('gauntlet-toast', successMsg, true);
+
+            setTimeout(() => {
+                const game = GAUNTLET_GAMES[gauntletGameIdx - 1];
+                part2Score += game.ptsPerRound;
+
+                if (state.round < 3) {
+                    startGauntletMiniGame(2, state.round + 1);
+                } else {
+                    showMiniGameTransition('MATH VAULT', 'MEMORY SWITCH');
+                }
+            }, 1200);
+        }
+    } else {
+        if (activeTimer) clearInterval(activeTimer);
+        isLocked = true;
+        handleGauntletFail(`❌ Wrong Code! Expected: ${q.correctAnswer}`);
+    }
+}
+
+function handleMathVaultHint() {
+    if (!mathVaultState || isLocked) return;
+    const q = mathVaultState.questions[mathVaultState.currentQIdx];
+    if (!q) return;
+
+    let hintText = '';
+    if (q.isHiddenOp) {
+        hintText = `💡 Hint: The correct operator is '${q.operator}'`;
+    } else if (q.isReverse) {
+        hintText = `💡 Hint: Reversed Answer is ${q.correctAnswer}`;
+    } else {
+        hintText = `💡 Hint: Answer is ${q.correctAnswer}`;
+    }
+
+    showToast('gauntlet-toast', hintText, true);
+
+    const choiceBtns = document.querySelectorAll('.math-vault-choice-btn');
+    choiceBtns.forEach(btn => {
+        if (String(btn.dataset.val) === String(q.correctAnswer)) {
+            btn.style.boxShadow = '0 0 16px rgba(16, 185, 129, 0.9)';
+            btn.style.borderColor = '#10b981';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof window.initHintSystem === 'function') {
+        window.initHintSystem(
+            function() { return (currentPart === 2 && !isLocked); },
+            function() { executeMasterHint(); }
+        );
+    }
+});
 
 /* ─────────────────────────────────────────────────────────────
    MINI-GAME 3: MEMORY SWITCH
    ───────────────────────────────────────────────────────────── */
+let gauntletSwitchCurrent = null;
+
 function buildMemorySwitchPuzzle(round, timerSecs) {
     const canvas = gid('gauntlet-game-canvas');
     canvas.innerHTML = '';
 
-    const initialTokens = ['🔴 Star', '🔵 Square', '🟢 Circle', '🟡 Diamond', '🟣 Triangle'];
+    const tokenPool = [
+        '🔴 Star', '🔵 Square', '🟢 Circle', '🟡 Diamond', '🟣 Triangle',
+        '🔶 Hexagon', '💎 Gem', '⚡ Bolt', '⭐ Sun', '🌙 Moon', '🔴 Heart', '🟢 Clover'
+    ];
+    const shPool = [...tokenPool].sort(() => Math.random() - 0.5);
+    const initialTokens = shPool.slice(0, 5);
     const modifiedTokens = [...initialTokens];
 
     let changeDesc = "";
     let falseChoices = [];
 
     if (round === 1) {
-        modifiedTokens[0] = '🔴 Hexagon';
-        changeDesc = "🔴 Star changed to 🔴 Hexagon";
-        falseChoices = ["🔵 Square moved to end", "🟢 Circle turned Red", "🟡 Diamond removed"];
+        const unused = tokenPool.filter(t => !initialTokens.includes(t));
+        const newT = unused[Math.floor(Math.random() * unused.length)];
+        const idx = Math.floor(Math.random() * 5);
+        const oldT = initialTokens[idx];
+        modifiedTokens[idx] = newT;
+        changeDesc = `${oldT} changed to ${newT}`;
+        falseChoices = [
+            `${initialTokens[(idx + 1) % 5]} moved to end`,
+            `${initialTokens[(idx + 2) % 5]} turned Red`,
+            `${initialTokens[(idx + 3) % 5]} removed`
+        ];
     } else if (round === 2) {
-        modifiedTokens[1] = '🟣 Square';
-        modifiedTokens[3] = '🟡 Star';
-        changeDesc = "🔵 Square turned Purple & 🟡 Diamond changed to Star";
-        falseChoices = ["🔴 Star turned Green", "🟢 Circle swapped with Square", "All colors inverted"];
+        const unused = tokenPool.filter(t => !initialTokens.includes(t));
+        const t1 = unused[0];
+        const t2 = unused[1] || '⚡ Bolt';
+        const idx1 = 1; const idx2 = 3;
+        const old1 = initialTokens[idx1];
+        const old2 = initialTokens[idx2];
+        modifiedTokens[idx1] = t1;
+        modifiedTokens[idx2] = t2;
+        changeDesc = `${old1} changed to ${t1} & ${old2} changed to ${t2}`;
+        falseChoices = [
+            `${initialTokens[0]} turned Green`,
+            `${initialTokens[2]} swapped with ${initialTokens[4]}`,
+            "All colors inverted"
+        ];
     } else {
-        modifiedTokens[2] = '💎 Gem';
-        modifiedTokens[4] = '⚡ Bolt';
-        changeDesc = "🟢 Circle became Gem & 🟣 Triangle became Bolt";
-        falseChoices = ["🔴 Star turned Blue", "No change occurred", "Positions 1 and 3 swapped"];
+        const idx1 = 2; const idx2 = 4;
+        const old1 = initialTokens[idx1];
+        const old2 = initialTokens[idx2];
+        modifiedTokens[idx1] = '💎 Gem';
+        modifiedTokens[idx2] = '⚡ Bolt';
+        changeDesc = `${old1} became Gem & ${old2} became Bolt`;
+        falseChoices = [
+            `${initialTokens[0]} turned Blue`,
+            "No change occurred",
+            `Positions 1 and 3 swapped`
+        ];
     }
 
+    gauntletSwitchCurrent = { changeDesc };
     const choices = [changeDesc, ...falseChoices].sort(() => Math.random() - 0.5);
 
     // Phase 1: Observation for 4s
@@ -1363,19 +1889,32 @@ function buildMemorySwitchPuzzle(round, timerSecs) {
 /* ─────────────────────────────────────────────────────────────
    MINI-GAME 4: RULE STACK
    ───────────────────────────────────────────────────────────── */
+let gauntletRuleCurrent = null;
+
 function buildRuleStackPuzzle(round, timerSecs) {
     const canvas = gid('gauntlet-game-canvas');
     canvas.innerHTML = '';
 
-    let seq = ['▲', '●', '■', '★'];
+    const symbolPools = [
+        ['▲', '●', '■', '★'],
+        ['♦', '✦', '▲', '⬟'],
+        ['🔴', '🔵', '🟢', '🟡'],
+        ['⚡', '💎', '🔥', '🌙']
+    ];
+    let seq = [...symbolPools[Math.floor(Math.random() * symbolPools.length)]].sort(() => Math.random() - 0.5);
+    const startSeqStr = seq.join('   ');
     let rules = [];
 
-    // Rule 1: Move last to front
-    rules.push("Rule 1: Move the last symbol to the beginning.");
-    const last = seq.pop();
-    seq.unshift(last);
+    if (Math.random() > 0.5) {
+        rules.push("Rule 1: Move the last symbol to the beginning.");
+        const last = seq.pop();
+        seq.unshift(last);
+    } else {
+        rules.push("Rule 1: Move the first symbol to the end.");
+        const first = seq.shift();
+        seq.push(first);
+    }
 
-    // Rule 2: Swap pos 2 and pos 4
     rules.push("Rule 2: Swap position 2 and position 4.");
     const temp = seq[1];
     seq[1] = seq[3];
@@ -1393,6 +1932,8 @@ function buildRuleStackPuzzle(round, timerSecs) {
     }
 
     const correctStr = seq.join('  ');
+    gauntletRuleCurrent = { correctStr };
+
     const fake1 = [...seq].reverse().join('  ');
     const fake2 = [seq[1], seq[0], seq[3], seq[2]].join('  ');
     const fake3 = [seq[2], seq[3], seq[0], seq[1]].join('  ');
@@ -1401,7 +1942,7 @@ function buildRuleStackPuzzle(round, timerSecs) {
     canvas.innerHTML = `
         <div class="q-prompt-card gauntlet-card">
             <div class="q-type-badge">WORKING MEMORY TRANSFORMATION</div>
-            <div class="q-main-text">Start: <strong style="color:#fbbf24;">[ ▲   ●   ■   ★ ]</strong></div>
+            <div class="q-main-text">Start: <strong style="color:#fbbf24;">[ ${startSeqStr} ]</strong></div>
         </div>
         <div class="rules-list-box">
             ${rules.map((r, i) => `<div class="rule-step-item"><strong>STEP ${i+1}:</strong> ${r}</div>`).join('')}
@@ -1437,6 +1978,8 @@ function buildRuleStackPuzzle(round, timerSecs) {
 /* ─────────────────────────────────────────────────────────────
    MINI-GAME 5: LOGIC LOCK (GRAND FINAL BOSS)
    ───────────────────────────────────────────────────────────── */
+let gauntletLogicCurrent = null;
+
 function buildLogicLockPuzzle(round, timerSecs) {
     const canvas = gid('gauntlet-game-canvas');
     canvas.innerHTML = '';
@@ -1445,50 +1988,59 @@ function buildLogicLockPuzzle(round, timerSecs) {
     let correctArrangement = "";
     let choices = [];
 
+    const num1 = Math.floor(Math.random() * 8) + 2;
+    const num2 = Math.floor(Math.random() * 8) + 2;
+    const num3 = Math.floor(Math.random() * 15) + 1;
+
+    const colors = ['🔴 Red', '🟢 Green', '🔵 Blue', '🟣 Purple', '🟡 Gold'].sort(() => Math.random() - 0.5);
+    const c1 = colors[0]; const c2 = colors[1]; const c3 = colors[2];
+
     if (round === 1) {
         clues = [
-            "• The Red item is at Position 1.",
-            "• The Blue item is immediately to the right of the Green item.",
-            "• Number 7 is on the Red item."
+            `• The ${c1} item is at Position 1.`,
+            `• The ${c3} item is immediately to the right of the ${c2} item.`,
+            `• Number ${num1} is on the ${c1} item.`
         ];
-        correctArrangement = "🔴 Red (#7)  |  🟢 Green  |  🔵 Blue";
+        correctArrangement = `${c1} (#${num1})  |  ${c2}  |  ${c3}`;
         choices = [
             correctArrangement,
-            "🔵 Blue  |  🟢 Green  |  🔴 Red (#7)",
-            "🟢 Green  |  🔴 Red (#7)  |  🔵 Blue",
-            "🔴 Red (#7)  |  🔵 Blue  |  🟢 Green"
+            `${c3}  |  ${c2}  |  ${c1} (#${num1})`,
+            `${c2}  |  ${c1} (#${num1})  |  ${c3}`,
+            `${c1} (#${num1})  |  ${c3}  |  ${c2}`
         ].sort(() => Math.random() - 0.5);
     } else if (round === 2) {
+        const shapes = ['● Circle', '★ Star', '◆ Diamond', '▲ Triangle'].sort(() => Math.random() - 0.5);
         clues = [
-            "• Position 1 contains the Circle.",
-            "• The Star is somewhere to the left of the Diamond.",
-            "• The Triangle is at Position 4.",
-            "• Number 9 is inside the Star."
+            `• Position 1 contains the ${shapes[0]}.`,
+            `• The ${shapes[1]} is somewhere to the left of the ${shapes[2]}.`,
+            `• The ${shapes[3]} is at Position 4.`,
+            `• Number ${num2} is inside the ${shapes[1]}.`
         ];
-        correctArrangement = "● Circle  |  ★ Star (#9)  |  ◆ Diamond  |  ▲ Triangle";
+        correctArrangement = `${shapes[0]}  |  ${shapes[1]} (#${num2})  |  ${shapes[2]}  |  ${shapes[3]}`;
         choices = [
             correctArrangement,
-            "★ Star (#9)  |  ● Circle  |  ◆ Diamond  |  ▲ Triangle",
-            "● Circle  |  ◆ Diamond  |  ★ Star (#9)  |  ▲ Triangle",
-            "▲ Triangle  |  ● Circle  |  ★ Star (#9)  |  ◆ Diamond"
+            `${shapes[1]} (#${num2})  |  ${shapes[0]}  |  ${shapes[2]}  |  ${shapes[3]}`,
+            `${shapes[0]}  |  ${shapes[2]}  |  ${shapes[1]} (#${num2})  |  ${shapes[3]}`,
+            `${shapes[3]}  |  ${shapes[0]}  |  ${shapes[1]} (#${num2})  |  ${shapes[2]}`
         ].sort(() => Math.random() - 0.5);
     } else {
-        // EXTREME FINAL BOSS
         clues = [
             "• 5 Relational positions: [ Slot 1 | Slot 2 | Slot 3 | Slot 4 | Slot 5 ]",
             "• The Gold Key is at Slot 5.",
             "• The Crimson Gem is directly between Diamond and Star.",
-            "• Slot 1 is occupied by the Azure Ring (#8).",
+            `• Slot 1 is occupied by the Azure Ring (#${num3}).`,
             "• The Star is in Slot 4."
         ];
-        correctArrangement = "1: Azure Ring (#8) | 2: Diamond | 3: Crimson Gem | 4: Star | 5: Gold Key";
+        correctArrangement = `1: Azure Ring (#${num3}) | 2: Diamond | 3: Crimson Gem | 4: Star | 5: Gold Key`;
         choices = [
             correctArrangement,
-            "1: Azure Ring (#8) | 2: Star | 3: Crimson Gem | 4: Diamond | 5: Gold Key",
-            "1: Gold Key | 2: Diamond | 3: Crimson Gem | 4: Star | 5: Azure Ring (#8)",
-            "1: Diamond | 2: Azure Ring (#8) | 3: Crimson Gem | 4: Star | 5: Gold Key"
+            `1: Azure Ring (#${num3}) | 2: Star | 3: Crimson Gem | 4: Diamond | 5: Gold Key`,
+            `1: Gold Key | 2: Diamond | 3: Crimson Gem | 4: Star | 5: Azure Ring (#${num3})`,
+            `1: Diamond | 2: Azure Ring (#${num3}) | 3: Crimson Gem | 4: Star | 5: Gold Key`
         ].sort(() => Math.random() - 0.5);
     }
+
+    gauntletLogicCurrent = { correctArrangement };
 
     canvas.innerHTML = `
         <div class="q-prompt-card gauntlet-card" style="border-color:#a855f7;">
@@ -1529,6 +2081,62 @@ function buildLogicLockPuzzle(round, timerSecs) {
 /* ═══════════════════════════════════════════════════════════════
    GLOBAL HINT SYSTEM
    ═══════════════════════════════════════════════════════════════ */
+function handlePatternBreakerHint() {
+    if (!gauntletPatternCurrent || isLocked) return;
+    const ans = gauntletPatternCurrent.correctNext;
+    showToast('gauntlet-toast', `💡 Hint: Next sequence item is "${ans}"`, true);
+    const btns = document.querySelectorAll('#pattern-choices-grid .choice-btn');
+    btns.forEach(btn => {
+        if (btn.textContent.includes(ans)) {
+            btn.style.boxShadow = '0 0 16px rgba(16, 185, 129, 0.9)';
+            btn.style.borderColor = '#10b981';
+            btn.style.background = 'rgba(16, 185, 129, 0.2)';
+        }
+    });
+}
+
+function handleMemorySwitchHint() {
+    if (!gauntletSwitchCurrent || isLocked) return;
+    const ans = gauntletSwitchCurrent.changeDesc;
+    showToast('gauntlet-toast', `💡 Hint: Correct change is "${ans}"`, true);
+    const btns = document.querySelectorAll('#switch-choices-grid .choice-btn');
+    btns.forEach(btn => {
+        if (btn.textContent.includes(ans)) {
+            btn.style.boxShadow = '0 0 16px rgba(16, 185, 129, 0.9)';
+            btn.style.borderColor = '#10b981';
+            btn.style.background = 'rgba(16, 185, 129, 0.2)';
+        }
+    });
+}
+
+function handleRuleStackHint() {
+    if (!gauntletRuleCurrent || isLocked) return;
+    const ans = gauntletRuleCurrent.correctStr;
+    showToast('gauntlet-toast', `💡 Hint: Final sequence is [ ${ans} ]`, true);
+    const btns = document.querySelectorAll('#rule-choices-grid .choice-btn');
+    btns.forEach(btn => {
+        if (btn.textContent.includes(ans)) {
+            btn.style.boxShadow = '0 0 16px rgba(16, 185, 129, 0.9)';
+            btn.style.borderColor = '#10b981';
+            btn.style.background = 'rgba(16, 185, 129, 0.2)';
+        }
+    });
+}
+
+function handleLogicLockHint() {
+    if (!gauntletLogicCurrent || isLocked) return;
+    const ans = gauntletLogicCurrent.correctArrangement;
+    showToast('gauntlet-toast', `💡 Hint: Decrypted Code is "${ans}"`, true);
+    const btns = document.querySelectorAll('#logic-choices-grid .choice-btn');
+    btns.forEach(btn => {
+        if (btn.textContent.includes(ans)) {
+            btn.style.boxShadow = '0 0 16px rgba(16, 185, 129, 0.9)';
+            btn.style.borderColor = '#10b981';
+            btn.style.background = 'rgba(16, 185, 129, 0.2)';
+        }
+    });
+}
+
 function executeMasterHint() {
     if (isLocked) return false;
 
@@ -1537,8 +2145,11 @@ function executeMasterHint() {
         return true;
     } else if (currentPart === 2) {
         hintsUsedInGauntlet = true;
-        showToast('gauntlet-toast', '💡 Clue: Eliminate constraints that do not match Position 1.', true);
-        return true;
+        if (gauntletGameIdx === 1) { handlePatternBreakerHint(); return true; }
+        else if (gauntletGameIdx === 2) { handleMathVaultHint(); return true; }
+        else if (gauntletGameIdx === 3) { handleMemorySwitchHint(); return true; }
+        else if (gauntletGameIdx === 4) { handleRuleStackHint(); return true; }
+        else if (gauntletGameIdx === 5) { handleLogicLockHint(); return true; }
     }
     return false;
 }
@@ -1555,20 +2166,13 @@ function showGrandCompletion() {
 
     const savePromise = saveProgress(totalScore);
 
-    showPartCompletion({
+    window.showLevelCompletion({
+        level: 20,
         part: 2,
         totalParts: 2,
         score: 60,
         title: 'Correct!',
-        message: 'Masterful cognitive triumph! You conquered all 20 levels of MindMatrix and solved the Grand Finale!',
-        buttonText: '🏆 Level Complete – Continue',
-        isFinal: true,
-        onContinue: async () => {
-            try {
-                await savePromise;
-            } catch(e) {}
-            window.location.href = 'dashboard.html';
-        }
+        message: 'Masterful cognitive triumph! You conquered all 20 levels of MindMatrix and solved the Grand Finale!'
     });
 }
 
@@ -1596,7 +2200,7 @@ function saveProgress(finalScore) {
     let streakRes = (window.calculateNewStreak ? window.calculateNewStreak(currentStreak, lastPlayedDateStr, true) : { streak: (currentStreak || 1), dateStr: (window.getLocalDateString ? window.getLocalDateString() : new Date().toISOString().split('T')[0]) });
     let streak = streakRes.streak;
     let lastPlayedDate = streakRes.dateStr;
-    let unlockedLevel = 21; // All 20 levels completed (unlockedLevel = 21)
+    let unlockedLevel = 20; // All 20 levels completed (unlockedLevel capped at 20)
     let gamesPlayed = (parseInt(localStorage.getItem('mm_games_played'), 10) || parseInt(localStorage.getItem(userPrefix + 'games_played'), 10) || 0) + 1;
     let bestStreak = Math.max(streak, parseInt(localStorage.getItem('mm_best_streak'), 10) || parseInt(localStorage.getItem(userPrefix + 'best_streak'), 10) || streak);
 

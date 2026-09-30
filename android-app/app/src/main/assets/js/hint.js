@@ -16,6 +16,8 @@
     syncHintsFromServer();
 
     // Export initialization globally
+    window.getHints = getHints;
+    window.setHints = setHints;
     window.initHintSystem = function(checkCanReveal, onReveal) {
         checkCanRevealCallback = checkCanReveal;
         onRevealCallback = onReveal;
@@ -29,8 +31,12 @@
         fetch('getProgress?t=' + Date.now())
             .then(r => r.ok ? r.json() : null)
             .then(data => {
-                if (data && data.hints !== undefined) {
+                if (data && data.hints !== undefined && data.hints !== null) {
+                    const u = localStorage.getItem('mm_current_user');
                     localStorage.setItem('mm_hints', data.hints.toString());
+                    if (u) {
+                        localStorage.setItem('mm_' + u + '_hints', data.hints.toString());
+                    }
                     updateDisplays();
                 }
             })
@@ -38,12 +44,20 @@
     }
 
     function getHints() {
-        return parseInt(localStorage.getItem('mm_hints') || '3', 10);
+        const u = localStorage.getItem('mm_current_user');
+        const val = (u && localStorage.getItem('mm_' + u + '_hints') !== null)
+                  ? localStorage.getItem('mm_' + u + '_hints')
+                  : localStorage.getItem('mm_hints');
+        return parseInt(val || '3', 10);
     }
 
     function setHints(val) {
         let capped = Math.max(val, 0);
         localStorage.setItem('mm_hints', capped.toString());
+        const u = localStorage.getItem('mm_current_user');
+        if (u) {
+            localStorage.setItem('mm_' + u + '_hints', capped.toString());
+        }
         updateDisplays();
 
         // Real-time server database synchronization
@@ -132,8 +146,8 @@
                 inset: 0;
                 z-index: 9999;
                 background: rgba(5, 8, 20, 0.85);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
                 align-items: center;
                 justify-content: center;
                 animation: hint-fade-in 0.25s ease;
