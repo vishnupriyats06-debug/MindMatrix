@@ -83,8 +83,8 @@
                 display: flex; flex-direction: column; gap: 10px;
             }
             .result-buttons .btn-primary {
-                width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-                padding: 14px 28px; border: none; border-radius: 14px;
+                width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center;
+                padding: 14px 28px; border: none; border-radius: 14px; box-sizing: border-box;
                 background: linear-gradient(135deg, #8b5cf6, #06b6d4);
                 color: #fff; font-family: 'Outfit', system-ui, sans-serif;
                 font-size: 15px; font-weight: 700; cursor: pointer;
@@ -243,6 +243,21 @@
         confettiParticles = [];
     }
 
+    if (typeof window.getTierScores !== 'function') {
+        window.getTierScores = function(levelNum) {
+            var lvl = parseInt(levelNum, 10) || 1;
+            if (lvl >= 1 && lvl <= 5) return { part1: 50, part2: 50, total: 100 };
+            if (lvl >= 6 && lvl <= 10) return { part1: 65, part2: 65, total: 130 };
+            if (lvl >= 11 && lvl <= 14) return { part1: 80, part2: 80, total: 160 };
+            if (lvl >= 15 && lvl <= 19) return { part1: 100, part2: 100, total: 200 };
+            if (lvl >= 20) return { part1: 125, part2: 125, total: 250 };
+            return { part1: 50, part2: 50, total: 100 };
+        };
+    }
+    if (!window.levelStartTime) {
+        window.levelStartTime = Date.now();
+    }
+
     // ── 4. Exported Completion APIs ──
 
     // Part 1 Completion Popup API
@@ -259,12 +274,15 @@
         const actionBtn = document.getElementById('result-action-btn');
         const secBtn = document.getElementById('result-secondary-btn');
 
+        const levelNum = opts.level || 1;
+        const tierInfo = window.getTierScores(levelNum);
+
         if (card) card.className = 'result-card win';
         if (emoji) emoji.textContent = opts.emoji || '🎉';
         if (title) title.textContent = opts.title || 'Correct!';
         if (desc) desc.textContent = opts.message || 'Excellent memory! You recalled the sequence perfectly. Ready for the next challenge?';
 
-        const scoreEarned = opts.score !== undefined ? opts.score : 50;
+        const scoreEarned = (opts.score !== undefined && opts.score !== 50) ? opts.score : tierInfo.part1;
         if (scoreEl) scoreEl.textContent = (scoreEarned >= 0 ? '+' : '') + scoreEarned;
 
         const part = opts.part || 1;
@@ -303,29 +321,38 @@
         const secBtn = document.getElementById('result-secondary-btn');
 
         const levelNum = opts.level || 1;
+        const tierInfo = window.getTierScores(levelNum);
 
         if (card) card.className = 'result-card win';
         if (emoji) emoji.textContent = opts.emoji || '🎉';
         if (title) title.textContent = opts.title || 'Correct!';
         if (desc) desc.textContent = opts.message || `Amazing! Level ${levelNum} complete!`;
 
-        const scoreEarned = opts.score !== undefined ? opts.score : 50;
+        const scoreEarned = (opts.score !== undefined && opts.score !== 50 && opts.score !== 100) ? opts.score : tierInfo.total;
         if (scoreEl) scoreEl.textContent = (scoreEarned >= 0 ? '+' : '') + scoreEarned;
 
         const part = opts.part || 2;
         const totalParts = opts.totalParts || 2;
         if (partEl) partEl.textContent = opts.partProgress || `Part ${part}/${totalParts} ✓`;
 
+        var finalTimeStr = opts.timeStr;
+        if (!finalTimeStr || finalTimeStr === '10s' || finalTimeStr === '-') {
+            var elapsedSec = Math.max(1, Math.round((Date.now() - (window.levelStartTime || Date.now())) / 1000));
+            var mins = Math.floor(elapsedSec / 60);
+            var secs = elapsedSec % 60;
+            finalTimeStr = mins > 0 ? (mins + 'm ' + secs + 's') : (secs + 's');
+        }
+
         let activeSavePromise = null;
         if (typeof window.recordLevelCompletion === 'function') {
-            activeSavePromise = window.recordLevelCompletion(levelNum, scoreEarned, opts.timeStr || "10s");
+            activeSavePromise = window.recordLevelCompletion(levelNum, scoreEarned, finalTimeStr);
         }
 
         function safeNavigate(targetUrl, customHandler) {
             window.closePartCompletion();
             let p = activeSavePromise;
             if (!p && typeof window.recordLevelCompletion === 'function') {
-                p = window.recordLevelCompletion(levelNum, scoreEarned, opts.timeStr || "10s");
+                p = window.recordLevelCompletion(levelNum, scoreEarned, finalTimeStr);
             }
             let navDone = false;
             function doNav() {
@@ -386,3 +413,5 @@
         clearStandardConfetti();
     };
 })();
+
+

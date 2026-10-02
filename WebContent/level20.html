@@ -457,7 +457,7 @@
            GRAND FINALE MODAL POPUP
         ══════════════════════════════════════════ */
         .modal-overlay {
-            position: fixed; inset: 0; z-index: 300;
+            position: fixed; inset: 0; z-index: 10000;
             background: rgba(5, 8, 20, 0.88);
             backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
             display: flex; align-items: center; justify-content: center;
@@ -2157,6 +2157,7 @@ function executeMasterHint() {
 /* ═══════════════════════════════════════════════════════════════
    GRAND FINALE COMPLETION & PROGRESS SAVING
    ═══════════════════════════════════════════════════════════════ */
+let activeSavePromise = null;
 function showGrandCompletion() {
     gid('dot-2').className = 'part-dot done';
 
@@ -2164,22 +2165,63 @@ function showGrandCompletion() {
     if (!hintsUsedInGauntlet) totalScore = Math.min(100, totalScore + 10);
     if (totalScore <= 0) totalScore = 100;
 
-    const savePromise = saveProgress(totalScore);
+    const elapsedSeconds = Math.max(1, Math.round((Date.now() - startTimeStamp) / 1000));
+    const mins = Math.floor(elapsedSeconds / 60);
+    const secs = elapsedSeconds % 60;
+    const finalTimeStr = mins > 0 ? (mins + 'm ' + secs + 's') : (secs + 's');
 
-    window.showLevelCompletion({
-        level: 20,
-        part: 2,
-        totalParts: 2,
-        score: 60,
-        title: 'Correct!',
-        message: 'Masterful cognitive triumph! You conquered all 20 levels of MindMatrix and solved the Grand Finale!'
-    });
+    // 1. Save progress across storage and backend APIs
+    if (typeof window.recordLevelCompletion === 'function') {
+        activeSavePromise = window.recordLevelCompletion(20, totalScore, finalTimeStr);
+    }
+    const savePromise = saveProgress(totalScore);
+    if (!activeSavePromise) activeSavePromise = savePromise;
+
+    // 2. Display the Grand Finale Congratulations Popup Modal
+    const modal = gid('finale-modal-overlay');
+    if (modal) {
+        const scoreEl = gid('popup-score');
+        if (scoreEl) scoreEl.textContent = totalScore + ' Points';
+
+        const streakEl = gid('popup-streak');
+        const curStreak = localStorage.getItem('mm_streak') || localStorage.getItem('mm_' + (localStorage.getItem('mm_current_user') || 'User') + '_streak') || '1';
+        if (streakEl) streakEl.textContent = curStreak + (parseInt(curStreak, 10) === 1 ? ' Day' : ' Days');
+
+        const partsEl = gid('popup-parts-breakdown');
+        if (partsEl) partsEl.textContent = Math.round(part1Score) + ' / ' + Math.round(part2Score) + ' Pts';
+
+        const accEl = gid('popup-accuracy');
+        const acc = Math.round(((part1Score / 40) * 0.4 + (part2Score / 60) * 0.6) * 100);
+        if (accEl) accEl.textContent = Math.min(100, Math.max(50, acc)) + '%';
+
+        modal.classList.add('open');
+        fireConfetti();
+    } else {
+        window.showLevelCompletion({
+            level: 20,
+            part: 2,
+            totalParts: 2,
+            score: totalScore,
+            title: 'Congratulations!',
+            message: 'Masterful cognitive triumph! You conquered all 20 levels of MindMatrix and solved the Grand Finale!',
+            buttonText: '🏆 Back to Dashboard',
+            onNextLevel: () => { window.location.href = 'dashboard.html'; }
+        });
+    }
 }
 
 let isDashboardRedirecting = false;
-function onPopupGoToDashboard() {
+async function onPopupGoToDashboard() {
     if (isDashboardRedirecting) return;
     isDashboardRedirecting = true;
+    try {
+        if (activeSavePromise) {
+            await Promise.race([
+                activeSavePromise,
+                new Promise(resolve => setTimeout(resolve, 2000))
+            ]);
+        }
+    } catch(e) {}
     window.location.href = 'dashboard.html';
 }
 

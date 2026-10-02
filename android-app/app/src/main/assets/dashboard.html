@@ -3002,22 +3002,45 @@ function fetchStateAndInit() {
                     userState.hints = 3;
                 }
 
-                var dbScores = safeParseArray(data.bestScores, Array(20).fill(0));
-                var dbTimes = sanitiseTimes(safeParseArray(data.bestTimes, DEFAULT_TIMES));
-                var dbStars = sanitiseStars(safeParseArray(data.stars, DEFAULT_STARS));
+                var rawDbScores = safeParseArray(data.bestScores, Array(20).fill(0));
+                var rawDbTimes  = safeParseArray(data.bestTimes, DEFAULT_TIMES);
+                var rawDbStars  = safeParseArray(data.stars, DEFAULT_STARS);
 
                 var locScores = (local && Array.isArray(local.bestScores)) ? local.bestScores : Array(20).fill(0);
-                var locTimes = (local && Array.isArray(local.bestTimes)) ? local.bestTimes : DEFAULT_TIMES;
-                var locStars = (local && Array.isArray(local.stars)) ? local.stars : DEFAULT_STARS;
+                var locTimes  = (local && Array.isArray(local.bestTimes)) ? local.bestTimes : DEFAULT_TIMES;
+                var locStars  = (local && Array.isArray(local.stars)) ? local.stars : DEFAULT_STARS;
 
                 userState.bestScores = Array(20);
-                userState.bestTimes = Array(20);
-                userState.stars = Array(20);
+                userState.bestTimes  = Array(20);
+                userState.stars      = Array(20);
 
                 for (var m = 0; m < 20; m++) {
-                    userState.bestScores[m] = Math.max(parseInt(dbScores[m], 10) || 0, parseInt(locScores[m], 10) || 0);
-                    userState.stars[m] = (dbStars[m] && dbStars[m] !== '0') ? dbStars[m] : locStars[m];
-                    userState.bestTimes[m] = (dbTimes[m] && dbTimes[m] !== '-') ? dbTimes[m] : locTimes[m];
+                    var sDb = parseInt(rawDbScores[m], 10) || 0;
+                    var sLoc = parseInt(locScores[m], 10) || 0;
+                    userState.bestScores[m] = Math.max(sDb, sLoc);
+
+                    var isDbStarValid = (rawDbStars[m] && String(rawDbStars[m]) !== '0' && String(rawDbStars[m]) !== STAR_EMPTY && String(rawDbStars[m]) !== '000');
+                    var isLocStarValid = (locStars[m] && String(locStars[m]) !== '0' && String(locStars[m]) !== STAR_EMPTY && String(locStars[m]) !== '000');
+                    userState.stars[m] = (isDbStarValid || isLocStarValid) ? STAR_FULL : STAR_EMPTY;
+
+                    var dbTStr = rawDbTimes[m] ? String(rawDbTimes[m]) : '';
+                    var locTStr = locTimes[m] ? String(locTimes[m]) : '';
+
+                    var isDbTimeValid = (dbTStr && dbTStr !== '-' && dbTStr !== EM_DASH && dbTStr !== 'null' && dbTStr !== 'undefined');
+                    var isLocTimeValid = (locTStr && locTStr !== '-' && locTStr !== EM_DASH && locTStr !== 'null' && locTStr !== 'undefined');
+
+                    var parseSec = (window.parseTimeToSeconds || function(t) { return 0; });
+                    if (isDbTimeValid && isLocTimeValid) {
+                        var secDb = parseSec(dbTStr);
+                        var secLoc = parseSec(locTStr);
+                        userState.bestTimes[m] = (secDb > 0 && (secLoc <= 0 || secDb < secLoc)) ? dbTStr : locTStr;
+                    } else if (isLocTimeValid) {
+                        userState.bestTimes[m] = locTStr;
+                    } else if (isDbTimeValid) {
+                        userState.bestTimes[m] = dbTStr;
+                    } else {
+                        userState.bestTimes[m] = EM_DASH;
+                    }
                 }
 
                 // Self-healing: Ensure unlockedLevel matches completed levels from stars & scores
@@ -3695,9 +3718,14 @@ function openLevelModal(i, status) {
     document.getElementById('modal-title').textContent   = lvl.name;
     document.getElementById('modal-desc').textContent    = lvl.desc;
     
-    document.getElementById('modal-score').textContent   = userState.bestScores[i] || EM_DASH;
-    document.getElementById('modal-stars').textContent   = userState.stars[i]  || STAR_EMPTY;
-    document.getElementById('modal-time').textContent    = userState.bestTimes[i]  || EM_DASH;
+    const sc = (userState.bestScores && userState.bestScores[i] !== undefined && userState.bestScores[i] !== null) ? (parseInt(userState.bestScores[i], 10) || 0) : 0;
+    document.getElementById('modal-score').textContent   = sc > 0 ? sc : EM_DASH;
+    
+    const st = (userState.stars && userState.stars[i]) ? String(userState.stars[i]) : STAR_EMPTY;
+    document.getElementById('modal-stars').textContent   = (st === '3' || st === '***' || st === '★★★' || st === STAR_FULL || st === '1' || st === '2') ? STAR_FULL : STAR_EMPTY;
+    
+    const tm = (userState.bestTimes && userState.bestTimes[i]) ? String(userState.bestTimes[i]) : EM_DASH;
+    document.getElementById('modal-time').textContent    = (tm && tm !== '-' && tm !== '—' && tm !== 'null' && tm !== 'undefined') ? tm : EM_DASH;
     
     const playBtn = document.getElementById('modal-play-btn');
     
