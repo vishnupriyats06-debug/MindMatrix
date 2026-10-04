@@ -412,7 +412,7 @@
                 <div class="intro-title" id="intro-title">Position Memory Matrix</div>
                 <div class="intro-subtitle" id="intro-subtitle">Remember numbers in a 4×4 grid</div>
                 <div class="intro-desc" id="intro-desc">
-                    A 4×4 grid filled with numbers (1‑16) will appear for 5 seconds. Memorize the layout, then reproduce it.
+                    A 4×4 grid filled with numbers (1‑16) will appear for 10 seconds. Memorize the layout, then reproduce it.
                 </div>
                 <button class="btn-primary" id="btn-start">▶ Start Part 1</button>
             </div>
@@ -425,7 +425,7 @@
                 </div>
                 <div class="timer-circle" id="timer-circle">
                     <svg viewBox="0 0 54 54"><circle class="timer-track" cx="27" cy="27" r="25"/><circle class="timer-progress" id="timer-progress" cx="27" cy="27" r="25"/></svg>
-                    <div class="timer-text" id="timer-text">5</div>
+                    <div class="timer-text" id="timer-text">10</div>
                 </div>
             </div>
 
@@ -632,7 +632,7 @@
         }
         renderMatrixDisplay();
         showState('state-showing');
-        startTimer(5, transitionToInput);
+        startTimer(10, transitionToInput);
     }
 
     function transitionToInput() {
@@ -818,7 +818,7 @@
         gid('intro-emoji').textContent    = '🔤';
         gid('intro-title').textContent    = 'Alphanumeric Matrix';
         gid('intro-subtitle').textContent = 'Numbers & letters — three cells will be hidden.';
-        gid('intro-desc').textContent     = 'A 5×5 grid with numbers and letters appears for 5 s. Three cells will be blank — fill them in correctly.';
+        gid('intro-desc').textContent     = 'A 5×5 grid with numbers and letters appears for 10 seconds. Three cells will be blank — fill them in correctly.';
         gid('topbar-part-label').textContent = 'Part 2: Alphanumeric Matrix';
         gid('dot-1').className = 'part-dot done';
         gid('dot-2').className = 'part-dot active';
@@ -834,7 +834,7 @@
     gid('intro-emoji').textContent    = '🧩';
     gid('intro-title').textContent    = 'Position Memory Matrix';
     gid('intro-subtitle').textContent = 'Remember numbers in a 4×4 grid';
-    gid('intro-desc').textContent     = 'A 4×4 grid filled with numbers (1–16) will appear for 5 seconds. Memorize the layout, then reproduce it.';
+    gid('intro-desc').textContent     = 'A 4×4 grid filled with numbers (1–16) will appear for 10 seconds. Memorize the layout, then reproduce it.';
     gid('topbar-part-label').textContent = 'Part 1: Numeric Matrix';
     gid('dot-1').className = 'part-dot active';
     gid('dot-2').className = 'part-dot';
