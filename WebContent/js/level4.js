@@ -146,7 +146,7 @@ function startPart(part) {
     }
     renderMatrixDisplay();
     showState('state-showing');
-    startTimer(5, transitionToInput);
+    startTimer(10, transitionToInput);
 }
 
 function transitionToInput() {
@@ -292,7 +292,7 @@ function setupIntroForPart2() {
     $('intro-emoji').textContent    = '🔤';
     $('intro-title').textContent    = 'Alphanumeric Matrix';
     $('intro-subtitle').textContent = 'Numbers & letters — three cells will be hidden.';
-    $('intro-desc').textContent     = 'A 5×5 grid filled with numbers and letters appears for 5 seconds. Three cells will be blank — fill them in correctly.';
+    $('intro-desc').textContent     = 'A 5×5 grid filled with numbers and letters appears for 10 seconds. Three cells will be blank — fill them in correctly.';
     $('topbar-part-label').textContent = 'Part 2: Alphanumeric Matrix';
     $('dot-1').className = 'part-dot done';
     $('dot-2').className = 'part-dot active';
@@ -309,7 +309,7 @@ function init() {
     $('intro-emoji').textContent    = '🧩';
     $('intro-title').textContent    = 'Position Memory Matrix';
     $('intro-subtitle').textContent = 'Remember numbers in a 4×4 grid';
-    $('intro-desc').textContent     = 'A 4×4 grid filled with numbers (1–16) will appear for 5 seconds. Memorize the layout, then reproduce it.';
+    $('intro-desc').textContent     = 'A 4×4 grid filled with numbers (1–16) will appear for 10 seconds. Memorize the layout, then reproduce it.';
     $('topbar-part-label').textContent = 'Part 1: Numeric Matrix';
     $('dot-1').className = 'part-dot active';
     $('dot-2').className = 'part-dot';
