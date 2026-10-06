@@ -184,8 +184,8 @@ public class SaveProgressServlet extends HttpServlet {
             }
             
             String jsonResponse = String.format(
-                "{\"status\":\"success\",\"score\":%d,\"unlockedLevel\":%d,\"gamesPlayed\":%d,\"streak\":%d,\"bestStreak\":%d,\"bestScores\":%s,\"bestTimes\":%s,\"stars\":%s}",
-                finalScore, finalUnlockedLevel, finalGamesPlayed, finalStreak, finalBestStreak,
+                "{\"status\":\"success\",\"score\":%d,\"unlockedLevel\":%d,\"gamesPlayed\":%d,\"streak\":%d,\"bestStreak\":%d,\"hints\":%d,\"bestScores\":%s,\"bestTimes\":%s,\"stars\":%s}",
+                finalScore, finalUnlockedLevel, finalGamesPlayed, finalStreak, finalBestStreak, finalHints,
                 toJsonIntArray(mergedScores), toJsonStringArray(mergedTimes), toJsonStringArray(mergedStars)
             );
             
@@ -258,9 +258,32 @@ public class SaveProgressServlet extends HttpServlet {
     }
 
     private String pickBestTime(String t1, String t2) {
-        if (t1 == null || t1.equals("-") || t1.equals("--") || t1.isEmpty()) return (t2 != null && !t2.isEmpty()) ? t2 : "-";
-        if (t2 == null || t2.equals("-") || t2.equals("--") || t2.isEmpty()) return t1;
-        return t1; // keep existing non-empty time
+        boolean t1Empty = (t1 == null || t1.equals("-") || t1.equals("--") || t1.trim().isEmpty());
+        boolean t2Empty = (t2 == null || t2.equals("-") || t2.equals("--") || t2.trim().isEmpty());
+        if (t1Empty) return t2Empty ? "-" : t2;
+        if (t2Empty) return t1;
+        // Pick shortest (fastest) time
+        return parseTimeSeconds(t1) <= parseTimeSeconds(t2) ? t1 : t2;
+    }
+
+    private int parseTimeSeconds(String t) {
+        if (t == null || t.equals("-")) return Integer.MAX_VALUE;
+        try {
+            int total = 0;
+            String cleaned = t.trim();
+            if (cleaned.contains("m")) {
+                String[] parts = cleaned.replace("s", "").split("m");
+                total = Integer.parseInt(parts[0].trim()) * 60;
+                if (parts.length > 1 && !parts[1].trim().isEmpty()) {
+                    total += Integer.parseInt(parts[1].trim());
+                }
+            } else {
+                total = Integer.parseInt(cleaned.replace("s", "").trim());
+            }
+            return total;
+        } catch (Exception e) {
+            return Integer.MAX_VALUE;
+        }
     }
 
     private String toJsonIntArray(int[] arr) {

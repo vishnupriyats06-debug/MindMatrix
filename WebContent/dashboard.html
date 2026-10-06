@@ -2181,10 +2181,10 @@
 
                     <!-- Profile Card -->
                     <div class="settings-card">
-                        <h3><span>👤</span> Edit Profile</h3>
-                        <div class="profile-form-group">
+                        <h3><span>👤</span> Profile Avatar</h3>
+                        <div class="profile-form-group" style="margin-bottom:0;">
                             <label>Profile Avatar</label>
-                            <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:10px 14px; margin-bottom:4px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:10px 14px;">
                                 <div style="display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="openAvatarModal()" title="Click to change avatar">
                                     <div id="settings-avatar-thumb-wrap" style="width:40px; height:40px; border-radius:50%; overflow:hidden; border:2px solid var(--accent-1); background:rgba(0,0,0,0.3); flex-shrink:0;">
                                         <img id="settings-avatar-thumb" src="images/avatars/female/avatar01.svg" alt="Avatar" style="width:100%; height:100%; object-fit:cover;" />
@@ -2199,19 +2199,6 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="profile-form-group">
-                            <label>Username</label>
-                            <input type="text" id="settings-username" placeholder="Your username" />
-                        </div>
-                        <div class="profile-form-group">
-                            <label>Email</label>
-                            <input type="email" id="settings-email" placeholder="your@email.com" />
-                        </div>
-                        <div class="profile-form-group">
-                            <label>New Password</label>
-                            <input type="password" id="settings-password" placeholder="Leave blank to keep current" />
-                        </div>
-                        <button class="btn-save">Save Changes</button>
                     </div>
 
                     <!-- Preferences Card -->
@@ -2285,13 +2272,6 @@
                     <!-- Danger Zone -->
                     <div class="settings-card">
                         <h3><span>⚠️</span> Account</h3>
-                        <div class="setting-row">
-                            <div>
-                                <div class="setting-label">Export Data</div>
-                                <div class="setting-value">Download your game history</div>
-                            </div>
-                            <button class="btn-save" style="padding:8px 16px;font-size:12px;">Export</button>
-                        </div>
                         <div class="setting-row">
                             <div>
                                 <div class="setting-label" style="color:var(--error)">Delete Account</div>
@@ -2960,8 +2940,10 @@ function fetchStateAndInit() {
 
                 document.getElementById('dd-name').textContent          = name;
                 document.getElementById('dd-email').textContent         = email;
-                document.getElementById('settings-username').value      = name;
-                document.getElementById('settings-email').value         = email;
+                var sU = document.getElementById('settings-username');
+                if (sU) sU.value = name;
+                var sE = document.getElementById('settings-email');
+                if (sE) sE.value = email;
 
                 // Smart merge between DB and LocalStorage to prevent losing client-side recorded progress
                 var local = loadLocalState();
@@ -3971,59 +3953,7 @@ function showGameResult(win) {
    SETTINGS AJAX INTEGRATION
    ══════════════════════════════════════════ */
 function hookEditProfile() {
-    const saveBtn = document.querySelector('.settings-card:first-child .btn-save');
-    if (!saveBtn) return;
-
-    saveBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const username = document.getElementById('settings-username').value.trim();
-        const email = document.getElementById('settings-email').value.trim();
-        const password = document.getElementById('settings-password').value.trim();
-
-        if (!username || !email) {
-            alert('Username and Email are required.');
-            return;
-        }
-
-        saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving...';
-
-        fetch('updateProfile', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                username: username,
-                email: email,
-                password: password
-            })
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                return response.text().then(text => { throw new Error(text || 'Error updating profile'); });
-            }
-        })
-        .then(data => {
-            alert('Profile updated successfully!');
-            // Update display values in header
-            document.getElementById('dd-name').textContent = data.username;
-            document.getElementById('dd-email').textContent = data.email;
-            userState.username = data.username;
-            userState.email = data.email;
-            updateAvatarUI(userState.avatarId || 1);
-            document.getElementById('settings-password').value = '';
-        })
-        .catch(err => {
-            alert('Failed to update profile: ' + err.message);
-        })
-        .finally(() => {
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'Save Changes';
-        });
-    });
+    // Edit profile inputs removed; avatar selection handled via avatar modal
 }
 
 function hookDeleteAccount() {
@@ -4055,20 +3985,7 @@ function hookDeleteAccount() {
 }
 
 function hookExportData() {
-    // Target the Export button in Danger Zone card
-    const exportBtn = document.querySelector('.settings-card:nth-child(4) .btn-save');
-    if (!exportBtn) return;
-
-    exportBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userState, null, 4));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `mindmatrix_stats_${userState.score}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
-    });
+    // Export data option removed
 }
 
 /* ══════════════════════════════════════════
