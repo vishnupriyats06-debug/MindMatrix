@@ -248,13 +248,23 @@
         }
         .cell-sub-num {
             font-size: 10px; font-weight: 900; color: var(--accent-3);
-            margin-top: 2px; line-height: 1;
+            margin-top: 1px; line-height: 1;
+        }
+        .cell-coords {
+            font-size: 8px; font-weight: 700; color: rgba(240, 244, 255, 0.45);
+            margin-top: 1px; line-height: 1; letter-spacing: -0.2px;
+        }
+        .cell-empty-dot {
+            color: rgba(255, 255, 255, 0.08); font-size: 14px;
         }
         .grid-7x7 .grid-cell {
             font-size: 14px; border-radius: 6px;
         }
         .grid-7x7 .cell-sub-num {
             font-size: 9px;
+        }
+        .grid-7x7 .cell-coords {
+            font-size: 7px;
         }
 
         /* ── Odd-Shape Interference Task ── */
@@ -674,7 +684,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (typeof initHintSystem === 'function') {
         initHintSystem(
-            () => !isLocked && (currentPart === 1 || currentPart === 2),
+            () => {
+                if (isLocked) return false;
+                if (currentPart === 1) {
+                    const questState = gid('state-p1-quest');
+                    return questState && questState.classList.contains('active');
+                } else if (currentPart === 2) {
+                    const inputState = gid('state-p2-input');
+                    return inputState && inputState.classList.contains('active');
+                }
+                return false;
+            },
             () => executeGlobalHint()
         );
     }
@@ -725,7 +745,9 @@ function loadPart1Round(roundNum) {
             const it = p1PlacedItems.find(i => i.r === r && i.c === c);
             if (it) {
                 cell.classList.add('occupied');
-                cell.innerHTML = `<span>${it.symbol}</span><span class="cell-sub-num">${it.num}</span>`;
+                cell.innerHTML = `<span>${it.symbol}</span><span class="cell-sub-num">#${it.num}</span><span class="cell-coords">R${r + 1},C${c + 1}</span>`;
+            } else {
+                cell.innerHTML = `<span class="cell-empty-dot">·</span>`;
             }
             gridEl.appendChild(cell);
         }
@@ -776,50 +798,36 @@ function generatePart1Grid(gridSize, itemCount, roundNum) {
 function generatePart1Questions(roundNum) {
     p1Questions = [];
 
-    // Q1: Direct association (Symbol -> Number)
+    // Q1: Direct Symbol -> Number recall
     const it1 = p1PlacedItems[0];
     p1Questions.push({
-        prompt: `What number belonged to ${it1.symbol}?`,
+        prompt: `What number was paired with ${it1.symbol}?`,
         answer: String(it1.num),
         options: generateNumOptions(it1.num)
     });
 
-    // Q2: Spatial position recall (Position -> Number)
+    // Q2: Spatial Position -> Symbol recall
     const it2 = p1PlacedItems[1];
     p1Questions.push({
-        prompt: `What number was at Row ${it2.r + 1}, Column ${it2.c + 1}?`,
-        answer: String(it2.num),
-        options: generateNumOptions(it2.num)
+        prompt: `Which symbol was located at Row ${it2.r + 1}, Column ${it2.c + 1}?`,
+        answer: it2.symbol,
+        options: generateSymOptions(it2.symbol)
     });
 
-    // Q3: Reverse recall (Symbol -> Number)
+    // Q3: Number -> Symbol reverse association
     const it3 = p1PlacedItems[2];
     p1Questions.push({
-        prompt: `What number belonged to ${it3.symbol}?`,
-        answer: String(it3.num),
-        options: generateNumOptions(it3.num)
+        prompt: `Which symbol was paired with number #${it3.num}?`,
+        answer: it3.symbol,
+        options: generateSymOptions(it3.symbol)
     });
 
-    // Q4: Multi-Step Spatial Relationship Question (Relative Item -> Number)
+    // Q4: Symbol -> Spatial Position recall
     const it4 = p1PlacedItems[3];
-    let relItem = p1PlacedItems.find(i => i.r === it4.r + 1 && i.c === it4.c);
-    let relPrompt = "";
-    if (relItem) {
-        relPrompt = `What number was directly below ${it4.symbol}?`;
-    } else {
-        relItem = p1PlacedItems.find(i => i.r === it4.r && i.c === it4.c + 1);
-        if (relItem) {
-            relPrompt = `What number was directly to the right of ${it4.symbol}?`;
-        } else {
-            relItem = p1PlacedItems[4] || p1PlacedItems[0];
-            relPrompt = `What number belonged to ${relItem.symbol}?`;
-        }
-    }
-
     p1Questions.push({
-        prompt: relPrompt,
-        answer: String(relItem.num),
-        options: generateNumOptions(relItem.num)
+        prompt: `At which grid position was ${it4.symbol} located?`,
+        answer: `Row ${it4.r + 1}, Column ${it4.c + 1}`,
+        options: generatePosOptions(it4.r + 1, it4.c + 1, p1GridSize)
     });
 }
 
@@ -828,7 +836,9 @@ function generateNumOptions(correctNum) {
     
     // Fill distractors from numbers placed on the grid
     if (typeof p1PlacedItems !== 'undefined' && p1PlacedItems.length > 0) {
-        const pool = p1PlacedItems.map(i => String(i.num)).sort(() => Math.random() - 0.5);
+        const pool = p1PlacedItems.map(i => String(i.num))
+                                  .filter(n => n !== String(correctNum))
+                                  .sort(() => Math.random() - 0.5);
         for (let n of pool) {
             opts.add(n);
             if (opts.size === 4) break;
@@ -837,7 +847,7 @@ function generateNumOptions(correctNum) {
 
     // Fallback if needed
     while (opts.size < 4) {
-        const randNum = String(Math.floor(Math.random() * 25) + 1);
+        const randNum = String(Math.floor(Math.random() * 14) + 1);
         opts.add(randNum);
     }
 
@@ -845,17 +855,41 @@ function generateNumOptions(correctNum) {
 }
 
 function generatePosOptions(correctR, correctC, gridSize) {
-    const opts = new Set([`Row ${correctR}, Col ${correctC}`]);
+    const correctStr = `Row ${correctR}, Column ${correctC}`;
+    const opts = new Set([correctStr]);
+
+    // Use positions of other placed items as distractors
+    if (typeof p1PlacedItems !== 'undefined' && p1PlacedItems.length > 0) {
+        const pool = p1PlacedItems.filter(i => !(i.r === correctR - 1 && i.c === correctC - 1))
+                                  .sort(() => Math.random() - 0.5);
+        for (let it of pool) {
+            opts.add(`Row ${it.r + 1}, Column ${it.c + 1}`);
+            if (opts.size === 4) break;
+        }
+    }
+
     while (opts.size < 4) {
         const r = Math.floor(Math.random() * gridSize) + 1;
         const c = Math.floor(Math.random() * gridSize) + 1;
-        opts.add(`Row ${r}, Col ${c}`);
+        opts.add(`Row ${r}, Column ${c}`);
     }
     return Array.from(opts).sort(() => Math.random() - 0.5);
 }
 
 function generateSymOptions(correctSym) {
     const opts = new Set([correctSym]);
+
+    // Use symbols actually placed on the grid as distractors
+    if (typeof p1PlacedItems !== 'undefined' && p1PlacedItems.length > 0) {
+        const pool = p1PlacedItems.map(i => i.symbol)
+                                  .filter(s => s !== correctSym)
+                                  .sort(() => Math.random() - 0.5);
+        for (let s of pool) {
+            opts.add(s);
+            if (opts.size === 4) break;
+        }
+    }
+
     const pool = [...SYMBOLS_POOL].sort(() => Math.random() - 0.5);
     for (let s of pool) {
         opts.add(s);
@@ -1001,14 +1035,14 @@ function onPart1AnswerSubmitted(selected, correct, btnEl) {
         }, 800);
     } else {
         btnEl.classList.add('wrong');
-        showToast('p1-quest-toast', '❌ Incorrect! Restarting Part 1 with a new challenge…', false);
+        showToast('p1-quest-toast', `❌ Incorrect! Retrying Round ${p1Round} with a fresh matrix…`, false);
 
         document.querySelectorAll('#p1-quest-options .opt-btn').forEach(b => {
             if (b.textContent === correct) b.classList.add('correct');
         });
 
         setTimeout(() => {
-            loadPart1Round(1); // Restart ONLY Part 1 from Round 1
+            loadPart1Round(p1Round); // Retry current round with fresh matrix
         }, 1600);
     }
 }
@@ -1218,10 +1252,10 @@ function submitPart2Seq() {
             }
         }, 900);
     } else {
-        showToast('p2-input-toast', '❌ Incorrect Transformation! Restarting Part 2…', false);
+        showToast('p2-input-toast', `❌ Incorrect Transformation! Retrying Round ${p2Round}…`, false);
 
         setTimeout(() => {
-            loadPart2Round(1); // Restart ONLY Part 2 from Round 1
+            loadPart2Round(p2Round); // Retry current round
         }, 1600);
     }
 }
@@ -1233,17 +1267,33 @@ function executeGlobalHint() {
     if (isLocked) return false;
 
     if (currentPart === 1) {
-        // Part 1 Hint: provides a spatial or item anchor clue
-        if (p1PlacedItems.length > 0) {
-            const anchor = p1PlacedItems[0];
-            showToast('p1-quest-toast', `💡 Clue: Pay attention to ${anchor.symbol} at Row ${anchor.r + 1}, Col ${anchor.c + 1}.`, true);
+        // Part 1 Hint: reveals and highlights the correct answer button for the active question
+        if (p1Questions && p1Questions[p1CurrentQuestionIdx]) {
+            const currentQ = p1Questions[p1CurrentQuestionIdx];
+            const optBtns = document.querySelectorAll('#p1-quest-options .opt-btn');
+            optBtns.forEach(btn => {
+                if (btn.textContent.trim() === currentQ.answer.trim()) {
+                    btn.classList.add('correct');
+                    btn.style.boxShadow = '0 0 16px rgba(52, 211, 153, 0.85)';
+                    btn.style.borderColor = '#34d399';
+                }
+            });
+            showToast('p1-quest-toast', `💡 Hint: The correct answer is "${currentQ.answer}"!`, true);
             return true;
         }
     } else if (currentPart === 2) {
-        // Part 2 Hint: reveals first rule instruction
-        if (p2Rules.length > 0) {
-            showToast('p2-input-toast', `💡 Clue: Step 1: ${p2Rules[0].text}`, true);
-            return true;
+        // Part 2 Hint: reveals and inputs the next correct token in sequence
+        if (p2ExpectedSeq && p2ExpectedSeq.length > 0) {
+            if (p2UserSeq.length < p2ExpectedSeq.length) {
+                const nextTok = p2ExpectedSeq[p2UserSeq.length];
+                p2UserSeq.push(nextTok);
+                renderUserSeq();
+                showToast('p2-input-toast', `💡 Hint: Inserted next token "${nextTok}"!`, true);
+                return true;
+            } else {
+                showToast('p2-input-toast', `💡 Sequence is complete! Click Submit Transformed Sequence.`, true);
+                return true;
+            }
         }
     }
     return false;
