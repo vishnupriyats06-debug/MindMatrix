@@ -70,10 +70,15 @@ public class DBConnection {
                 }
             }
 
-            // 2. Ensure avatar_id exists in users table (default 1)
+            // 2. Ensure avatar_id and created_at exist in users table
             try (ResultSet rs = meta.getColumns(null, null, "users", "avatar_id")) {
                 if (!rs.next()) {
                     stmt.executeUpdate("ALTER TABLE users ADD COLUMN avatar_id INT NOT NULL DEFAULT 0");
+                }
+            }
+            try (ResultSet rs = meta.getColumns(null, null, "users", "created_at")) {
+                if (!rs.next()) {
+                    stmt.executeUpdate("ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
                 }
             }
 
@@ -87,9 +92,10 @@ public class DBConnection {
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
             );
 
-            // 4. Clean up any invalid future activity records beyond today
+            // 4. Clean up any invalid future activity records beyond today and ensure 0-game users have 0 streak
             stmt.executeUpdate("DELETE FROM user_activity_dates WHERE activity_date > CURRENT_DATE()");
             stmt.executeUpdate("UPDATE user_progress SET last_played_date = CURRENT_DATE() WHERE last_played_date > CURRENT_DATE()");
+            stmt.executeUpdate("UPDATE user_progress SET streak = 0, best_streak = 0 WHERE games_played = 0");
 
             // 5. Recalculate streak for active users based on genuine activity dates
             String findUsersSql = "SELECT user_id FROM user_progress WHERE games_played > 0 OR unlocked_level > 1";

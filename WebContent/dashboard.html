@@ -2262,7 +2262,7 @@
                     <!-- Stats Card -->
                     <div class="settings-card">
                         <h3><span>📊</span> Your Stats</h3>
-                        <div class="setting-row"><div class="setting-label">Member Since</div><div class="setting-value">July 2026</div></div>
+                        <div class="setting-row"><div class="setting-label">Member Since</div><div class="setting-value" id="stats-member-since">October 2026</div></div>
                         <div class="setting-row"><div class="setting-label">Total Games Played</div><div class="setting-value" id="stats-games-played">0</div></div>
                         <div class="setting-row"><div class="setting-label">Total Score</div><div class="setting-value" id="stats-total-score">0</div></div>
                         <div class="setting-row"><div class="setting-label">Best Streak</div><div class="setting-value" id="stats-best-streak">0 days</div></div>
@@ -2782,7 +2782,8 @@ var userState = {
     bestTimes:       DEFAULT_TIMES.slice(),
     stars:           DEFAULT_STARS.slice(),
     lastPlayedDate:  "",
-    activityDates:   []
+    activityDates:   [],
+    memberSince:     ""
 };
 
 function safeParseArray(dataVal, defaultArray) {
@@ -2817,6 +2818,7 @@ function saveLocalState(state) {
         localStorage.setItem('mm_' + u + '_stars', JSON.stringify(state.stars));
         if (state.lastPlayedDate) localStorage.setItem('mm_' + u + '_last_played_date', state.lastPlayedDate);
         if (state.activityDates) localStorage.setItem('mm_' + u + '_activity_dates', JSON.stringify(state.activityDates));
+        if (state.memberSince) localStorage.setItem('mm_' + u + '_member_since', state.memberSince);
 
         // Sync generic keys for level pages
         localStorage.setItem('mm_score', state.score);
@@ -2831,6 +2833,7 @@ function saveLocalState(state) {
         localStorage.setItem('mm_stars', JSON.stringify(state.stars));
         if (state.lastPlayedDate) localStorage.setItem('mm_last_played_date', state.lastPlayedDate);
         if (state.activityDates) localStorage.setItem('mm_activity_dates', JSON.stringify(state.activityDates));
+        if (state.memberSince) localStorage.setItem('mm_member_since', state.memberSince);
     } catch(e) {}
 }
 
@@ -2853,6 +2856,7 @@ function loadLocalState() {
         var avatarId = parseInt(localStorage.getItem('mm_' + u + '_avatar_id') || '0', 10);
         var lastPlayedDate = localStorage.getItem('mm_' + u + '_last_played_date') || "";
         var activityDates = safeParseArray(localStorage.getItem('mm_' + u + '_activity_dates'), []);
+        var memberSince = localStorage.getItem('mm_' + u + '_member_since') || localStorage.getItem('mm_member_since') || "";
 
         var bestScores = safeParseArray(localStorage.getItem('mm_' + u + '_best_scores'), Array(20).fill(0));
         var bestTimes = sanitiseTimes(safeParseArray(localStorage.getItem('mm_' + u + '_best_times'), DEFAULT_TIMES));
@@ -2871,7 +2875,8 @@ function loadLocalState() {
             bestTimes: bestTimes,
             stars: stars,
             lastPlayedDate: lastPlayedDate,
-            activityDates: activityDates
+            activityDates: activityDates,
+            memberSince: memberSince
         };
     } catch(e) {
         return null;
@@ -2959,16 +2964,33 @@ function fetchStateAndInit() {
                 var localBestStreak = (local && local.bestStreak) ? local.bestStreak : 0;
 
                 userState.score = Math.max(dbScore, localScore);
-                var fetchedStreak = (data.streak !== undefined && data.streak !== null) ? parseInt(data.streak, 10) : (local ? local.streak : 0);
-                userState.streak = Math.max(1, fetchedStreak);
                 userState.unlockedLevel = Math.max(dbUnlocked, localUnlocked);
                 userState.gamesPlayed = Math.max(dbGames, localGames);
-                userState.bestStreak = Math.max(dbBestStreak, localBestStreak, userState.streak);
-                var todayStr = getLocalDateString();
-                userState.lastPlayedDate = data.lastPlayedDate || todayStr;
-                userState.activityDates = Array.isArray(data.activityDates) && data.activityDates.length > 0 ? data.activityDates : (local ? local.activityDates : []);
-                if (userState.activityDates.indexOf(todayStr) === -1) {
-                    userState.activityDates.push(todayStr);
+
+                // Streak & Activity logic:
+                // Rule: If user has 0 games played and 0 score, streak and bestStreak MUST be 0!
+                if (userState.gamesPlayed === 0 && userState.score === 0) {
+                    userState.streak = 0;
+                    userState.bestStreak = 0;
+                    userState.lastPlayedDate = "";
+                    userState.activityDates = [];
+                } else {
+                    var fetchedStreak = (data.streak !== undefined && data.streak !== null) ? parseInt(data.streak, 10) : (local ? local.streak : 0);
+                    userState.streak = Math.max(0, fetchedStreak);
+                    userState.bestStreak = Math.max(dbBestStreak, localBestStreak, userState.streak);
+                    userState.lastPlayedDate = data.lastPlayedDate || (local ? local.lastPlayedDate : "") || "";
+                    userState.activityDates = Array.isArray(data.activityDates) && data.activityDates.length > 0 ? data.activityDates : (local && Array.isArray(local.activityDates) ? local.activityDates : []);
+                }
+
+                // Member Since handling
+                if (data.memberSince) {
+                    userState.memberSince = data.memberSince;
+                } else if (local && local.memberSince) {
+                    userState.memberSince = local.memberSince;
+                } else {
+                    var now = new Date();
+                    var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                    userState.memberSince = monthNames[now.getMonth()] + " " + now.getFullYear();
                 }
 
                 var dbAvatarId = (data.avatarId !== undefined && data.avatarId !== null) ? parseInt(data.avatarId, 10) : 0;
@@ -3061,6 +3083,17 @@ function fetchStateAndInit() {
             var local = loadLocalState();
             if (local) {
                 userState = local;
+                if (userState.gamesPlayed === 0 && userState.score === 0) {
+                    userState.streak = 0;
+                    userState.bestStreak = 0;
+                    userState.lastPlayedDate = "";
+                    userState.activityDates = [];
+                }
+                if (!userState.memberSince) {
+                    var now = new Date();
+                    var monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                    userState.memberSince = monthNames[now.getMonth()] + " " + now.getFullYear();
+                }
                 if (Array.isArray(userState.stars)) {
                     for (var k = 0; k < 20; k++) {
                         var st = String(userState.stars[k] || '');
@@ -3196,6 +3229,10 @@ function updateUI() {
     document.getElementById('stats-total-score').textContent = userState.score.toLocaleString();
     document.getElementById('stats-best-streak').textContent = displayBestStreak + (displayBestStreak === 1 ? " day" : " days");
     document.getElementById('stats-levels-completed').textContent = userState.completedLevels + " / 20";
+    var memSinceEl = document.getElementById('stats-member-since');
+    if (memSinceEl && userState.memberSince) {
+        memSinceEl.textContent = userState.memberSince;
+    }
 
     buildLevels();
     buildWeekTracker();

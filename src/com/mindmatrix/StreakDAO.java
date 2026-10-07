@@ -124,7 +124,11 @@ public class StreakDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     int dbBest = rs.getInt("best_streak");
-                    longestStreak = Math.max(longestStreak, dbBest);
+                    if (!dates.isEmpty()) {
+                        longestStreak = Math.max(longestStreak, dbBest);
+                    } else {
+                        longestStreak = 0;
+                    }
                     Date ld = rs.getDate("last_played_date");
                     if (ld != null) {
                         LocalDate parsedLd = ld.toLocalDate();

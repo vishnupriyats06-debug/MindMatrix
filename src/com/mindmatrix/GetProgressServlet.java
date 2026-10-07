@@ -73,6 +73,8 @@ public class GetProgressServlet extends HttpServlet {
             activityDate = java.time.LocalDate.now();
         }
 
+        String memberSince = "";
+
         try (Connection conn = DBConnection.getConnection()) {
             streakInfo = StreakDAO.computeStreak(conn, userId, activityDate);
 
@@ -87,8 +89,8 @@ public class GetProgressServlet extends HttpServlet {
                 }
             }
 
-            // Fetch username, email, and avatar_id from users table
-            String userSql = "SELECT username, email, avatar_id FROM users WHERE id = ?";
+            // Fetch username, email, avatar_id, and created_at from users table
+            String userSql = "SELECT username, email, avatar_id, created_at FROM users WHERE id = ?";
             try (PreparedStatement userStmt = conn.prepareStatement(userSql)) {
                 userStmt.setInt(1, userId);
                 try (ResultSet uRs = userStmt.executeQuery()) {
@@ -103,6 +105,21 @@ public class GetProgressServlet extends HttpServlet {
                             avatarId = dbAvatar;
                         } else {
                             avatarId = 0;
+                        }
+
+                        java.sql.Timestamp createdAtTs = null;
+                        try {
+                            createdAtTs = uRs.getTimestamp("created_at");
+                        } catch (Exception ignored) {}
+
+                        if (createdAtTs != null) {
+                            java.time.LocalDateTime ldt = createdAtTs.toLocalDateTime();
+                            String mName = ldt.getMonth().getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.ENGLISH);
+                            memberSince = mName + " " + ldt.getYear();
+                        } else {
+                            java.time.LocalDate now = java.time.LocalDate.now();
+                            String mName = now.getMonth().getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.ENGLISH);
+                            memberSince = mName + " " + now.getYear();
                         }
                     }
                 }
@@ -155,6 +172,10 @@ public class GetProgressServlet extends HttpServlet {
 
         int streak = (streakInfo != null) ? streakInfo.currentStreak : 0;
         int bestStreak = (streakInfo != null) ? streakInfo.longestStreak : 0;
+        if (gamesPlayed == 0) {
+            streak = 0;
+            bestStreak = 0;
+        }
         List<String> activityDates = (streakInfo != null) ? streakInfo.activityDates : java.util.Collections.emptyList();
 
         String json = String.format(
@@ -168,6 +189,7 @@ public class GetProgressServlet extends HttpServlet {
             "\"bestStreak\":%d," +
             "\"hints\":%d," +
             "\"avatarId\":%d," +
+            "\"memberSince\":\"%s\"," +
             "\"bestScores\":%s," +
             "\"bestTimes\":%s," +
             "\"stars\":%s," +
@@ -183,6 +205,7 @@ public class GetProgressServlet extends HttpServlet {
             bestStreak,
             hints,
             avatarId,
+            escapeJson(memberSince),
             bestScores,
             bestTimes,
             stars,
